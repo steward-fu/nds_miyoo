@@ -1152,7 +1152,7 @@ SDL_JoystickQuit(void)
     }
 
     /* Quit drivers in reverse order to avoid breaking dependencies between drivers */
-    for(i = SDL_arraysize(SDL_joystick_drivers) - 1; i >= 0; --i) {
+    for(i = (int)SDL_arraysize(SDL_joystick_drivers) - 1; i >= 0; --i) {
         SDL_joystick_drivers[i]->Quit();
     }
 

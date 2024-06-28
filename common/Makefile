@@ -1,7 +1,11 @@
-TARGET   = libdetour.so
+TARGET   = libcommon.so
 LDFLAGS += -fPIC
 LDFLAGS += -shared
-SRC      = hook.c
+SRC      = log.c cfg.c file.c
+
+ifneq (ut,$(MOD))
+    SRC += neon_memcpy.S
+endif
 
 .PHONY: all
 all:

@@ -1,0 +1,116 @@
+NDS Emulator (DraStic) for Miyoo Handheld (https://github.com/steward-fu/nds)
+
+v1.8 (2024/02/02)
+    1. Improved video performance up to 18% (tested with Final Fantasy III).
+    2. Used dummy OpenGL ES libraries to save RAM (25MB RAM we can use).
+    3. Added more background images (images contributed from 河馬, 路人乙 and 雯瑾文曦)
+    4. Added customized savestate path support.
+    5. Added unit test framework (Unity project).
+    6. Added automatic screen resolution setting (640x480 or 752x560) in launch.sh file.
+    7. Added the speed setting for fast forward in customized menu.
+    8. Added FunKey S, RG Nano and F(x)tec Pro1 (Qx1000) support.
+    9. User can change the background image on both customized and DraStic menus.
+    10. Refined the notification message for background image (shows the folder name instead of index).
+    11. Fixed Display mode 0 and display mode 1 screens are inverted.
+
+v1.7 (2023/12/02)
+    1. Added 752x560 resolution support.
+    2. Added more background images with 752x560 pixels (images contributed from 河馬)
+    3. Added more background images with 640x480 pixels (images contributed from 路人乙)
+    4. Added more background images with 640x480 pixels (images contributed from Koriki)
+    5. Added more settings to the customized menu.
+    6. Added auto-save and auto-load support.
+    7. Added key rotation support. (0, 90, 270)
+    8. Added new book-style display mode.
+    9. Added new setting “half_vol” in settings.json file.
+    10. Added new setting “auto-slot” in settings.json file.
+    11. Added lower speed support for stylus.
+    12. Refined NEON instructions to improve performance.
+    13. Aligned keymap with Onion system.
+    14. Fixed repeating key issue after switch to stylus mode.
+
+v1.6 (2023/10/22)
+    1. Improved video performance up to 20%. (only works in Keypad mode)
+    2. Added multi-lingual support.
+    3. Added customized DraStic menu support. (replace original DraStic menu)
+    4. Added splash app for the first-run. (images contributed from 河馬)
+    5. Added DraStic menu’s background image. (images contributed from 河馬)
+    6. Added “menu_c0”, “menu_c1” and “menu_c2” settings in resources/settings.json.
+    7. Added “cust_menu”, “lang” and “dpad_90d” settings in resources/settings.json.
+    8. Put the stylus pen at central point when turns the stylus on.
+    9. Refined launch.sh file. (added splash app and adjusted sync commands)
+    10. Refined savestate settings. (disabled both “Compress savestate” and “Backup in savestate”)
+
+v1.5 (2023/10/11)
+    1. Fixed the pen cannot be shown properly on display mode 2 and 3.
+    2. Added swap_l1l2 and swap_r1r2 settings in resources/settings.json file.
+    3. Added filter support. (blur and pixel filters)
+    4. Refined hotkeys.
+
+v1.4 (2023/10/07)
+    1. Fixed the stylus pen cannot be moved in diagonal direction.
+    2. Fixed the pen cannot be shown properly on both normal and high resolution mode.
+    3. Fixed the crash issue when switch the display mode.
+    4. Added customized menu support.
+    5. Added Pikachu wallpaper images. (images contributed from 河馬)
+    6. Added font rendering support. (resources/font/font.ttf)
+    7. Added overlay support.
+    8. Added overlay images. (obtained from common-overlays GitHub)
+    9. Added mincpu setting in resources/settings.json file.
+    10. Changed the alpha setting from 0~9 level down to 0~7 level.
+    11. Changed the pen size on high resolution mode.
+    12. Removed digital images and digital display mode.
+    13. Refined hotkeys.
+
+v1.3 (2023/09/30)
+    1. Improved audio performance.
+    2. Removed the audio feed and delay settings from resources/settings.json file.
+    3. Added ARM NEON instruction for nenon_memcpy() function for audio and video processing.
+    4. Added high resolution 3D support.
+    5. Added new background images for high resolution 3D mode. (images contributed from 河馬)
+    6. Added “book style” display mode.
+    7. Added new background images for “book style” mode. (images contributed from 河馬)
+    8. Added alpha settings for both 00 and 01 display modes.
+    9. Added the maximum CPU clock setting in resources/settings.json file.
+    10. Added adjustable position support for both 00 and 01 display modes.
+    11. Added adjustable position support for stylus pen (shows on screen 0 or screen 1).
+
+v1.2 (2023/09/25)
+    1. Added both audio feed and audio delay settings for user to fine-tune in resources/settings.json file.
+    2. Fine-tuned audio latency by setting feed=768 and delay=1000 in resources/settings.json file.
+
+v1.1 (2023/09/24)
+    1. Fixed background pop noise. (happened every second)
+    2. Set frameskip value as 4 in order to improve latency issue. (DraStic’s default value)
+
+v1.0 (2023/09/23)
+    1. Improved sound performance.
+    2. Built-in 13 display modes. (images contributed from 河馬)
+    3. Built-in 4 customized wallpapers. (images contributed from 河馬)
+    4. Built-in 6 customized images for stylus pens.
+    5. Built-in overclock functionality.
+    6. Customized the direction for stylus pen.
+    7. Customized the movement speed for stylus pen.
+    8. Customized the DraStic logo. (images contributed from 河馬)
+    9. Fine-tuned swap ration in launch.sh file.
+    10. Removed swap file (ram.img) because the system has cachefile already.
+
+RC4 (2023/09/11)
+    1. Improved the sound performance.
+
+RC3 (2023/09/11)
+    1. Fixed the last button user pressed will be reported again when VOL-/VOL+ is pressed.
+    2. Fixed the issue of 1.5 times speed by setting the frameskip to 2 (4 by default).
+    3. Fine-tuned the sound library.
+
+RC2 (2023/09/10) 
+    1. Added "noaudiofix: 1" option in config.json for Stock system
+    2. Added "stop_audioserver.sh" command in launch.sh for Onion system
+
+RC1 (2023/09/10)
+    1. Implemented the customized version of alsa library for DraStic emulator.
+    2. User can change the background image.
+    3. User can change the image of stylus pen.
+    4. User can change the stretch mode by pressing SELECT+START
+    5. User can swap the screen by pressing R2
+    6. User can use stylus pen by pressing L2

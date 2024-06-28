@@ -530,7 +530,7 @@ QueueCmdDrawLines(SDL_Renderer *renderer, const SDL_FPoint *points, const int co
 }
 
 static int
-QueueCmdFillRects(SDL_Renderer *renderer, const SDL_FRect *rects, const int count)
+QueueCmdFillRects(SDL_Renderer *renderer, SDL_FRect *rects, const int count)
 {
     SDL_RenderCommand *cmd;
     int retval = -1;

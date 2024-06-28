@@ -1,23 +1,11 @@
 export MOD=a30
 export PATH=/opt/a30/bin:$(shell echo $$PATH)
 export CROSS=/opt/a30/bin/arm-linux-
-export CC=${CROSS}gcc
-export AR=${CROSS}ar
-export AS=${CROSS}as
-export LD=${CROSS}ld
-export CXX=${CROSS}g++
 export HOST=arm-linux
     
-$(shell cd sdl2 && rm -rf libEGL.so libGLESv2.so)
 $(shell sed -i 's/"xv":30000/"xv":80000/g' drastic/resources/settings.json)
 $(shell sed -i 's/"yv":35000/"yv":85000/g' drastic/resources/settings.json)
 $(shell sed -i 's/"maxcpu":1550/"maxcpu":1500/g' drastic/resources/settings.json)
-
-SDL2_CFG+= --enable-loadso
-SDL2_CFG+= --enable-joystick
-SDL2_CFG+= --disable-video-opengl
-SDL2_CFG+= --disable-video-opengles
-SDL2_CFG+= --disable-video-opengles2
 
 include Makefile.mk
 

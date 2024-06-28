@@ -1,5 +1,5 @@
-# NDS Emulator (DraStic) for Miyoo Mini (Plus), TRIMUI SMART and F(x)tec Pro1 (QX1000)
-![image](images/mmiyoo_640/mm.jpg) ![image](images/mmiyoo_640/mmp.jpg) ![image](images/mmiyoo_752/mm.jpg) ![image](images/trimui_320/trimui.jpg) ![image](images/qx1000_1080/pro1.jpg)  
+# NDS Emulator (DraStic) for Miyoo Handheld
+![image](images/mini_640x480/mm.jpg) ![image](images/mini_640x480/mmp.jpg) ![image](images/mini_752x560/mm.jpg) ![image](images/a30_640x480/main.jpg)  
 
 &nbsp;
 
@@ -11,18 +11,15 @@
  - Supported Devices
    -  [Miyoo Mini (Plus)](#miyoo-mini-plus)
    -  [Miyoo Mini v4](#miyoo-mini-v4)
-   -  [TRIMUI SMART](#trimui-smart)
-   -  [F(x)tec Pro1 (QX1000)](#fxtec-pro1-qx1000)
 
 &nbsp;
 
 ## Introduction
-This repository hosts all of resources, which include SDL2 and ALSA source code, needed for supported devices. The NDS emulator I used is DraStic emulator (close-source) which extracted from RetroPie package and the ELF binary is in ARM32 format, not AArch64. The DraStic version is v2.5.0.4 and sha1 is ae9c215bdea88359cbcb3c259ce0d60a1f59986c. In this porting, I focus on SDL2 and ALSA libraries and heavily customized on DraStic emulator. Therefore, there are some hooking points used in this emulator. To ensure it works properly, please use the correct DraStic emulator as mentioned before. It is welcome to file any suggestion or issue on this GitHub but I must say that I cannot make sure whether it can be fixed or included in the release build. Since the SDL2 library used in this repository is heavily customized, therefore, it is not recommended for generic use-case on any supported device.  
+This repository hosts all of resources, which include SDL2 and ALSA source code, needed for supported devices. The NDS emulator I used is DraStic emulator (closed-source) which was extracted from RetroPie package and the ELF binary is in ARM32 format, not AArch64. The DraStic version is v2.5.0.4 and sha1 is ae9c215bdea88359cbcb3c259ce0d60a1f59986c. In this porting, I focused on SDL2 and ALSA libraries and heavily customized on DraStic emulator. So, there are some hooking points used in this emulator and to ensure it works properly, please use the correct DraStic emulator as mentioned before. It is welcome to file any suggestion or issue on this GitHub but I must say that I cannot make sure whether it can be fixed or included in the release build. Since the SDL2 library used in this repository is heavily customized, therefore, it is not recommended for generic use-case on any supported device.  
 
 &nbsp;
 
-## Terminology
-|  Term                                | Description                                                                                                                                                                     |
+|  Terminology                         | Description                                                                                                                                                                     |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Keypad Mode                          | This is the default mode and it is so-called gamepad mode.                                                                                                                      |
 | Stylus, Touch, Touch Pen or Pen Mode | It is touch mode. In this mode, the touch pen shows on either top or bottom screen. DPAD is used to move touch pen and A button acts touch point.                               |
@@ -35,48 +32,23 @@ This repository hosts all of resources, which include SDL2 and ALSA source code,
 &nbsp;
 
 ## Building
-### How to prepare the build environment (Docker)
+### How to prepare the docker environment
 ```
-$ sudo docker build -t mmiyoo .
-```
-
-### How to delete the build environment (Docker)
-```
-$ sudo docker image rm mmiyoo
+$ sudo docker build -t miyoo .
 ```
 
-### How to build code for Miyoo Mini (Plus)
+### How to delete the docker environment
 ```
-$ sudo docker run -it --rm -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd):/nds mmiyoo /bin/bash
+$ sudo docker image rm miyoo
+```
+
+### How to build source code in docker environment
+```
+$ sudo docker run -it --rm -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd):/nds miyoo /bin/bash
 $ cd /nds
-$ make cfg
-$ make
-$ make rel
-```
-
-### How to build code for TRIMUI SMART
-```
-$ sudo docker run -it --rm -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd):/nds mmiyoo /bin/bash
-$ cd /nds
-$ make cfg MOD=trimui
-$ make
-$ make rel MOD=trimui
-```
-
-### How to build code for F(x)tec Pro1 (QX1000)
-```
-$ make cfg MOD=qx1000
-$ make
-```
-P.S. runs the commands on Sailfish OS.
-
-&nbsp;
-
-## Unit Test
-### How to build and run unit test
-```
-$ make cfg MOD=unittest
-$ make MOD=unittest
+$ make -f Makefile.mini clean
+$ make -f Makefile.mini
+$ make -f Makefile.mini rel
 ```
 
 &nbsp;
@@ -96,142 +68,142 @@ Miyoo Mini 掌機 QQ 群 (742661857)
 
 ## Supported Devices
 ### Miyoo Mini (Plus)
-![image](images/mmiyoo_640/mm.jpg) ![image](images/mmiyoo_640/mmp.jpg)  
+![image](images/mini_640x480/mm.jpg) ![image](images/mini_640x480/mmp.jpg)  
 
 #### Layout 0, Screen0: 640x480, Screen1: 170x128  
-| ![image](images/mmiyoo_640/dis_0.png) |
+| ![image](images/mini_640x480/dis_0.png) |
 |-|
 
 &nbsp;
 
 #### Layout 1, Screen0: 640x480, Screen1: 256x192  
-| ![image](images/mmiyoo_640/dis_1.png) |
+| ![image](images/mini_640x480/dis_1.png) |
 |-|
 
 &nbsp;
 
 #### Layout 2, Screen0: 512x384, Image: bg_s0.png  
-| ![image](images/mmiyoo_640/dis_2.png) |
+| ![image](images/mini_640x480/dis_2.png) |
 |-|
 
 &nbsp;
 
 #### Layout 3, Screen0: 640x480  
-| ![image](images/mmiyoo_640/dis_3.png) |
+| ![image](images/mini_640x480/dis_3.png) |
 |-|
 
 &nbsp;
 
 #### Layout 4, Screen0: 256x192, Screen1: 256x192, Image: bg_v0.png  
-| ![image](images/mmiyoo_640/dis_4.png) |
+| ![image](images/mini_640x480/dis_4.png) |
 |-|
 
 &nbsp;
 
 #### Layout 5, Screen0: 320x240, Screen1: 320x240, Image: bg_v1.png  
-| ![image](images/mmiyoo_640/dis_5.png) |
+| ![image](images/mini_640x480/dis_5.png) |
 |-|
 
 &nbsp;
 
 #### Layout 6, Screen0: 256x192, Screen1: 256x192, Image: bg_h0.png  
-| ![image](images/mmiyoo_640/dis_6.png) |
+| ![image](images/mini_640x480/dis_6.png) |
 |-|
 
 &nbsp;
 
 #### Layout 7, Screen0: 320x240, Screen1: 320x240, Image: bg_h1.png  
-| ![image](images/mmiyoo_640/dis_7.png) |
+| ![image](images/mini_640x480/dis_7.png) |
 |-|
 
 &nbsp;
 
 #### Layout 8, Screen0: 480x360, Screen1: 160x120, Image: bg_vh_s0.png  
-| ![image](images/mmiyoo_640/dis_8.png) |
+| ![image](images/mini_640x480/dis_8.png) |
 |-|
 
 &nbsp;
 
 #### Layout 9, Screen0: 384x288, Screen1: 256x192, Image: bg_vh_s1.png  
-| ![image](images/mmiyoo_640/dis_9.png) |
+| ![image](images/mini_640x480/dis_9.png) |
 |-|
 
 &nbsp;
 
 #### Layout 10, Screen0: 384x288, Screen1: 256x192, Image: bg_vh_c0.png  
-| ![image](images/mmiyoo_640/dis_10.png) |
+| ![image](images/mini_640x480/dis_10.png) |
 |-|
 
 &nbsp;
 
 #### Layout 11, Screen0: 384x288, Screen1: 256x192, Image: bg_vh_c1.png  
-| ![image](images/mmiyoo_640/dis_11.png) |
+| ![image](images/mini_640x480/dis_11.png) |
 |-|
 
 &nbsp;
 
 #### Layout 12, Screen0: 427x320, Screen1: 427x320, Image: bg_hh0.png  
-| ![image](images/mmiyoo_640/dis_12.png) |
+| ![image](images/mini_640x480/dis_12.png) |
 |-|
 
 &nbsp;
 
 #### Layout 13, Screen0: 427x320, Screen1: 427x320, Image: bg_hh0.png  
-| ![image](images/mmiyoo_640/dis_13.png) |
+| ![image](images/mini_640x480/dis_13.png) |
 |-|
 
 &nbsp;
 
 #### Layout 14, Screen0: 512x384, Image: bg_hres0.png  
-| ![image](images/mmiyoo_640/hres_0.png) |
+| ![image](images/mini_640x480/hres_0.png) |
 |-|
 
 &nbsp;
 
 #### Layout 15, Screen0: 640x480
-| ![image](images/mmiyoo_640/hres_1.png) |
+| ![image](images/mini_640x480/hres_1.png) |
 |-|
 
 &nbsp;
 
 #### Video Filter: Pixel  
-| ![image](images/mmiyoo_640/filter_pixel.png) |
+| ![image](images/mini_640x480/filter_pixel.png) |
 |-|
 
 &nbsp;
 
 #### Video Filter: Blur  
-| ![image](images/mmiyoo_640/filter_blur.png) |
+| ![image](images/mini_640x480/filter_blur.png) |
 |-|
 
 &nbsp;
 
 #### DraStic Menu: Original  
-| ![image](images/mmiyoo_640/menu_2.png) |
+| ![image](images/mini_640x480/menu_2.png) |
 |-|
 
 &nbsp;
 
 #### DraStic Menu: Refined  
-| ![image](images/mmiyoo_640/menu_0.png) |
+| ![image](images/mini_640x480/menu_0.png) |
 |-|
 
 &nbsp;
 
 #### Cheat Menu: Original  
-| ![image](images/mmiyoo_640/menu_3.png) |
+| ![image](images/mini_640x480/menu_3.png) |
 |-|
 
 &nbsp;
 
 #### Cheat Menu: Refined  
-| ![image](images/mmiyoo_640/menu_1.png) |
+| ![image](images/mini_640x480/menu_1.png) |
 |-|
 
 &nbsp;
 
 #### Customized Menu  
-| ![image](images/mmiyoo_640/menu_4.png) |
+| ![image](images/mini_640x480/menu_4.png) |
 |-|
 ```
 Language:      Display language
@@ -411,258 +383,98 @@ Go to DraStic menu and then select "Restart Game".
 &nbsp;
 
 ### Miyoo Mini v4
-![image](images/mmiyoo_752/mm.jpg)  
+![image](images/mini_752x560/mm.jpg)  
 
 #### Layout 0, Screen0: 752x560, Screen1: 170x128  
-| ![image](images/mmiyoo_752/dis_0.png) |
+| ![image](images/mini_752x560/dis_0.png) |
 |-|
 
 &nbsp;
 
 #### Layout 1, Screen0: 752x560, Screen1: 256x192  
-| ![image](images/mmiyoo_752/dis_1.png) |
+| ![image](images/mini_752x560/dis_1.png) |
 |-|
 
 &nbsp;
 
 #### Layout 2, Screen0: 512x384, Image: bg_s0.png  
-| ![image](images/mmiyoo_752/dis_2.png) |
+| ![image](images/mini_752x560/dis_2.png) |
 |-|
 
 &nbsp;
 
 #### Layout 3, Screen0: 752x560  
-| ![image](images/mmiyoo_752/dis_3.png) |
+| ![image](images/mini_752x560/dis_3.png) |
 |-|
 
 &nbsp;
 
 #### Layout 4, Screen0: 256x192, Screen1: 256x192, Image: bg_v0.png  
-| ![image](images/mmiyoo_752/dis_4.png) |
+| ![image](images/mini_752x560/dis_4.png) |
 |-|
 
 &nbsp;
 
 #### Layout 5, Screen0: 373x280, Screen1: 373x280, Image: bg_v1.png  
-| ![image](images/mmiyoo_752/dis_5.png) |
+| ![image](images/mini_752x560/dis_5.png) |
 |-|
 
 &nbsp;
 
 #### Layout 6, Screen0: 256x192, Screen1: 256x192, Image: bg_h0.png  
-| ![image](images/mmiyoo_752/dis_6.png) |
+| ![image](images/mini_752x560/dis_6.png) |
 |-|
 
 &nbsp;
 
 #### Layout 7, Screen0: 373x280, Screen1: 373x280, Image: bg_h1.png  
-| ![image](images/mmiyoo_752/dis_7.png) |
+| ![image](images/mini_752x560/dis_7.png) |
 |-|
 
 &nbsp;
 
 #### Layout 8, Screen0: 592x440, Screen1: 160x120, Image: bg_vh_s0.png  
-| ![image](images/mmiyoo_752/dis_8.png) |
+| ![image](images/mini_752x560/dis_8.png) |
 |-|
 
 &nbsp;
 
 #### Layout 9, Screen0: 496x368, Screen1: 256x192, Image: bg_vh_s1.png  
-| ![image](images/mmiyoo_752/dis_9.png) |
+| ![image](images/mini_752x560/dis_9.png) |
 |-|
 
 &nbsp;
 
 #### Layout 10, Screen0: 496x368, Screen1: 256x192, Image: bg_vh_c0.png  
-| ![image](images/mmiyoo_752/dis_10.png) |
+| ![image](images/mini_752x560/dis_10.png) |
 |-|
 
 &nbsp;
 
 #### Layout 11, Screen0: 496x368, Screen1: 256x192, Image: bg_vh_c1.png  
-| ![image](images/mmiyoo_752/dis_11.png) |
+| ![image](images/mini_752x560/dis_11.png) |
 |-|
 
 &nbsp;
 
 #### Layout 12, Screen0: 501x376, Screen1: 501x376, Image: bg_hh0.png  
-| ![image](images/mmiyoo_752/dis_12.png) |
+| ![image](images/mini_752x560/dis_12.png) |
 |-|
 
 &nbsp;
 
 #### Layout 13, Screen0: 501x376, Screen1: 501x376, Image: bg_hh0.png  
-| ![image](images/mmiyoo_752/dis_13.png) |
+| ![image](images/mini_752x560/dis_13.png) |
 |-|
 
 &nbsp;
 
 ### Layout 14, Screen0: 512x384, Image: bg_hres0.png  
-| ![image](images/mmiyoo_752/hres_0.png) |
+| ![image](images/mini_752x560/hres_0.png) |
 |-|
 
 &nbsp;
 
 #### Layout 15, Screen0: 752x560  
-| ![image](images/mmiyoo_752/hres_1.png) |
+| ![image](images/mini_752x560/hres_1.png) |
 |-|
-
-&nbsp;
-
-### TRIMUI SMART
-![image](images/trimui_320/trimui.jpg)  
-
-&nbsp;
-
-##### Layout 0, Screen0: 256x192, Image: bg_s0.png  
-| ![image](images/trimui_320/dis_0.png) |
-|-|
-
-&nbsp;
-
-##### Layout 1, Screen0: 288x208, Image: bg_s0.png  
-| ![image](images/trimui_320/dis_1.png) |
-|-|
-
-&nbsp;
-
-##### Layout 2, Screen0: 320x240  
-| ![image](images/trimui_320/dis_2.png) |
-|-|
-
-&nbsp;
-
-#### DraStic Menu: Original  
-| ![image](images/mmiyoo_640/menu_2.png) |
-|-|
-
-&nbsp;
-
-#### DraStic Menu: Refined  
-| ![image](images/trimui_320/menu_0.png) |
-|-|
-
-&nbsp;
-
-#### Cheat Menu: Original  
-| ![image](images/mmiyoo_640/menu_3.png) |
-|-|
-
-&nbsp;
-
-#### Cheat Menu: Refined  
-| ![image](images/trimui_320/menu_1.png) |
-|-|
-
-&nbsp;
-
-#### Hotkeys
-|  Keys           | Description                               |
-| --------------- | ----------------------------------------- |
-| MENU + LEFT     | Change Keypad mode / Stylus mode          |
-| MENU + RIGHT    | Swap screen                               |
-| MENU + L1       | Quick load state                          |
-| MENU + R1       | Quick save state                          |
-| MENU + START    | Exit from DraStic emulator                |
-| **Keypad Mode** |                                           |
-| MENU + SELECT   | Enter DraStic menu                        |
-| MENU + A        | Change display mode                       |
-| MENU + X        | Take screenshot (Emus/drastic/screenshot) |
-| MENU + Y        | Change background image                   |
-|**Stylus Mode**  |                                           |
-| DPAD            | Move the pen                              |
-| A               | Touch screen                              |
-| R1              | Lower moving speed                        |
-| MENU + Y        | Change the pen image                      |
-
-&nbsp;
-
-### Installation
-```
-1. Place drastic folder in Emus folder
-2. Place NDS roms in Roms/NDS folder
-```
-
-&nbsp;
-
-### F(x)tec Pro1 (QX1000)
-![image](images/qx1000_1080/pro1.jpg)  
-
-#### Supported OS
-```
-Sailfish OS
-```
-&nbsp;
-
-#### Layout 0, Screen0: 1024x768  
-| ![image](images/qx1000_1080/dis_0.png) |
-|-|
-
-&nbsp;
-
-#### DraStic Menu: Original  
-| ![image](images/mmiyoo_640/menu_2.png) |
-|-|
-
-&nbsp;
-
-#### DraStic Menu: Refined  
-| ![image](images/qx1000_1080/menu_0.png) |
-|-|
-
-&nbsp;
-
-#### Cheat Menu: Original  
-| ![image](images/mmiyoo_640/menu_3.png) |
-|-|
-
-&nbsp;
-
-#### Cheat Menu: Refined  
-| ![image](images/qx1000_1080/menu_1.png) |
-|-|
-
-&nbsp;
-
-#### Hotkeys
-|  Keys               | Description                         |
-| ------------------- | ----------------------------------- |
-| Q                   | UP                                  |
-| A                   | DOWN                                |
-| \                   | LEFT                                |
-| S                   | RIGHT                               |
-| L                   | A                                   |
-| K                   | B                                   |
-| P                   | X                                   |
-| O                   | Y                                   |
-| ` / ,               | L1                                  |
-| W / M               | R1                                  |
-| Sym                 | SELECT                              |
-| Ctrl                | START                               |
-| Enter               | Swap screen                         |
-| Tab                 | Change Keypad mode / Stylus mode    |
-| ESC                 | Exit from DraStic emulator          |
-| N                   | Quick load state                    |
-| C                   | Quick save state                    |
-| **Customized Menu** |                                     |
-| UP / DOWN           | Select item                         |
-| LEFT / RIGHT        | Change setting                      |
-| B                   | Apply change and then exit          |
-| **Keypad Mode**     |                                     |
-| Space + SELECT      | Enter the DraStic menu              |
-| Space + START       | Enter the customized menu           |
-| **Stylus Mode**     |                                     |
-| DPAD                | Move the pen                        |
-| A                   | Touch screen                        |
-| R1                  | Lower moving speed                  |
-| Space + UP          | Show the pen on screen 1            |
-| Space + DOWN        | Show the pen on screen 0            |
-| Space + Y           | Change the pen image                |
-
-&nbsp;
-
-#### How to run
-```
-$ cd drastic
-$ ./launch.sh
-```

@@ -9,9 +9,9 @@ fi
 
 export HOME=$mydir
 export LD_LIBRARY_PATH=libs:/usr/miyoo/lib:/usr/lib
-export SDL_VIDEODRIVER=mmiyoo
-export SDL_AUDIODRIVER=mmiyoo
-export EGL_VIDEODRIVER=mmiyoo
+export SDL_VIDEODRIVER=miyoo
+export SDL_AUDIODRIVER=miyoo
+export EGL_VIDEODRIVER=miyoo
 
 sv=`cat /proc/sys/vm/swappiness`
 echo 10 > /proc/sys/vm/swappiness

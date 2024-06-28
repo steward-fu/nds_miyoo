@@ -1056,7 +1056,7 @@ SDL_WaitEventTimeout(SDL_Event *event, int timeout)
             }
             else {
                 /* Need to peek the next event to check for sentinel */
-                SDL_Event dummy;
+                SDL_Event dummy = {0};
 
                 if(SDL_PeepEventsInternal(&dummy, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT, SDL_TRUE) &&
                         dummy.type == SDL_POLLSENTINEL) {
