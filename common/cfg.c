@@ -30,6 +30,8 @@
 #include <pthread.h>
 #include <json-c/json.h>
 #include <sys/stat.h>
+#include <pb_encode.h>
+#include <pb_decode.h>
 
 #if defined(UT)
 #include "unity_fixture.h"
@@ -38,12 +40,11 @@
 #include "log.h"
 #include "cfg.h"
 #include "snd.h"
-#include "file.h"
+#include "cfg.pb.h"
 
-static struct json_config cfg = { 0 };
-static struct json_config sys = { 0 };
-
-char home_path[MAX_PATH] = { 0 };
+static char cfg_path[MAX_PATH] = { 0 };
+static char home_path[MAX_PATH] = { 0 };
+static settings cfg = settings_init_zero;
 
 #if defined(UT)
 TEST_GROUP(common_cfg);
@@ -59,7 +60,7 @@ TEST_SETUP(common_cfg)
         fprintf(f, "}");
         fclose(f);
     }
-    init_cfg();
+    load_config_settings();
 }
 
 TEST_TEAR_DOWN(common_cfg)
@@ -68,1017 +69,135 @@ TEST_TEAR_DOWN(common_cfg)
 }
 #endif
 
-static int check_pointer_not_null_and_copy(char *dst, int dst_size, const char *src)
-{
-    struct stat st = { 0 };
-
-    if (!dst || (dst_size < 0) || !src) {
-        err(COM"invalid parameter in %s\n", __func__);
-        return -1;
-    }
-
-    if (strlen(src) > dst_size) {
-        err(COM"the length of path is too large in %s\n", __func__);
-        return -1;
-    }
-
-    strncpy(dst, src, dst_size);
-    return 0;
-}
-
-#if defined(UT)
-TEST(common_cfg, check_pointer_not_null_and_copy)
-{
-    char buf[MAX_PATH] = { 0 };
-
-    TEST_ASSERT_EQUAL_INT(-1, check_pointer_not_null_and_copy(NULL, 0, NULL));
-    TEST_ASSERT_EQUAL_INT(-1, check_pointer_not_null_and_copy(buf, 0, "/tmp"));
-
-    TEST_ASSERT_EQUAL_INT(0, check_pointer_not_null_and_copy(buf, sizeof(buf), "/tmp"));
-    TEST_ASSERT_EQUAL_STRING("/tmp", buf);
-}
-#endif
-
-static int check_value_max_and_set(int *dst, int val, int max_val)
-{
-    if (!dst) {
-        err(COM"invalid parameter in %s\n", __func__);
-        return -1;
-    }
-
-    if ((val < 0) || (val > max_val)) {
-        err(COM"invalid value in %s(%d)\n", __func__, val);
-        return -1;
-    }
-
-    *dst = val;
-    return *dst;
-}
-
-static int check_value_min_and_set(int *dst, int val, int min_val)
-{
-    if (!dst) {
-        err(COM"invalid parameter in %s\n", __func__);
-        return -1;
-    }
-
-    if ((val < 0) || (val < min_val)) {
-        err(COM"invalid value in %s(%d)\n", __func__, val);
-        return -1;
-    }
-
-    *dst = val;
-    return *dst;
-}
-
-#if defined(UT)
-TEST(common_cfg, check_value_max_and_set)
-{
-    int v = 0;
-
-    TEST_ASSERT_EQUAL_INT(-1, check_value_max_and_set(NULL, 0, 0));
-    TEST_ASSERT_EQUAL_INT(-1, check_value_max_and_set(&v, 1, 0));
-    TEST_ASSERT_EQUAL_INT(-1, check_value_max_and_set(&v, -1, 0));
-
-    TEST_ASSERT_EQUAL_INT(1, check_value_max_and_set(&v, 1, 10));
-    TEST_ASSERT_EQUAL_INT(1, v);
-}
-#endif
-
-int set_home_path(const char *path)
-{
-    return check_absolute_folder_exist_and_copy(home_path, sizeof(home_path), path);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_home_path)
-{
-    TEST_ASSERT_EQUAL_INT(-1, set_home_path(NULL));
-    TEST_ASSERT_EQUAL_INT(-1, set_home_path("/NOT_EXIST_PATH"));
-
-    TEST_ASSERT_EQUAL_INT(0, set_home_path("/tmp"));
-    TEST_ASSERT_EQUAL_STRING("/tmp", home_path);
-}
-#endif
-
-int get_sys_volume(void)
-{
-    return sys.volume;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_sys_volume)
-{
-    set_sys_volume(1);
-    TEST_ASSERT_EQUAL_INT(1, get_sys_volume());
-
-    set_sys_volume(0);
-    TEST_ASSERT_EQUAL_INT(0, get_sys_volume());
-}
-#endif
-
-int set_sys_volume(int vol)
-{
-    return check_value_max_and_set(&sys.volume, vol, MAX_VOLUME);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_sys_volume)
-{
-    set_sys_volume(1);
-    set_sys_volume(MAX_VOLUME + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_sys_volume());
-    TEST_ASSERT_EQUAL_INT(1, sys.volume);
-
-    set_sys_volume(0);
-    set_sys_volume(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_sys_volume());
-    TEST_ASSERT_EQUAL_INT(0, sys.volume);
-}
-#endif
-
-int get_cfg_sdl_version(char *ret, int ret_size)
-{
-    return check_pointer_not_null_and_copy(ret, ret_size, cfg.sdl_version);
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_sdl_version)
-{
-    char buf[MAX_PATH] = { 0 };
-
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_sdl_version(NULL, 0));
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_sdl_version(buf, 0));
-
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_sdl_version(buf, sizeof(buf)));
-    TEST_ASSERT_EQUAL_STRING(CFG_SDL_VERSION, buf);
-}
-#endif
-
-int get_cfg_font_style(char *ret, int ret_size)
-{
-    return check_pointer_not_null_and_copy(ret, ret_size, cfg.font_style);
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_font_style)
-{
-    char buf[MAX_PATH] = { 0 };
-    const char *fpath = DEFAULT_FONT_STYLE;
-
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_font_style(NULL, 0));
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_font_style(buf, 0));
-
-    TEST_ASSERT_EQUAL_INT(0, set_cfg_font_style(fpath));
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_font_style(buf, sizeof(buf)));
-    TEST_ASSERT_EQUAL_STRING(fpath, buf);
-}
-#endif
-
-int set_cfg_font_style(const char *path)
-{
-    return check_resource_file_exist_and_copy(cfg.font_style, sizeof(cfg.font_style), path);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_font_style)
-{
-    const char *fpath = DEFAULT_FONT_STYLE;
-
-    TEST_ASSERT_EQUAL_INT(-1, set_cfg_font_style(NULL));
-    TEST_ASSERT_EQUAL_INT(-1, set_cfg_font_style("font/NOT_EXIST_FONT.ttf"));
-
-    TEST_ASSERT_EQUAL_INT(0, set_cfg_font_style(fpath));
-    TEST_ASSERT_EQUAL_STRING(fpath, cfg.font_style);
-}
-#endif
-
-int get_cfg_pen_image(char *ret, int ret_size)
-{
-    return check_resource_file_exist_and_copy(ret, ret_size, cfg.pen.image_path);
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_pen)
-{
-    char buf[MAX_PATH] = { 0 };
-    const char *fpath = DEFAULT_PEN_IMAGE;
-
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_pen_image(NULL, 0));
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_pen_image(buf, 1));
-
-    TEST_ASSERT_EQUAL_INT(0, set_cfg_pen_image(fpath));
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_image(buf, sizeof(buf)));
-    TEST_ASSERT_EQUAL_STRING(buf, fpath);
-}
-#endif
-
-int set_cfg_pen_image(const char *path)
-{
-    return check_resource_file_exist_and_copy(cfg.pen.image_path, sizeof(cfg.pen.image_path), path);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_pen)
-{
-    const char *fpath = DEFAULT_PEN_IMAGE;
-
-    TEST_ASSERT_EQUAL_INT(-1, set_cfg_pen_image(NULL));
-    TEST_ASSERT_EQUAL_INT(-1, set_cfg_pen_image("pen/NOT_EXIST_PEN.png"));
-
-    TEST_ASSERT_EQUAL_INT(0, set_cfg_pen_image(fpath));
-    TEST_ASSERT_EQUAL_STRING(fpath, cfg.pen.image_path);
-}
-#endif
-
-int get_cfg_pen_position(void)
-{
-    return cfg.pen.position;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_pen_position)
-{
-    set_cfg_pen_position(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_pen_position());
-    TEST_ASSERT_EQUAL_INT(1, cfg.pen.position);
-
-    set_cfg_pen_position(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_position());
-    TEST_ASSERT_EQUAL_INT(0, cfg.pen.position);
-}
-#endif
-
-int set_cfg_pen_position(int pos)
-{
-    return check_value_max_and_set(&cfg.pen.position, pos, MAX_PEN_POSITION);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_pen_position)
-{
-    set_cfg_pen_position(1);
-    set_cfg_pen_position(MAX_PEN_POSITION + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_pen_position());
-    TEST_ASSERT_EQUAL_INT(1, cfg.pen.position);
-
-    set_cfg_pen_position(0);
-    set_cfg_pen_position(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_position());
-    TEST_ASSERT_EQUAL_INT(0, cfg.pen.position);
-}
-#endif
-
-int get_cfg_half_volume(void)
-{
-    return cfg.half_volume;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_half_volume)
-{
-    set_cfg_half_volume(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_half_volume());
-    TEST_ASSERT_EQUAL_INT(1, cfg.half_volume);
-
-    set_cfg_half_volume(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_half_volume());
-    TEST_ASSERT_EQUAL_INT(0, cfg.half_volume);
-}
-#endif
-
-int set_cfg_half_volume(int enable)
-{
-    cfg.half_volume = (enable > 0) ? 1 : 0;
-    return cfg.half_volume;
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_half_volume)
-{
-    set_cfg_half_volume(100);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_half_volume());
-    TEST_ASSERT_EQUAL_INT(1, cfg.half_volume);
-
-    set_cfg_half_volume(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_half_volume());
-    TEST_ASSERT_EQUAL_INT(0, cfg.half_volume);
-}
-#endif
-
-int get_cfg_key_swap_l1_l2(void)
-{
-    return cfg.key.swap_l1l2;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_key_swap_l1l2)
-{
-    set_cfg_key_swap_l1_l2(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_key_swap_l1_l2());
-    TEST_ASSERT_EQUAL_INT(1, cfg.key_swap_l1_l2.enable);
-
-    set_cfg_key_swap_l1_l2(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_key_swap_l1_l2());
-    TEST_ASSERT_EQUAL_INT(0, cfg.key_swap_l1_l2.enable);
-}
-#endif
-
-int set_cfg_key_swap_l1_l2(int enable)
-{
-    cfg.key_swap_l1_l2 = (enable > 0) ? 1 : 0;
-    return cfg.key_swap_l1_l2;
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_key_swap_l1_l2)
-{
-    set_cfg_key_swap_l1_l2(100);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_key_swap_l1_l2());
-    TEST_ASSERT_EQUAL_INT(1, cfg.key_swap_l1_l2.enable);
-
-    set_cfg_key_swap_l1_l2(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_key_swap_l1_l2());
-    TEST_ASSERT_EQUAL_INT(0, cfg.key_swap_l1_l2.enable);
-}
-#endif
-
-int get_cfg_auto_save_load(void)
-{
-    return cfg.auto_save_load.enable;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_auto_save_load)
-{
-    set_cfg_auto_save_load(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_auto_save_load());
-    TEST_ASSERT_EQUAL_INT(1, cfg.auto_save_load.enable);
-
-    set_cfg_auto_save_load(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_auto_save_load());
-    TEST_ASSERT_EQUAL_INT(0, cfg.auto_save_load.enable);
-}
-#endif
-
-int set_cfg_auto_save_load(int enable)
-{
-    cfg.auto_save_load.enable = (enable > 0) ? 1 : 0;
-    return cfg.auto_save_load.enable;
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_auto_save_load)
-{
-    set_cfg_auto_save_load(100);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_auto_save_load());
-    TEST_ASSERT_EQUAL_INT(1, cfg.auto_save_load.enable);
-
-    set_cfg_auto_save_load(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_auto_save_load());
-    TEST_ASSERT_EQUAL_INT(0, cfg.auto_save_load.enable);
-}
-#endif
-
-int get_cfg_auto_save_load_slot(void)
-{
-    return cfg.auto_save_load.slot;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_auto_save_load_slot)
-{
-    set_cfg_auto_save_load_slot(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_auto_save_load_slot());
-    TEST_ASSERT_EQUAL_INT(1, cfg.auto_save_load.slot);
-
-    set_cfg_auto_save_load_slot(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_auto_save_load_slot());
-    TEST_ASSERT_EQUAL_INT(0, cfg.auto_save_load.slot);
-}
-#endif
-
-int set_cfg_auto_save_load_slot(int slot)
-{
-    return check_value_max_and_set(&cfg.auto_save_load.slot, slot, MAX_AUTO_SAVE_LOAD_SLOT);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_auto_save_load_slot)
-{
-    set_cfg_auto_save_load_slot(1);
-    set_cfg_auto_save_load_slot(MAX_AUTO_SAVE_LOAD_SLOT + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_auto_save_load_slot());
-    TEST_ASSERT_EQUAL_INT(1, cfg.auto_save_load.slot);
-
-    set_cfg_auto_save_load_slot(0);
-    set_cfg_auto_save_load_slot(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_auto_save_load_slot());
-    TEST_ASSERT_EQUAL_INT(0, cfg.auto_save_load.slot);
-}
-#endif
-
-int get_cfg_display_layout_alt(void)
-{
-    return cfg.display.alt;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_display_layout_alt)
-{
-    set_cfg_display_layout_alt(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_alt());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.alt);
-
-    set_cfg_display_layout_alt(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_alt());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.alt);
-}
-#endif
-
-int set_cfg_display_layout_alt(int idx)
-{
-    return check_value_max_and_set(&cfg.display.alt, idx, MAX_DISPLAY_LAYOUT_ALT);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_display_layout_alt)
-{
-    set_cfg_display_layout_alt(1);
-    set_cfg_display_layout_alt(MAX_DISPLAY_LAYOUT_ALT + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_alt());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.alt);
-
-    set_cfg_display_layout_alt(0);
-    set_cfg_display_layout_alt(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_alt());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.alt);
-}
-#endif
-
-int get_cfg_display_layout(void)
-{
-    return cfg.display.layout;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_display_layout)
-{
-    set_cfg_display_layout(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.layout);
-
-    set_cfg_display_layout(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.layout);
-}
-#endif
-
-int set_cfg_display_layout(int idx)
-{
-    return check_value_max_and_set(&cfg.display.layout, idx, MAX_DISPLAY_LAYOUT);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_display_layout)
-{
-    set_cfg_display_layout(1);
-    set_cfg_display_layout(MAX_DISPLAY_LAYOUT + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.layout);
-
-    set_cfg_display_layout(0);
-    set_cfg_display_layout(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.layout);
-}
-#endif
-
-int get_cfg_display_layout_alpha(void)
-{
-    return cfg.display.alpha;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_display_layout_alpha)
-{
-    set_cfg_display_layout_alpha(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_alpha());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.alpha);
-
-    set_cfg_display_layout_alpha(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_alpha());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.alpha);
-}
-#endif
-
-int set_cfg_display_layout_alpha(int idx)
-{
-    return check_value_max_and_set(&cfg.display.alpha, idx, MAX_DISPLAY_LAYOUT_ALPHA);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_display_layout_alpha)
-{
-    set_cfg_display_layout_alpha(1);
-    set_cfg_display_layout_alpha(MAX_DISPLAY_LAYOUT_ALPHA + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_alpha());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.alpha);
-
-    set_cfg_display_layout_alpha(0);
-    set_cfg_display_layout_alpha(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_alpha());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.alpha);
-}
-#endif
-
-int get_cfg_display_layout_border(void)
-{
-    return cfg.display.border;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_display_layout_border)
-{
-    set_cfg_display_layout_border(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_border());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.border);
-
-    set_cfg_display_layout_border(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_border());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.border);
-}
-#endif
-
-int set_cfg_display_layout_border(int idx)
-{
-    return check_value_max_and_set(&cfg.display.border, idx, MAX_DISPLAY_LAYOUT_BORDER);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_display_layout_border)
-{
-    set_cfg_display_layout_border(1);
-    set_cfg_display_layout_border(MAX_DISPLAY_LAYOUT_BORDER + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_border());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.border);
-
-    set_cfg_display_layout_border(0);
-    set_cfg_display_layout_border(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_border());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.border);
-}
-#endif
-
-int get_cfg_display_layout_position(void)
-{
-    return cfg.display.position;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_display_layout_position)
-{
-    set_cfg_display_layout_position(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_position());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.position);
-
-    set_cfg_display_layout_position(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_position());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.position);
-}
-#endif
-
-int set_cfg_display_layout_position(int idx)
-{
-    return check_value_max_and_set(&cfg.display.position, idx, MAX_DISPLAY_LAYOUT_POSITION);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_display_layout_position)
-{
-    set_cfg_display_layout_position(1);
-    set_cfg_display_layout_position(MAX_DISPLAY_LAYOUT_POSITION + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_display_layout_position());
-    TEST_ASSERT_EQUAL_INT(1, cfg.display.position);
-
-    set_cfg_display_layout_position(0);
-    set_cfg_display_layout_position(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_display_layout_position());
-    TEST_ASSERT_EQUAL_INT(0, cfg.display.position);
-}
-#endif
-
-int get_cfg_border_image(char *ret, int ret_size)
-{
-    return check_resource_file_exist_and_copy(ret, ret_size, cfg.border_image);
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_border_image)
-{
-    char buf[MAX_PATH] = { 0 };
-    const char *fpath = DEFAULT_BORDER_IMAGE;
-
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_border_image(NULL, 0));
-    TEST_ASSERT_EQUAL_INT(-1, get_cfg_border_image(buf, 1));
-
-    TEST_ASSERT_EQUAL_INT(0, set_cfg_border_image(fpath));
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_border_image(buf, sizeof(buf)));
-    TEST_ASSERT_EQUAL_STRING(buf, fpath);
-}
-#endif
-
-int set_cfg_border_image(const char *path)
-{
-    return check_resource_file_exist_and_copy(cfg.border_image, sizeof(cfg.border_image), path);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_border_image)
-{
-    const char *fpath = DEFAULT_BORDER_IMAGE;
-
-    TEST_ASSERT_EQUAL_INT(-1, set_cfg_border_image(NULL));
-    TEST_ASSERT_EQUAL_INT(-1, set_cfg_border_image("border/NOT_EXIST_BORDER.png"));
-
-    TEST_ASSERT_EQUAL_INT(0, set_cfg_border_image(fpath));
-    TEST_ASSERT_EQUAL_STRING(fpath, cfg.border_image);
-}
-#endif
-
-int get_cfg_pen_move_speed_x(void)
-{
-    return cfg.pen.move_speed.x;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_pen_move_speed_x)
-{
-    set_cfg_pen_move_speed_x(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_pen_move_speed_x());
-    TEST_ASSERT_EQUAL_INT(1, cfg.pen.move_speed.x);
-
-    set_cfg_pen_move_speed_x(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_move_speed_x());
-    TEST_ASSERT_EQUAL_INT(0, cfg.pen.move_speed.x);
-}
-#endif
-
-int set_cfg_pen_move_speed_x(int speed)
-{
-    return check_value_max_and_set(&cfg.pen.move_speed.x, speed, MAX_PEN_MOVE_SPEED);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_pen_move_speed_x)
-{
-    set_cfg_pen_move_speed_x(1);
-    set_sys_volume(MAX_PEN_MOVE_SPEED + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_pen_move_speed_x());
-    TEST_ASSERT_EQUAL_INT(1, cfg.pen.move_speed.x);
-
-    set_cfg_pen_move_speed_x(0);
-    set_cfg_pen_move_speed_x(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_move_speed_x());
-    TEST_ASSERT_EQUAL_INT(0, cfg.pen.move_speed.x);
-}
-#endif
-
-int get_cfg_pen_move_speed_y(void)
-{
-    return cfg.pen.move_speed.y;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_pen_move_speed_y)
-{
-    set_cfg_pen_move_speed_y(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_pen_move_speed_y());
-    TEST_ASSERT_EQUAL_INT(1, cfg.pen.move_speed.y);
-
-    set_cfg_pen_move_speed_y(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_move_speed_y());
-    TEST_ASSERT_EQUAL_INT(0, cfg.pen.move_speed.y);
-}
-#endif
-
-int set_cfg_pen_move_speed_y(int speed)
-{
-    return check_value_max_and_set(&cfg.pen.move_speed.y, speed, MAX_PEN_MOVE_SPEED);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_pen_move_speed_y)
-{
-    set_cfg_pen_move_speed_y(1);
-    set_sys_volume(MAX_PEN_MOVE_SPEED + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_pen_move_speed_y());
-    TEST_ASSERT_EQUAL_INT(1, cfg.pen.move_speed.y);
-
-    set_cfg_pen_move_speed_y(0);
-    set_cfg_pen_move_speed_y(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_pen_move_speed_y());
-    TEST_ASSERT_EQUAL_INT(0, cfg.pen.move_speed.y);
-}
-#endif
-
-int get_cfg_cpu_min_core(void)
-{
-    return cfg.cpu.min_core;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_cpu_min_core)
-{
-    set_cfg_cpu_min_core(MIN_CPU_CORE);
-    set_cfg_cpu_min_core(0);
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_CORE, get_cfg_cpu_min_core());
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_CORE, cfg.cpu.min_core);
-}
-#endif
-
-int set_cfg_cpu_min_core(int core)
-{
-    return check_value_min_and_set(&cfg.cpu.min_core, core, MIN_CPU_CORE);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_cpu_min_core)
-{
-    set_cfg_cpu_min_core(MIN_CPU_CORE);
-    set_cfg_cpu_min_core(MIN_CPU_CORE - 1);
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_CORE, get_cfg_cpu_min_core());
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_CORE, cfg.cpu.min_core);
-}
-#endif
-
-int get_cfg_cpu_min_freq(void)
-{
-    return cfg.cpu.min_freq;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_cpu_min_freq)
-{
-    set_cfg_cpu_min_freq(MIN_CPU_FREQ);
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_FREQ, get_cfg_cpu_min_freq());
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_FREQ, cfg.cpu.min_freq);
-}
-#endif
-
-int set_cfg_cpu_min_freq(int freq)
-{
-    return check_value_min_and_set(&cfg.cpu.min_freq, freq, MIN_CPU_FREQ);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_cpu_min_freq)
-{
-    set_cfg_cpu_min_freq(MIN_CPU_FREQ);
-    set_cfg_cpu_min_freq(MIN_CPU_FREQ - 1);
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_FREQ, get_cfg_cpu_min_freq());
-    TEST_ASSERT_EQUAL_INT(MIN_CPU_FREQ, cfg.cpu.min_freq);
-}
-#endif
-
-int get_cfg_cpu_max_core(void)
-{
-    return cfg.cpu.max_core;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_cpu_max_core)
-{
-    set_cfg_cpu_max_core(1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_cpu_max_core());
-    TEST_ASSERT_EQUAL_INT(1, cfg.cpu.max_core);
-
-    set_cfg_cpu_max_core(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_cpu_max_core());
-    TEST_ASSERT_EQUAL_INT(0, cfg.cpu.max_core);
-}
-#endif
-
-int set_cfg_cpu_max_core(int core)
-{
-    return check_value_max_and_set(&cfg.cpu.max_core, core, MAX_CPU_CORE);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_cpu_max_core)
-{
-    set_cfg_cpu_max_core(1);
-    set_cfg_cpu_max_core(MAX_CPU_CORE + 1);
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_cpu_max_core());
-    TEST_ASSERT_EQUAL_INT(1, cfg.cpu.max_core);
-
-    set_cfg_cpu_max_core(0);
-    set_cfg_cpu_max_core(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_cpu_max_core());
-    TEST_ASSERT_EQUAL_INT(0, cfg.cpu.max_core);
-}
-#endif
-
-int get_cfg_cpu_max_freq(void)
-{
-    return cfg.cpu.max_freq;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_cpu_max_freq)
-{
-    set_cfg_cpu_max_freq(1000);
-    TEST_ASSERT_EQUAL_INT(1000, get_cfg_cpu_max_freq());
-    TEST_ASSERT_EQUAL_INT(1000, cfg.cpu.max_freq);
-
-    set_cfg_cpu_max_freq(0);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_cpu_max_freq());
-    TEST_ASSERT_EQUAL_INT(0, cfg.cpu.max_freq);
-}
-#endif
-
-int set_cfg_cpu_max_freq(int freq)
-{
-    return check_value_max_and_set(&cfg.cpu.max_freq, freq, MAX_CPU_FREQ);
-}
-
-#if defined(UT)
-TEST(common_cfg, set_cfg_cpu_max_freq)
-{
-    set_cfg_cpu_max_freq(1000);
-    set_cfg_cpu_max_freq(MAX_CPU_FREQ + 1);
-    TEST_ASSERT_EQUAL_INT(1000, get_cfg_cpu_max_freq());
-    TEST_ASSERT_EQUAL_INT(1000, cfg.cpu.max_freq);
-
-    set_cfg_cpu_max_freq(0);
-    set_cfg_cpu_max_freq(-100);
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_cpu_max_freq());
-    TEST_ASSERT_EQUAL_INT(0, cfg.cpu.max_freq);
-}
-#endif
-
-static int read_json_obj_int(struct json_object *jfile, const char *item, int *ret)
-{
-    struct json_object *jval = NULL;
-
-    if (!jfile || !item || !ret) {
-        err(COM"invalid input parameters in %s(jfile:0x%x, item:0x%x, ret:0x%x)\n", __func__, jfile, item, ret);
-        return -1;
-    }
-
-    if (json_object_object_get_ex(jfile, item, &jval)) {
-        *ret = json_object_get_int(jval);
-        info(COM"read json object(%s:%d)\n", item, *ret);
-    }
-    else {
-        err(COM"failed to read json object(%s)\n", item);
-        return -1;
-    }
-    return 0;
-}
-
-static int read_json_obj_str(struct json_object *jfile, const char *item, char *ret, int ret_size)
-{
-    struct json_object *jval = NULL;
-
-    if (!jfile || !item || !ret) {
-        err(COM"invalid input parameters in %s(jfile:0x%x, item:0x%x, ret:0x%x)\n", __func__, jfile, item, ret);
-        return -1;
-    }
-
-    if (json_object_object_get_ex(jfile, item, &jval)) {
-        strncpy(ret, json_object_get_string(jval), ret_size);
-        info(COM"read json object(%s:\"%s\")\n", item, ret);
-    }
-    else {
-        err(COM"failed to read json object(%s)\n", item);
-        return -1;
-    }
-    return 0;
-}
-
-int read_cfg_json_file(void)
+int read_system_volume(void)
 {
     int ret = -1;
+    struct json_object *jval = NULL;
     struct json_object *jfile = NULL;
 
-    jfile = json_object_from_file(cfg.json_path);
+    jfile = json_object_from_file(JSON_SYS_PATH);
     if (jfile ==  NULL) {
-        err(COM"failed to open config json file(path:\"%s\")\n", cfg.json_path);
+        err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
         return ret;
     }
 
-    do {
-        if (read_json_obj_int(jfile, JSON_CFG_HALF_VOLUME, &cfg.half_volume) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_AUTO_SAVE_LOAD, &cfg.auto_save_load.enable) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_AUTO_SAVE_LOAD_SLOT, &cfg.auto_save_load.slot) < 0) {
-            break;
-        }
-
-        if (read_json_obj_str(jfile, JSON_CFG_PEN_IMAGE, cfg.pen.image_path, sizeof(cfg.pen.image_path)) < 0) {
-            break;
-        }
-
-        if (read_json_obj_str(jfile, JSON_CFG_SDL_VERSION, cfg.sdl_version, sizeof(cfg.sdl_version)) < 0) {
-            break;
-        }
-
-        if (read_json_obj_str(jfile, JSON_CFG_FONT_STYLE, cfg.font_style, sizeof(cfg.font_style)) < 0) {
-            break;
-        }
-
-        if (read_json_obj_str(jfile, JSON_CFG_BORDER_IMAGE, cfg.border_image, sizeof(cfg.border_image)) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_DISPLAY_LAYOUT, &cfg.display.layout) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_DISPLAY_LAYOUT_ALPHA, &cfg.display.alpha) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_CPU_MAX_CORE, &cfg.cpu.max_core) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_CPU_MAX_FREQ, &cfg.cpu.max_freq) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_CPU_MIN_CORE, &cfg.cpu.min_core) < 0) {
-            break;
-        }
-
-        if (read_json_obj_int(jfile, JSON_CFG_CPU_MIN_FREQ, &cfg.cpu.min_freq) < 0) {
-            break;
-        }
-
+    if (json_object_object_get_ex(jfile, JSON_SYS_VOLUME, &jval)) {
         ret = 0;
-    } while (0);
-
+        cfg.system_volume = json_object_get_int(jval);
+        info(COM"read system volume(%d) in %s\n", cfg.system_volume, __func__);
+    }
+    else {
+        err(COM"failed to read system volume in %s\n", __func__);
+    }
     json_object_put(jfile);
     return ret;
 }
 
 #if defined(UT)
-TEST(common_cfg, read_cfg_json_file)
+TEST(common_cfg, read_system_volume)
 {
-    TEST_ASSERT_EQUAL_INT(0, read_cfg_json_file());
-
-    memset(&cfg, 0, sizeof(cfg));
-    TEST_ASSERT_EQUAL_INT(-1, read_cfg_json_file());
-
-    strncpy(cfg.json_path, "/NOT_EXIST_FILE", sizeof(cfg.json_path));
-    TEST_ASSERT_EQUAL_INT(-1, read_cfg_json_file());
+    TEST_ASSERT_EQUAL_INT(0, read_system_volume());
 }
 #endif
 
-int read_sys_json_file(void)
+int load_config_settings(void)
 {
     int ret = -1;
-    struct json_object *jfile = NULL;
+    uint8_t *buf = malloc(MAX_MALLOC_SIZE);
 
-    jfile = json_object_from_file(sys.json_path);
-    if (jfile ==  NULL) {
-        err(COM"failed to open system json file(path:\"%s\")\n", sys.json_path);
-        return ret;
+    if (!buf) {
+        err(COM"failed to allocate memory in %s\n", __func__);
+        return -1;
     }
+    memset(buf, 0, MAX_MALLOC_SIZE);
 
+    int fd = open(cfg_path, O_RDONLY);
     do {
-        if (read_json_obj_int(jfile, JSON_SYS_VOLUME, &sys.volume)) {
+        if (fd < 0) {
+            err(COM"failed to open file(\"%s\") in %s\n", cfg_path, __func__);
             break;
         }
 
+        ssize_t r = read(fd, buf, MAX_MALLOC_SIZE);
+        if (r < 0) {
+            err(COM"failed to read file(\"%s\") in %s\n", cfg_path, __func__);
+        }
+        close(fd);
+        info(COM"read %ld bytes from \"%s\" in %s\n", r, cfg_path, __func__);
+
+        pb_istream_t stream = pb_istream_from_buffer(buf, r);
+        pb_decode(&stream, settings_fields, &cfg);
         ret = 0;
     } while (0);
 
-    json_object_put(jfile);
+    free(buf);
     return ret;
 }
 
 #if defined(UT)
-TEST(common_cfg, read_sys_json_file)
+TEST(common_cfg, load_config_settings)
 {
-    memset(&sys, 0, sizeof(sys));
-    TEST_ASSERT_EQUAL_INT(-1, read_sys_json_file());
-
-    strncpy(sys.json_path, "/NOT_EXIST_FILE", sizeof(sys.json_path));
-    TEST_ASSERT_EQUAL_INT(-1, read_sys_json_file());
-
-    strncpy(sys.json_path, JSON_SYS_PATH, sizeof(sys.json_path));
-    TEST_ASSERT_EQUAL_INT(0, read_sys_json_file());
+    TEST_ASSERT_EQUAL_INT(0, load_config_settings());
 }
 #endif
 
-int init_cfg(void)
+int update_config_settings(void)
+{
+    int fd = -1;
+    int ret = -1;
+    uint8_t *buf = malloc(MAX_MALLOC_SIZE);
+
+    if (!buf) {
+        err(COM"failed to allocate memory in %s\n", __func__);
+        return ret;
+    }
+
+    memset(buf, 0, MAX_MALLOC_SIZE);
+    pb_ostream_t stream = pb_ostream_from_buffer(buf, MAX_MALLOC_SIZE);
+    pb_encode(&stream, settings_fields, &cfg);
+
+    unlink(cfg_path);
+    fd = open(cfg_path, O_CREAT | O_WRONLY, 0644);
+    do {
+        if (fd < 0) {
+            err(COM"failed to create file(\"%s\") in %s\n", cfg_path, __func__);
+            break;
+        }
+
+        ssize_t r = write(fd, buf, stream.bytes_written);
+        if (r < 0) {
+            err(COM"failed to write file(\"%s\") in %s\n", cfg_path, __func__);
+        }
+
+        info(COM"wrote %ld bytes to \"%s\" in %s\n", r, cfg_path, __func__);
+        close(fd);
+        ret = 0;
+    } while (0);
+
+    free(buf);
+    return ret;
+}
+
+#if defined(UT)
+TEST(common_cfg, update_config_settings)
+{
+    cfg.low_battery_close = true;
+    cfg.joystick.remap_left.top = 100;
+    strncpy(cfg.version, "XXX", sizeof(cfg.version));
+
+    TEST_ASSERT_EQUAL_INT(0, update_config_settings());
+    TEST_ASSERT_EQUAL_INT(0, load_config_settings());
+
+    TEST_ASSERT_EQUAL_STRING("XXX", cfg.version);
+    TEST_ASSERT_EQUAL_INT(true, cfg.low_battery_close);
+    TEST_ASSERT_EQUAL_INT(100, cfg.joystick.remap_left.top);
+    
+    TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
+    TEST_ASSERT_EQUAL_INT(0, update_config_settings());
+}
+#endif
+
+int init_config_settings(void)
 {
     getcwd(home_path, sizeof(home_path));
 
@@ -1087,80 +206,140 @@ int init_cfg(void)
     strncat(home_path, path, strlen(path));
 #endif
 
-    info(COM"home folder:\"%s\"\n", home_path);
-
-    snprintf(cfg.json_path, sizeof(cfg.json_path), "%s/%s", home_path, JSON_CFG_PATH);
-    info(COM"config json file:\"%s\"\n", cfg.json_path);
-
-    strncpy(sys.json_path, JSON_SYS_PATH, sizeof(sys.json_path));
-    info(COM"system json file:\"%s\"\n", sys.json_path);
-
-    if (read_cfg_json_file() < 0) {
-        return -1;
-    }
-
-    if (read_sys_json_file() < 0) {
-        return -1;
-    }
-
+    snprintf(cfg_path, sizeof(cfg_path), "%s/%s", home_path, CFG_PATH);
+    info(COM"home path(\"%s\") in %s\n", home_path, __func__);
+    info(COM"config path(\"%s\") in %s\n", cfg_path, __func__);
     return 0;
 }
 
 #if defined(UT)
-TEST(common_cfg, init_cfg)
+TEST(common_cfg, init_config_settings)
 {
-    TEST_ASSERT_EQUAL_INT(0, init_cfg());
+    TEST_ASSERT_EQUAL_INT(0, init_config_settings());
+}
+#endif
+
+int reset_config_settings(void)
+{
+    strncpy(cfg.version, DEF_CFG_VERSION, sizeof(cfg.version));
+    strncpy(cfg.language, DEF_CFG_LANGUAGE, sizeof(cfg.language));
+    strncpy(cfg.menu_bg, DEF_CFG_MENU_BG, sizeof(cfg.menu_bg));
+    strncpy(cfg.pen_image, DEF_CFG_PEN_IMAGE, sizeof(cfg.pen_image));
+    strncpy(cfg.font_path, DEF_CFG_FONT_PATH, sizeof(cfg.font_path));
+    strncpy(cfg.state_folder, DEF_CFG_STATE_FOLDER, sizeof(cfg.state_folder));
+    strncpy(cfg.border_image, DEF_CFG_BORDER_IMAGE, sizeof(cfg.border_image));
+
+    cfg.system_volume = 0;
+    cfg.fast_forward = DEF_CFG_FAST_FORWARD;
+
+    cfg.half_volume = DEF_CFG_HALF_VOLUME;
+    cfg.low_battery_close = DEF_CFG_LOW_BATTERY_CLOSE;
+
+    cfg.display.layout = DEF_CFG_DISPLAY_LAYOUT;
+    cfg.display.alt_layout = DEF_CFG_DISPLAY_ALT_LAYOUT;
+    cfg.display.small.alpha = DEF_CFG_DISPLAY_SMALL_ALPHA;
+    cfg.display.small.border = DEF_CFG_DISPLAY_SMALL_BORDER;
+    cfg.display.small.position = DEF_CFG_DISPLAY_SMALL_POSITION;
+
+    cfg.cpu.freq.min = DEF_CFG_CPU_FREQ_MIN;
+    cfg.cpu.freq.max = DEF_CFG_CPU_FREQ_MAX;
+    cfg.cpu.core.min = DEF_CFG_CPU_CORE_MIN;
+    cfg.cpu.core.max = DEF_CFG_CPU_CORE_MAX;
+
+    cfg.pen.screen0 = DEF_CFG_PEN_SCREEN0;
+    cfg.pen.speed.x = DEF_CFG_PEN_SPEED_X;
+    cfg.pen.speed.y = DEF_CFG_PEN_SPEED_Y;
+
+    cfg.menu.show_cursor = DEF_CFG_MENU_SHOW_CURSOR;
+
+    cfg.autosave.enable = DEF_CFG_AUTOSAVE_ENABLE;
+    cfg.autosave.slot = DEF_CFG_AUTOSAVE_SLOT;
+
+    cfg.keypad.rotate = DEF_CFG_KEYPAD_ROTATE;
+    cfg.keypad.hotkey = DEF_CFG_KEYPAD_HOTKEY;
+    cfg.keypad.swap.l1_l2 = DEF_CFG_KEYPAD_SWAP_L1_L2;
+    cfg.keypad.swap.r1_r2 = DEF_CFG_KEYPAD_SWAP_R1_R2;
+
+    cfg.joystick.mode = DEF_CFG_JOYSTICK_MODE;
+    cfg.joystick.dead_zone = DEF_CFG_JOYSTICK_DEAD_ZONE;
+    cfg.joystick.remap_left.top = DEF_CFG_JOYSTICK_REMAP_LEFT_TOP;
+    cfg.joystick.remap_left.down = DEF_CFG_JOYSTICK_REMAP_LEFT_DOWN;
+    cfg.joystick.remap_left.left = DEF_CFG_JOYSTICK_REMAP_LEFT_LEFT;
+    cfg.joystick.remap_left.right = DEF_CFG_JOYSTICK_REMAP_LEFT_RIGHT;
+    cfg.joystick.remap_right.top = DEF_CFG_JOYSTICK_REMAP_RIGHT_TOP;
+    cfg.joystick.remap_right.down = DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN;
+    cfg.joystick.remap_right.left = DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT;
+    cfg.joystick.remap_right.right = DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT;
+
+    if (read_system_volume() < 0) {
+        return -1;
+    }
+    return 0;
+}
+
+#if defined(UT)
+TEST(common_cfg, reset_config_settings)
+{
+    TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_VERSION, cfg.version);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_LANGUAGE, cfg.language);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_MENU_BG, cfg.menu_bg);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_PEN_IMAGE, cfg.pen_image);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_FONT_PATH, cfg.font_path);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_STATE_FOLDER, cfg.state_folder);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_BORDER_IMAGE, cfg.border_image);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_FAST_FORWARD, cfg.fast_forward);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_HALF_VOLUME, cfg.half_volume);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_LOW_BATTERY_CLOSE, cfg.low_battery_close);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_LAYOUT, cfg.display.layout);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_ALT_LAYOUT, cfg.display.alt_layout);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_ALPHA, cfg.display.small.alpha);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_BORDER, cfg.display.small.border);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_POSITION, cfg.display.small.position);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_FREQ_MIN, cfg.cpu.freq.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_FREQ_MAX, cfg.cpu.freq.max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_CORE_MIN, cfg.cpu.core.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_CORE_MAX, cfg.cpu.core.max);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SCREEN0, cfg.pen.screen0);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SPEED_X, cfg.pen.speed.x);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SPEED_Y, cfg.pen.speed.y);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_MENU_SHOW_CURSOR, cfg.menu.show_cursor);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_ENABLE, cfg.autosave.enable);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_SLOT, cfg.autosave.slot);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_ROTATE, cfg.keypad.rotate);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_HOTKEY, cfg.keypad.hotkey);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_SWAP_L1_L2, cfg.keypad.swap.l1_l2);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_SWAP_R1_R2, cfg.keypad.swap.r1_r2);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_MODE, cfg.joystick.mode);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_DEAD_ZONE, cfg.joystick.dead_zone);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_TOP, cfg.joystick.remap_left.top);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_DOWN, cfg.joystick.remap_left.down);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_LEFT, cfg.joystick.remap_left.left);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_RIGHT, cfg.joystick.remap_left.right);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_TOP, cfg.joystick.remap_right.top);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN, cfg.joystick.remap_right.down);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT, cfg.joystick.remap_right.left);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT, cfg.joystick.remap_right.right);
 }
 #endif
 
 #if defined(UT)
 TEST_GROUP_RUNNER(common_cfg)
 {
-RUN_TEST_CASE(common_cfg, check_pointer_not_null_and_copy);
-RUN_TEST_CASE(common_cfg, check_value_max_and_set);
-RUN_TEST_CASE(common_cfg, set_home_path);
-RUN_TEST_CASE(common_cfg, get_sys_volume);
-RUN_TEST_CASE(common_cfg, set_sys_volume);
-RUN_TEST_CASE(common_cfg, get_cfg_sdl_version);
-RUN_TEST_CASE(common_cfg, get_cfg_font_style);
-RUN_TEST_CASE(common_cfg, set_cfg_font_style);
-RUN_TEST_CASE(common_cfg, get_cfg_pen);
-RUN_TEST_CASE(common_cfg, set_cfg_pen);
-RUN_TEST_CASE(common_cfg, get_cfg_pen_position);
-RUN_TEST_CASE(common_cfg, set_cfg_pen_position);
-RUN_TEST_CASE(common_cfg, get_cfg_half_volume);
-RUN_TEST_CASE(common_cfg, set_cfg_half_volume);
-RUN_TEST_CASE(common_cfg, get_cfg_auto_save_load);
-RUN_TEST_CASE(common_cfg, set_cfg_auto_save_load);
-RUN_TEST_CASE(common_cfg, get_cfg_auto_save_load_slot);
-RUN_TEST_CASE(common_cfg, set_cfg_auto_save_load_slot);
-RUN_TEST_CASE(common_cfg, get_cfg_display_layout_alt);
-RUN_TEST_CASE(common_cfg, set_cfg_display_layout_alt);
-RUN_TEST_CASE(common_cfg, get_cfg_display_layout);
-RUN_TEST_CASE(common_cfg, set_cfg_display_layout);
-RUN_TEST_CASE(common_cfg, get_cfg_display_layout_alpha);
-RUN_TEST_CASE(common_cfg, set_cfg_display_layout_alpha);
-RUN_TEST_CASE(common_cfg, get_cfg_display_layout_border);
-RUN_TEST_CASE(common_cfg, set_cfg_display_layout_border);
-RUN_TEST_CASE(common_cfg, get_cfg_display_layout_position);
-RUN_TEST_CASE(common_cfg, set_cfg_display_layout_position);
-RUN_TEST_CASE(common_cfg, get_cfg_border_image);
-RUN_TEST_CASE(common_cfg, set_cfg_border_image);
-RUN_TEST_CASE(common_cfg, get_cfg_pen_move_speed_x);
-RUN_TEST_CASE(common_cfg, set_cfg_pen_move_speed_x);
-RUN_TEST_CASE(common_cfg, get_cfg_pen_move_speed_y);
-RUN_TEST_CASE(common_cfg, set_cfg_pen_move_speed_y);
-RUN_TEST_CASE(common_cfg, get_cfg_cpu_min_core);
-RUN_TEST_CASE(common_cfg, set_cfg_cpu_min_core);
-RUN_TEST_CASE(common_cfg, get_cfg_cpu_min_freq);
-RUN_TEST_CASE(common_cfg, set_cfg_cpu_min_freq);
-RUN_TEST_CASE(common_cfg, get_cfg_cpu_max_core);
-RUN_TEST_CASE(common_cfg, set_cfg_cpu_max_core);
-RUN_TEST_CASE(common_cfg, get_cfg_cpu_max_freq);
-RUN_TEST_CASE(common_cfg, set_cfg_cpu_max_freq);
-RUN_TEST_CASE(common_cfg, read_cfg_json_file);
-RUN_TEST_CASE(common_cfg, read_sys_json_file);
-RUN_TEST_CASE(common_cfg, init_cfg);
+    RUN_TEST_CASE(common_cfg, init_config_settings);
+    RUN_TEST_CASE(common_cfg, load_config_settings);
+    RUN_TEST_CASE(common_cfg, reset_config_settings);
+    RUN_TEST_CASE(common_cfg, update_config_settings);
+    RUN_TEST_CASE(common_cfg, read_system_volume);
 }
 #endif
 

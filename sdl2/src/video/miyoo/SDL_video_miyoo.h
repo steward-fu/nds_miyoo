@@ -136,7 +136,7 @@
 #define PREFIX                      "[SDL] "
 #define SHOT_PATH                   "/mnt/SDCARD/Screenshots"
 #define BIOS_PATH                   "system"
-#define CFG_PATH                    "resources/settings.json"
+//#define CFG_PATH                    "resources/settings.json"
 #define THEME_PATH                  "resources/bg"
 #define PEN_PATH                    "resources/pen"
 #define LANG_PATH                   "resources/lang"

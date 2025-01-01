@@ -2311,8 +2311,7 @@ static int read_config(void)
 #endif
     json_object_put(jfile);
 
-    read_sys_json_file();
-    read_cfg_json_file();
+    load_config_settings();
 
 #ifdef A30
     nds.joy.max_x = 200;

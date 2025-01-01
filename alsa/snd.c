@@ -220,7 +220,7 @@ static int set_volume_raw(int value, int add)
 static int set_volume(int volume)
 {
     int volume_raw = 0;
-    int div = get_cfg_half_volume() ? 2 : 1;
+    int div = 0;//get_cfg_half_volume() ? 2 : 1;
 
     if (volume > MAX_VOLUME) {
         volume = MAX_VOLUME;
@@ -240,7 +240,7 @@ static int set_volume(int volume)
 
 int volume_inc(void)
 {
-    int vol = get_sys_volume();
+    int vol = 0;//get_sys_volume();
 
     if (vol < MAX_VOLUME) {
         vol += 1;
@@ -253,7 +253,7 @@ int volume_inc(void)
         *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) | (vol_base + (vol << vol_mul));
 #endif
 
-        set_sys_volume(vol);
+        //set_sys_volume(vol);
     }
 
     return vol;
@@ -261,7 +261,7 @@ int volume_inc(void)
 
 int volume_dec(void)
 {
-    int vol = get_sys_volume();
+    int vol = 0;//get_sys_volume();
 
     if (vol > 0) {
         vol -= 1;
@@ -279,7 +279,7 @@ int volume_dec(void)
         }
 #endif
 
-        set_sys_volume(vol);
+        //set_sys_volume(vol);
     }
 
     return vol;
@@ -289,7 +289,7 @@ int volume_dec(void)
 static int open_dsp(void)
 {
     int arg = 0;
-    int vol = get_sys_volume();
+    int vol = 0;//get_sys_volume();
 
     if (dsp_fd > 0) {
         close(dsp_fd);
@@ -665,9 +665,9 @@ int snd_pcm_close(snd_pcm_t *pcm)
 {
     void *ret = NULL;
 
-    if (get_cfg_auto_save_load() > 0) {
-        dtr_savestate(get_cfg_auto_save_load_slot());
-    }
+    //if (get_cfg_auto_save_load() > 0) {
+    //    dtr_savestate(get_cfg_auto_save_load_slot());
+    //}
 
     pcm_ready = 0;
     pthread_join(thread, &ret);

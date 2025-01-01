@@ -1,0 +1,7 @@
+settings.version        max_size:255
+settings.language       max_size:255
+settings.menu_bg        max_size:255
+settings.pen_image      max_size:255
+settings.font_path      max_size:255
+settings.state_folder   max_size:255
+settings.border_image   max_size:255

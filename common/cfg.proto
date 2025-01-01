@@ -1,0 +1,101 @@
+syntax = "proto2";
+
+message _display {
+    required int32 layout               = 1;
+    required int32 alt_layout           = 2;
+
+    required _small small               = 3;
+    message _small {
+        required int32 alpha            = 1;
+        required int32 border           = 2;
+        required int32 position         = 3;
+    }
+}
+
+message _cpu {
+    required _freq freq                 = 1;
+    message _freq {
+        required int32 min              = 1;
+        required int32 max              = 2;
+    }
+
+    required _core core                 = 2;
+    message _core {
+        required int32 min              = 1;
+        required int32 max              = 2;
+    }
+}
+
+message _pen {
+    required bool screen0               = 1;
+
+    required _speed speed               = 2;
+    message _speed {
+        required int32 x                = 1;
+        required int32 y                = 2;
+    }
+}
+
+message _menu {
+    required bool show_cursor           = 1;
+}
+
+message _autosave {
+    required bool enable                = 1;
+    required int32 slot                 = 2;
+}
+
+message _keypad {
+    required int32 rotate               = 1;
+
+    required _hotkey hotkey             = 2;
+    enum _hotkey {
+        menu                            = 0;
+        select                          = 1;
+    }
+
+    required _swap swap                 = 3;
+    message _swap {
+        required bool l1_l2             = 1;
+        required bool r1_r2             = 2;
+    }
+}
+
+message _joystick {
+    required int32 mode                 = 1;
+    required int32 dead_zone            = 2;
+
+    required _remap remap_left          = 3;
+    required _remap remap_right         = 4;
+    message _remap {
+        required int32 top              = 1;
+        required int32 down             = 2;
+        required int32 left             = 3;
+        required int32 right            = 4;
+    }
+}
+
+message settings {
+    required string version             = 1;
+    required string language            = 2;
+    required string menu_bg             = 3;
+    required string pen_image           = 4;
+    required string font_path           = 5;
+    required string state_folder        = 6;
+    required string border_image        = 7;
+
+    required int32 system_volume        = 8;
+    required int32 fast_forward         = 9;
+
+    required bool half_volume           = 10;
+    required bool low_battery_close     = 11;
+
+    required _display display           = 12;
+    required _cpu cpu                   = 13;
+    required _pen pen                   = 14;
+    required _menu menu                 = 15;
+    required _autosave autosave         = 16;
+    required _keypad keypad             = 17;
+    required _joystick joystick         = 18;
+}
+
