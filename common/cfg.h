@@ -85,6 +85,11 @@ int init_config_settings(void);
 int load_config_settings(void);
 int reset_config_settings(void);
 int update_config_settings(void);
+int get_system_volume(void);
+int set_system_volume(int vol);
+int get_cfg_half_volume(void);
+int get_cfg_autosave_enable(void);
+int get_cfg_autosave_slot(void);
 
 #endif
 

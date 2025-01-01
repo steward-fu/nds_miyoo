@@ -6,7 +6,7 @@ LDFLAGS += -lprotobuf-nanopb
 SRC      = log.c cfg.c cfg.pb.c
 
 ifneq (ut,$(MOD))
-    SRC += neon_memcpy.S
+    SRC += memcpy.S
 endif
 
 .PHONY: all

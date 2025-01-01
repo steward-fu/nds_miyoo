@@ -25,7 +25,6 @@
 #define PERIOD              2048
 #define CHANNELS            2
 #define SAMPLES             8192
-#define QUEUE_SIZE          (2 * 1024 * 1024)
 #define MAX_VOLUME          20
 #define MI_DEV              "/dev/mi_ao"
 #define DSP_DEV             "/dev/dsp"
@@ -34,11 +33,13 @@
 #define MI_AO_SETVOLUME     0x4008690b
 #define MI_AO_GETVOLUME     0xc008690c
 #define MI_AO_SETMUTE       0x4008690d
+#define DEF_QUEUE_SIZE      (2 * 1024 * 1024)
+#define DEF_PCM_AVAIL       2048
 
 typedef struct {
-    int size;
-    int read;
-    int write;
+    size_t size;
+    size_t read;
+    size_t write;
     uint8_t *buffer;
     pthread_mutex_t lock;
 } queue_t;

@@ -21,6 +21,7 @@ mini a30:
 ut: clean
 	$(CROSS)gcc $(SRC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(MOREFLAGS)
 	LD_LIBRARY_PATH=../drastic/libs ./$(TARGET) -v
+	#LD_LIBRARY_PATH=../drastic/libs gdb --args ./$(TARGET) -v
 
 .PHONY: clean
 clean:

@@ -60,7 +60,7 @@ TEST_SETUP(common_cfg)
         fprintf(f, "}");
         fclose(f);
     }
-    load_config_settings();
+    init_config_settings();
 }
 
 TEST_TEAR_DOWN(common_cfg)
@@ -69,20 +69,18 @@ TEST_TEAR_DOWN(common_cfg)
 }
 #endif
 
-int read_system_volume(void)
+int get_system_volume(void)
 {
-    int ret = -1;
     struct json_object *jval = NULL;
     struct json_object *jfile = NULL;
 
     jfile = json_object_from_file(JSON_SYS_PATH);
     if (jfile ==  NULL) {
         err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
-        return ret;
+        return -1;
     }
 
     if (json_object_object_get_ex(jfile, JSON_SYS_VOLUME, &jval)) {
-        ret = 0;
         cfg.system_volume = json_object_get_int(jval);
         info(COM"read system volume(%d) in %s\n", cfg.system_volume, __func__);
     }
@@ -90,13 +88,49 @@ int read_system_volume(void)
         err(COM"failed to read system volume in %s\n", __func__);
     }
     json_object_put(jfile);
-    return ret;
+    return cfg.system_volume;
 }
 
 #if defined(UT)
-TEST(common_cfg, read_system_volume)
+TEST(common_cfg, get_system_volume)
 {
-    TEST_ASSERT_EQUAL_INT(0, read_system_volume());
+    set_system_volume(1);
+    TEST_ASSERT_EQUAL_INT(1, get_system_volume());
+    TEST_ASSERT_EQUAL_INT(1, cfg.system_volume);
+}
+#endif
+
+int set_system_volume(int vol)
+{
+    struct json_object *jval = NULL;
+    struct json_object *jfile = NULL;
+
+    if ((vol < 0) || (vol > MAX_VOLUME)) {
+        err(COM"invalid parameter(vol:%d) in %s\n", vol, __func__);
+        return -1;
+    }
+
+    jfile = json_object_from_file(JSON_SYS_PATH);
+    if (jfile ==  NULL) {
+        err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
+        return -1;
+    }
+
+    json_object_object_add(jfile, JSON_SYS_VOLUME, json_object_new_int(vol));
+    info(COM"wrote new system volume(%d) in %s\n", vol, __func__);
+
+    json_object_to_file_ext(JSON_SYS_PATH, jfile, JSON_C_TO_STRING_PRETTY);
+    json_object_put(jfile);
+    return vol;
+}
+
+#if defined(UT)
+TEST(common_cfg, set_system_volume)
+{
+    TEST_ASSERT_EQUAL_INT(-1, set_system_volume(-1));
+    TEST_ASSERT_EQUAL_INT(0, set_system_volume(0));
+    TEST_ASSERT_EQUAL_INT(1, set_system_volume(1));
+    TEST_ASSERT_EQUAL_INT(-1, set_system_volume(MAX_VOLUME + 1));
 }
 #endif
 
@@ -138,6 +172,7 @@ int load_config_settings(void)
 TEST(common_cfg, load_config_settings)
 {
     TEST_ASSERT_EQUAL_INT(0, load_config_settings());
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_VERSION, cfg.version);
 }
 #endif
 
@@ -209,6 +244,20 @@ int init_config_settings(void)
     snprintf(cfg_path, sizeof(cfg_path), "%s/%s", home_path, CFG_PATH);
     info(COM"home path(\"%s\") in %s\n", home_path, __func__);
     info(COM"config path(\"%s\") in %s\n", cfg_path, __func__);
+
+    if (load_config_settings() < 0) {
+        warn(COM"failed to load config setting in %s\n", __func__);
+
+        info(COM"reset all config settings back to default in %s\n", __func__);
+        reset_config_settings();
+    }
+
+    if (strcmp(DEF_CFG_VERSION, cfg.version)) {
+        warn(COM"invalid version found in \"%s\" in %s\n", cfg_path, __func__);
+
+        info(COM"reset all config settings back to default in %s\n", __func__);
+        reset_config_settings();
+    }
     return 0;
 }
 
@@ -271,7 +320,7 @@ int reset_config_settings(void)
     cfg.joystick.remap_right.left = DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT;
     cfg.joystick.remap_right.right = DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT;
 
-    if (read_system_volume() < 0) {
+    if (get_system_volume() < 0) {
         return -1;
     }
     return 0;
@@ -332,14 +381,63 @@ TEST(common_cfg, reset_config_settings)
 }
 #endif
 
+int get_cfg_half_volume(void)
+{
+    return cfg.half_volume;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_cfg_half_volume)
+{
+    TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
+    TEST_ASSERT_EQUAL_INT(0, get_cfg_half_volume());
+}
+#endif
+
+int get_cfg_autosave_enable(void)
+{
+    return cfg.autosave.enable;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_cfg_autosave_enable)
+{
+    cfg.autosave.enable = 0;
+    TEST_ASSERT_EQUAL_INT(0, get_cfg_autosave_enable());
+
+    cfg.autosave.enable = 1;
+    TEST_ASSERT_EQUAL_INT(1, get_cfg_autosave_enable());
+}
+#endif
+
+int get_cfg_autosave_slot(void)
+{
+    return cfg.autosave.slot;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_cfg_autosave_slot)
+{
+    cfg.autosave.slot = 0;
+    TEST_ASSERT_EQUAL_INT(0, get_cfg_autosave_slot());
+
+    cfg.autosave.slot = 10;
+    TEST_ASSERT_EQUAL_INT(10, get_cfg_autosave_slot());
+}
+#endif
+
 #if defined(UT)
 TEST_GROUP_RUNNER(common_cfg)
 {
-    RUN_TEST_CASE(common_cfg, init_config_settings);
+    RUN_TEST_CASE(common_cfg, get_system_volume);
+    RUN_TEST_CASE(common_cfg, set_system_volume);
     RUN_TEST_CASE(common_cfg, load_config_settings);
-    RUN_TEST_CASE(common_cfg, reset_config_settings);
     RUN_TEST_CASE(common_cfg, update_config_settings);
-    RUN_TEST_CASE(common_cfg, read_system_volume);
+    RUN_TEST_CASE(common_cfg, init_config_settings);
+    RUN_TEST_CASE(common_cfg, reset_config_settings);
+    RUN_TEST_CASE(common_cfg, get_cfg_half_volume);
+    RUN_TEST_CASE(common_cfg, get_cfg_autosave_enable);
+    RUN_TEST_CASE(common_cfg, get_cfg_autosave_slot);
 }
 #endif
 
