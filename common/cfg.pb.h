@@ -25,6 +25,7 @@ typedef struct __display__small {
 typedef struct __display {
     int32_t layout;
     int32_t alt_layout;
+    bool has_small;
     _display__small small;
 } _display;
 
@@ -39,7 +40,9 @@ typedef struct __cpu__core {
 } _cpu__core;
 
 typedef struct __cpu {
+    bool has_freq;
     _cpu__freq freq;
+    bool has_core;
     _cpu__core core;
 } _cpu;
 
@@ -51,6 +54,7 @@ typedef struct __pen__speed {
 typedef struct __pen {
     char image[255];
     bool screen0;
+    bool has_speed;
     _pen__speed speed;
 } _pen;
 
@@ -72,6 +76,7 @@ typedef struct __keypad__swap {
 typedef struct __keypad {
     int32_t rotate;
     _keypad__hotkey hotkey;
+    bool has_swap;
     _keypad__swap swap;
 } _keypad;
 
@@ -85,7 +90,9 @@ typedef struct __joystick__remap {
 typedef struct __joystick {
     int32_t mode;
     int32_t dead_zone;
+    bool has_remap_left;
     _joystick__remap remap_left;
+    bool has_remap_right;
     _joystick__remap remap_right;
 } _joystick;
 
@@ -99,12 +106,19 @@ typedef struct _settings {
     int32_t fast_forward;
     bool half_volume;
     bool low_battery_close;
+    bool has_display;
     _display display;
+    bool has_cpu;
     _cpu cpu;
+    bool has_pen;
     _pen pen;
+    bool has_menu;
     _menu menu;
+    bool has_autosave;
     _autosave autosave;
+    bool has_keypad;
     _keypad keypad;
+    bool has_joystick;
     _joystick joystick;
 } settings;
 
@@ -135,34 +149,34 @@ extern "C" {
 
 
 /* Initializer values for message structs */
-#define _display_init_default                    {0, 0, _display__small_init_default}
+#define _display_init_default                    {0, 0, false, _display__small_init_default}
 #define _display__small_init_default             {0, 0, 0}
-#define _cpu_init_default                        {_cpu__freq_init_default, _cpu__core_init_default}
+#define _cpu_init_default                        {false, _cpu__freq_init_default, false, _cpu__core_init_default}
 #define _cpu__freq_init_default                  {0, 0}
 #define _cpu__core_init_default                  {0, 0}
-#define _pen_init_default                        {"", 0, _pen__speed_init_default}
+#define _pen_init_default                        {"", 0, false, _pen__speed_init_default}
 #define _pen__speed_init_default                 {0, 0}
 #define _menu_init_default                       {"", 0}
 #define _autosave_init_default                   {0, 0}
-#define _keypad_init_default                     {0, __keypad__hotkey_MIN, _keypad__swap_init_default}
+#define _keypad_init_default                     {0, __keypad__hotkey_MIN, false, _keypad__swap_init_default}
 #define _keypad__swap_init_default               {0, 0}
-#define _joystick_init_default                   {0, 0, _joystick__remap_init_default, _joystick__remap_init_default}
+#define _joystick_init_default                   {0, 0, false, _joystick__remap_init_default, false, _joystick__remap_init_default}
 #define _joystick__remap_init_default            {0, 0, 0, 0}
-#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, _display_init_default, _cpu_init_default, _pen_init_default, _menu_init_default, _autosave_init_default, _keypad_init_default, _joystick_init_default}
-#define _display_init_zero                       {0, 0, _display__small_init_zero}
+#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, false, _display_init_default, false, _cpu_init_default, false, _pen_init_default, false, _menu_init_default, false, _autosave_init_default, false, _keypad_init_default, false, _joystick_init_default}
+#define _display_init_zero                       {0, 0, false, _display__small_init_zero}
 #define _display__small_init_zero                {0, 0, 0}
-#define _cpu_init_zero                           {_cpu__freq_init_zero, _cpu__core_init_zero}
+#define _cpu_init_zero                           {false, _cpu__freq_init_zero, false, _cpu__core_init_zero}
 #define _cpu__freq_init_zero                     {0, 0}
 #define _cpu__core_init_zero                     {0, 0}
-#define _pen_init_zero                           {"", 0, _pen__speed_init_zero}
+#define _pen_init_zero                           {"", 0, false, _pen__speed_init_zero}
 #define _pen__speed_init_zero                    {0, 0}
 #define _menu_init_zero                          {"", 0}
 #define _autosave_init_zero                      {0, 0}
-#define _keypad_init_zero                        {0, __keypad__hotkey_MIN, _keypad__swap_init_zero}
+#define _keypad_init_zero                        {0, __keypad__hotkey_MIN, false, _keypad__swap_init_zero}
 #define _keypad__swap_init_zero                  {0, 0}
-#define _joystick_init_zero                      {0, 0, _joystick__remap_init_zero, _joystick__remap_init_zero}
+#define _joystick_init_zero                      {0, 0, false, _joystick__remap_init_zero, false, _joystick__remap_init_zero}
 #define _joystick__remap_init_zero               {0, 0, 0, 0}
-#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, _display_init_zero, _cpu_init_zero, _pen_init_zero, _menu_init_zero, _autosave_init_zero, _keypad_init_zero, _joystick_init_zero}
+#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, false, _display_init_zero, false, _cpu_init_zero, false, _pen_init_zero, false, _menu_init_zero, false, _autosave_init_zero, false, _keypad_init_zero, false, _joystick_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define _display__small_alpha_tag                1
@@ -218,115 +232,115 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define _display_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    layout,            1) \
-X(a, STATIC,   REQUIRED, INT32,    alt_layout,        2) \
-X(a, STATIC,   REQUIRED, MESSAGE,  small,             3)
+X(a, STATIC,   SINGULAR, INT32,    layout,            1) \
+X(a, STATIC,   SINGULAR, INT32,    alt_layout,        2) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  small,             3)
 #define _display_CALLBACK NULL
 #define _display_DEFAULT NULL
 #define _display_small_MSGTYPE _display__small
 
 #define _display__small_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    alpha,             1) \
-X(a, STATIC,   REQUIRED, INT32,    border,            2) \
-X(a, STATIC,   REQUIRED, INT32,    position,          3)
+X(a, STATIC,   SINGULAR, INT32,    alpha,             1) \
+X(a, STATIC,   SINGULAR, INT32,    border,            2) \
+X(a, STATIC,   SINGULAR, INT32,    position,          3)
 #define _display__small_CALLBACK NULL
 #define _display__small_DEFAULT NULL
 
 #define _cpu_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, MESSAGE,  freq,              1) \
-X(a, STATIC,   REQUIRED, MESSAGE,  core,              2)
+X(a, STATIC,   OPTIONAL, MESSAGE,  freq,              1) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  core,              2)
 #define _cpu_CALLBACK NULL
 #define _cpu_DEFAULT NULL
 #define _cpu_freq_MSGTYPE _cpu__freq
 #define _cpu_core_MSGTYPE _cpu__core
 
 #define _cpu__freq_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    min,               1) \
-X(a, STATIC,   REQUIRED, INT32,    max,               2)
+X(a, STATIC,   SINGULAR, INT32,    min,               1) \
+X(a, STATIC,   SINGULAR, INT32,    max,               2)
 #define _cpu__freq_CALLBACK NULL
 #define _cpu__freq_DEFAULT NULL
 
 #define _cpu__core_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    min,               1) \
-X(a, STATIC,   REQUIRED, INT32,    max,               2)
+X(a, STATIC,   SINGULAR, INT32,    min,               1) \
+X(a, STATIC,   SINGULAR, INT32,    max,               2)
 #define _cpu__core_CALLBACK NULL
 #define _cpu__core_DEFAULT NULL
 
 #define _pen_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, STRING,   image,             1) \
-X(a, STATIC,   REQUIRED, BOOL,     screen0,           2) \
-X(a, STATIC,   REQUIRED, MESSAGE,  speed,             3)
+X(a, STATIC,   SINGULAR, STRING,   image,             1) \
+X(a, STATIC,   SINGULAR, BOOL,     screen0,           2) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  speed,             3)
 #define _pen_CALLBACK NULL
 #define _pen_DEFAULT NULL
 #define _pen_speed_MSGTYPE _pen__speed
 
 #define _pen__speed_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    x,                 1) \
-X(a, STATIC,   REQUIRED, INT32,    y,                 2)
+X(a, STATIC,   SINGULAR, INT32,    x,                 1) \
+X(a, STATIC,   SINGULAR, INT32,    y,                 2)
 #define _pen__speed_CALLBACK NULL
 #define _pen__speed_DEFAULT NULL
 
 #define _menu_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, STRING,   bg,                1) \
-X(a, STATIC,   REQUIRED, BOOL,     show_cursor,       2)
+X(a, STATIC,   SINGULAR, STRING,   bg,                1) \
+X(a, STATIC,   SINGULAR, BOOL,     show_cursor,       2)
 #define _menu_CALLBACK NULL
 #define _menu_DEFAULT NULL
 
 #define _autosave_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, BOOL,     enable,            1) \
-X(a, STATIC,   REQUIRED, INT32,    slot,              2)
+X(a, STATIC,   SINGULAR, BOOL,     enable,            1) \
+X(a, STATIC,   SINGULAR, INT32,    slot,              2)
 #define _autosave_CALLBACK NULL
 #define _autosave_DEFAULT NULL
 
 #define _keypad_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    rotate,            1) \
-X(a, STATIC,   REQUIRED, UENUM,    hotkey,            2) \
-X(a, STATIC,   REQUIRED, MESSAGE,  swap,              3)
+X(a, STATIC,   SINGULAR, INT32,    rotate,            1) \
+X(a, STATIC,   SINGULAR, UENUM,    hotkey,            2) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  swap,              3)
 #define _keypad_CALLBACK NULL
 #define _keypad_DEFAULT NULL
 #define _keypad_swap_MSGTYPE _keypad__swap
 
 #define _keypad__swap_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, BOOL,     l1_l2,             1) \
-X(a, STATIC,   REQUIRED, BOOL,     r1_r2,             2)
+X(a, STATIC,   SINGULAR, BOOL,     l1_l2,             1) \
+X(a, STATIC,   SINGULAR, BOOL,     r1_r2,             2)
 #define _keypad__swap_CALLBACK NULL
 #define _keypad__swap_DEFAULT NULL
 
 #define _joystick_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    mode,              1) \
-X(a, STATIC,   REQUIRED, INT32,    dead_zone,         2) \
-X(a, STATIC,   REQUIRED, MESSAGE,  remap_left,        3) \
-X(a, STATIC,   REQUIRED, MESSAGE,  remap_right,       4)
+X(a, STATIC,   SINGULAR, INT32,    mode,              1) \
+X(a, STATIC,   SINGULAR, INT32,    dead_zone,         2) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  remap_left,        3) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  remap_right,       4)
 #define _joystick_CALLBACK NULL
 #define _joystick_DEFAULT NULL
 #define _joystick_remap_left_MSGTYPE _joystick__remap
 #define _joystick_remap_right_MSGTYPE _joystick__remap
 
 #define _joystick__remap_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    top,               1) \
-X(a, STATIC,   REQUIRED, INT32,    down,              2) \
-X(a, STATIC,   REQUIRED, INT32,    left,              3) \
-X(a, STATIC,   REQUIRED, INT32,    right,             4)
+X(a, STATIC,   SINGULAR, INT32,    top,               1) \
+X(a, STATIC,   SINGULAR, INT32,    down,              2) \
+X(a, STATIC,   SINGULAR, INT32,    left,              3) \
+X(a, STATIC,   SINGULAR, INT32,    right,             4)
 #define _joystick__remap_CALLBACK NULL
 #define _joystick__remap_DEFAULT NULL
 
 #define settings_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, STRING,   version,           1) \
-X(a, STATIC,   REQUIRED, STRING,   language,          2) \
-X(a, STATIC,   REQUIRED, STRING,   font_path,         3) \
-X(a, STATIC,   REQUIRED, STRING,   state_folder,      4) \
-X(a, STATIC,   REQUIRED, STRING,   border_image,      5) \
-X(a, STATIC,   REQUIRED, INT32,    system_volume,     6) \
-X(a, STATIC,   REQUIRED, INT32,    fast_forward,      7) \
-X(a, STATIC,   REQUIRED, BOOL,     half_volume,       8) \
-X(a, STATIC,   REQUIRED, BOOL,     low_battery_close,   9) \
-X(a, STATIC,   REQUIRED, MESSAGE,  display,          10) \
-X(a, STATIC,   REQUIRED, MESSAGE,  cpu,              11) \
-X(a, STATIC,   REQUIRED, MESSAGE,  pen,              12) \
-X(a, STATIC,   REQUIRED, MESSAGE,  menu,             13) \
-X(a, STATIC,   REQUIRED, MESSAGE,  autosave,         14) \
-X(a, STATIC,   REQUIRED, MESSAGE,  keypad,           15) \
-X(a, STATIC,   REQUIRED, MESSAGE,  joystick,         16)
+X(a, STATIC,   SINGULAR, STRING,   version,           1) \
+X(a, STATIC,   SINGULAR, STRING,   language,          2) \
+X(a, STATIC,   SINGULAR, STRING,   font_path,         3) \
+X(a, STATIC,   SINGULAR, STRING,   state_folder,      4) \
+X(a, STATIC,   SINGULAR, STRING,   border_image,      5) \
+X(a, STATIC,   SINGULAR, INT32,    system_volume,     6) \
+X(a, STATIC,   SINGULAR, INT32,    fast_forward,      7) \
+X(a, STATIC,   SINGULAR, BOOL,     half_volume,       8) \
+X(a, STATIC,   SINGULAR, BOOL,     low_battery_close,   9) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  display,          10) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              11) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              12) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             13) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         14) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  keypad,           15) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  joystick,         16)
 #define settings_CALLBACK NULL
 #define settings_DEFAULT NULL
 #define settings_display_MSGTYPE _display

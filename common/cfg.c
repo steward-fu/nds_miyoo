@@ -189,6 +189,20 @@ int update_config_settings(void)
 
     memset(buf, 0, MAX_MALLOC_SIZE);
     pb_ostream_t stream = pb_ostream_from_buffer(buf, MAX_MALLOC_SIZE);
+    cfg.has_display = true;
+    cfg.display.has_small = true;
+    cfg.has_cpu = true;
+    cfg.cpu.has_freq = true;
+    cfg.cpu.has_core = true;
+    cfg.has_pen = true;
+    cfg.pen.has_speed = true;
+    cfg.has_menu = true;
+    cfg.has_autosave = true;
+    cfg.has_keypad = true;
+    cfg.keypad.has_swap = true;
+    cfg.has_joystick = true;
+    cfg.joystick.has_remap_left = true;
+    cfg.joystick.has_remap_right = true;
     pb_encode(&stream, settings_fields, &cfg);
 
     unlink(cfg_path);
@@ -216,16 +230,30 @@ int update_config_settings(void)
 #if defined(UT)
 TEST(common_cfg, update_config_settings)
 {
-    cfg.low_battery_close = true;
-    cfg.joystick.remap_left.top = 100;
     strncpy(cfg.version, "XXX", sizeof(cfg.version));
+    cfg.low_battery_close = true;
+    cfg.display.small.alpha = 11;
+    cfg.cpu.freq.min = 22;
+    cfg.cpu.core.min = 33;
+    cfg.pen.speed.x = 44;
+    strncpy(cfg.menu.bg, "YYY", sizeof(cfg.menu.bg));
+    cfg.autosave.slot = 55;
+    cfg.keypad.swap.l1_l2 = true;
+    cfg.joystick.remap_left.top = 66;
 
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
     TEST_ASSERT_EQUAL_INT(0, load_config_settings());
 
     TEST_ASSERT_EQUAL_STRING("XXX", cfg.version);
     TEST_ASSERT_EQUAL_INT(true, cfg.low_battery_close);
-    TEST_ASSERT_EQUAL_INT(100, cfg.joystick.remap_left.top);
+    TEST_ASSERT_EQUAL_INT(11, cfg.display.small.alpha);
+    TEST_ASSERT_EQUAL_INT(22, cfg.cpu.freq.min);
+    TEST_ASSERT_EQUAL_INT(33, cfg.cpu.core.min);
+    TEST_ASSERT_EQUAL_INT(44, cfg.pen.speed.x);
+    TEST_ASSERT_EQUAL_STRING("YYY", cfg.menu.bg);
+    TEST_ASSERT_EQUAL_INT(55, cfg.autosave.slot);
+    TEST_ASSERT_EQUAL_INT(true, cfg.keypad.swap.l1_l2);
+    TEST_ASSERT_EQUAL_INT(66, cfg.joystick.remap_left.top);
     
     TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
@@ -250,6 +278,7 @@ int init_config_settings(void)
 
         info(COM"reset all config settings back to default in %s\n", __func__);
         reset_config_settings();
+        update_config_settings();
     }
 
     if (strcmp(DEF_CFG_VERSION, cfg.version)) {
@@ -257,6 +286,7 @@ int init_config_settings(void)
 
         info(COM"reset all config settings back to default in %s\n", __func__);
         reset_config_settings();
+        update_config_settings();
     }
     return 0;
 }
@@ -330,6 +360,9 @@ int reset_config_settings(void)
 TEST(common_cfg, reset_config_settings)
 {
     TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
+    TEST_ASSERT_EQUAL_INT(0, update_config_settings());
+    TEST_ASSERT_EQUAL_INT(0, load_config_settings());
+
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_VERSION, cfg.version);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_LANGUAGE, cfg.language);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_MENU_BG, cfg.menu.bg);

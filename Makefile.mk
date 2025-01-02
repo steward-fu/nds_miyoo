@@ -105,6 +105,7 @@ clean:
 	rm -rf drastic/config.json
 	rm -rf drastic/show_hotkeys
 	rm -rf drastic/ChangeLog.txt
+	rm -rf drastic/miyoo/settings.pb
 	rm -rf drastic/libs/libdetour.so
 	rm -rf drastic/libs/libcommon.so
 	rm -rf drastic/libs/libasound.so.2
