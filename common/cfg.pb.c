@@ -21,13 +21,13 @@ PB_BIND(_cpu__freq, _cpu__freq, AUTO)
 PB_BIND(_cpu__core, _cpu__core, AUTO)
 
 
-PB_BIND(_pen, _pen, AUTO)
+PB_BIND(_pen, _pen, 2)
 
 
 PB_BIND(_pen__speed, _pen__speed, AUTO)
 
 
-PB_BIND(_menu, _menu, AUTO)
+PB_BIND(_menu, _menu, 2)
 
 
 PB_BIND(_autosave, _autosave, AUTO)

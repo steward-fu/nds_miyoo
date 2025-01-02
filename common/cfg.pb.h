@@ -49,11 +49,13 @@ typedef struct __pen__speed {
 } _pen__speed;
 
 typedef struct __pen {
+    char image[255];
     bool screen0;
     _pen__speed speed;
 } _pen;
 
 typedef struct __menu {
+    char bg[255];
     bool show_cursor;
 } _menu;
 
@@ -90,8 +92,6 @@ typedef struct __joystick {
 typedef struct _settings {
     char version[255];
     char language[255];
-    char menu_bg[255];
-    char pen_image[255];
     char font_path[255];
     char state_folder[255];
     char border_image[255];
@@ -140,29 +140,29 @@ extern "C" {
 #define _cpu_init_default                        {_cpu__freq_init_default, _cpu__core_init_default}
 #define _cpu__freq_init_default                  {0, 0}
 #define _cpu__core_init_default                  {0, 0}
-#define _pen_init_default                        {0, _pen__speed_init_default}
+#define _pen_init_default                        {"", 0, _pen__speed_init_default}
 #define _pen__speed_init_default                 {0, 0}
-#define _menu_init_default                       {0}
+#define _menu_init_default                       {"", 0}
 #define _autosave_init_default                   {0, 0}
 #define _keypad_init_default                     {0, __keypad__hotkey_MIN, _keypad__swap_init_default}
 #define _keypad__swap_init_default               {0, 0}
 #define _joystick_init_default                   {0, 0, _joystick__remap_init_default, _joystick__remap_init_default}
 #define _joystick__remap_init_default            {0, 0, 0, 0}
-#define settings_init_default                    {"", "", "", "", "", "", "", 0, 0, 0, 0, _display_init_default, _cpu_init_default, _pen_init_default, _menu_init_default, _autosave_init_default, _keypad_init_default, _joystick_init_default}
+#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, _display_init_default, _cpu_init_default, _pen_init_default, _menu_init_default, _autosave_init_default, _keypad_init_default, _joystick_init_default}
 #define _display_init_zero                       {0, 0, _display__small_init_zero}
 #define _display__small_init_zero                {0, 0, 0}
 #define _cpu_init_zero                           {_cpu__freq_init_zero, _cpu__core_init_zero}
 #define _cpu__freq_init_zero                     {0, 0}
 #define _cpu__core_init_zero                     {0, 0}
-#define _pen_init_zero                           {0, _pen__speed_init_zero}
+#define _pen_init_zero                           {"", 0, _pen__speed_init_zero}
 #define _pen__speed_init_zero                    {0, 0}
-#define _menu_init_zero                          {0}
+#define _menu_init_zero                          {"", 0}
 #define _autosave_init_zero                      {0, 0}
 #define _keypad_init_zero                        {0, __keypad__hotkey_MIN, _keypad__swap_init_zero}
 #define _keypad__swap_init_zero                  {0, 0}
 #define _joystick_init_zero                      {0, 0, _joystick__remap_init_zero, _joystick__remap_init_zero}
 #define _joystick__remap_init_zero               {0, 0, 0, 0}
-#define settings_init_zero                       {"", "", "", "", "", "", "", 0, 0, 0, 0, _display_init_zero, _cpu_init_zero, _pen_init_zero, _menu_init_zero, _autosave_init_zero, _keypad_init_zero, _joystick_init_zero}
+#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, _display_init_zero, _cpu_init_zero, _pen_init_zero, _menu_init_zero, _autosave_init_zero, _keypad_init_zero, _joystick_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define _display__small_alpha_tag                1
@@ -179,9 +179,11 @@ extern "C" {
 #define _cpu_core_tag                            2
 #define _pen__speed_x_tag                        1
 #define _pen__speed_y_tag                        2
-#define _pen_screen0_tag                         1
-#define _pen_speed_tag                           2
-#define _menu_show_cursor_tag                    1
+#define _pen_image_tag                           1
+#define _pen_screen0_tag                         2
+#define _pen_speed_tag                           3
+#define _menu_bg_tag                             1
+#define _menu_show_cursor_tag                    2
 #define _autosave_enable_tag                     1
 #define _autosave_slot_tag                       2
 #define _keypad__swap_l1_l2_tag                  1
@@ -199,22 +201,20 @@ extern "C" {
 #define _joystick_remap_right_tag                4
 #define settings_version_tag                     1
 #define settings_language_tag                    2
-#define settings_menu_bg_tag                     3
-#define settings_pen_image_tag                   4
-#define settings_font_path_tag                   5
-#define settings_state_folder_tag                6
-#define settings_border_image_tag                7
-#define settings_system_volume_tag               8
-#define settings_fast_forward_tag                9
-#define settings_half_volume_tag                 10
-#define settings_low_battery_close_tag           11
-#define settings_display_tag                     12
-#define settings_cpu_tag                         13
-#define settings_pen_tag                         14
-#define settings_menu_tag                        15
-#define settings_autosave_tag                    16
-#define settings_keypad_tag                      17
-#define settings_joystick_tag                    18
+#define settings_font_path_tag                   3
+#define settings_state_folder_tag                4
+#define settings_border_image_tag                5
+#define settings_system_volume_tag               6
+#define settings_fast_forward_tag                7
+#define settings_half_volume_tag                 8
+#define settings_low_battery_close_tag           9
+#define settings_display_tag                     10
+#define settings_cpu_tag                         11
+#define settings_pen_tag                         12
+#define settings_menu_tag                        13
+#define settings_autosave_tag                    14
+#define settings_keypad_tag                      15
+#define settings_joystick_tag                    16
 
 /* Struct field encoding specification for nanopb */
 #define _display_FIELDLIST(X, a) \
@@ -253,8 +253,9 @@ X(a, STATIC,   REQUIRED, INT32,    max,               2)
 #define _cpu__core_DEFAULT NULL
 
 #define _pen_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, BOOL,     screen0,           1) \
-X(a, STATIC,   REQUIRED, MESSAGE,  speed,             2)
+X(a, STATIC,   REQUIRED, STRING,   image,             1) \
+X(a, STATIC,   REQUIRED, BOOL,     screen0,           2) \
+X(a, STATIC,   REQUIRED, MESSAGE,  speed,             3)
 #define _pen_CALLBACK NULL
 #define _pen_DEFAULT NULL
 #define _pen_speed_MSGTYPE _pen__speed
@@ -266,7 +267,8 @@ X(a, STATIC,   REQUIRED, INT32,    y,                 2)
 #define _pen__speed_DEFAULT NULL
 
 #define _menu_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, BOOL,     show_cursor,       1)
+X(a, STATIC,   REQUIRED, STRING,   bg,                1) \
+X(a, STATIC,   REQUIRED, BOOL,     show_cursor,       2)
 #define _menu_CALLBACK NULL
 #define _menu_DEFAULT NULL
 
@@ -311,22 +313,20 @@ X(a, STATIC,   REQUIRED, INT32,    right,             4)
 #define settings_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, STRING,   version,           1) \
 X(a, STATIC,   REQUIRED, STRING,   language,          2) \
-X(a, STATIC,   REQUIRED, STRING,   menu_bg,           3) \
-X(a, STATIC,   REQUIRED, STRING,   pen_image,         4) \
-X(a, STATIC,   REQUIRED, STRING,   font_path,         5) \
-X(a, STATIC,   REQUIRED, STRING,   state_folder,      6) \
-X(a, STATIC,   REQUIRED, STRING,   border_image,      7) \
-X(a, STATIC,   REQUIRED, INT32,    system_volume,     8) \
-X(a, STATIC,   REQUIRED, INT32,    fast_forward,      9) \
-X(a, STATIC,   REQUIRED, BOOL,     half_volume,      10) \
-X(a, STATIC,   REQUIRED, BOOL,     low_battery_close,  11) \
-X(a, STATIC,   REQUIRED, MESSAGE,  display,          12) \
-X(a, STATIC,   REQUIRED, MESSAGE,  cpu,              13) \
-X(a, STATIC,   REQUIRED, MESSAGE,  pen,              14) \
-X(a, STATIC,   REQUIRED, MESSAGE,  menu,             15) \
-X(a, STATIC,   REQUIRED, MESSAGE,  autosave,         16) \
-X(a, STATIC,   REQUIRED, MESSAGE,  keypad,           17) \
-X(a, STATIC,   REQUIRED, MESSAGE,  joystick,         18)
+X(a, STATIC,   REQUIRED, STRING,   font_path,         3) \
+X(a, STATIC,   REQUIRED, STRING,   state_folder,      4) \
+X(a, STATIC,   REQUIRED, STRING,   border_image,      5) \
+X(a, STATIC,   REQUIRED, INT32,    system_volume,     6) \
+X(a, STATIC,   REQUIRED, INT32,    fast_forward,      7) \
+X(a, STATIC,   REQUIRED, BOOL,     half_volume,       8) \
+X(a, STATIC,   REQUIRED, BOOL,     low_battery_close,   9) \
+X(a, STATIC,   REQUIRED, MESSAGE,  display,          10) \
+X(a, STATIC,   REQUIRED, MESSAGE,  cpu,              11) \
+X(a, STATIC,   REQUIRED, MESSAGE,  pen,              12) \
+X(a, STATIC,   REQUIRED, MESSAGE,  menu,             13) \
+X(a, STATIC,   REQUIRED, MESSAGE,  autosave,         14) \
+X(a, STATIC,   REQUIRED, MESSAGE,  keypad,           15) \
+X(a, STATIC,   REQUIRED, MESSAGE,  joystick,         16)
 #define settings_CALLBACK NULL
 #define settings_DEFAULT NULL
 #define settings_display_MSGTYPE _display
@@ -380,9 +380,9 @@ extern const pb_msgdesc_t settings_msg;
 #define _joystick_size                           114
 #define _keypad__swap_size                       4
 #define _keypad_size                             19
-#define _menu_size                               2
+#define _menu_size                               259
 #define _pen__speed_size                         22
-#define _pen_size                                26
+#define _pen_size                                283
 #define settings_size                            2121
 
 #ifdef __cplusplus

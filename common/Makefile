@@ -15,7 +15,7 @@ all:
 
 .PHONY: proto
 proto:
-	sudo protoc --nanopb_out=. cfg.proto
+	sudo protoc --nanopb_out=-v:. cfg.proto
 
 .PHONY: clean
 clean:

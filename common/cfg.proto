@@ -27,9 +27,10 @@ message _cpu {
 }
 
 message _pen {
-    required bool screen0               = 1;
+    required string image               = 1;
+    required bool screen0               = 2;
 
-    required _speed speed               = 2;
+    required _speed speed               = 3;
     message _speed {
         required int32 x                = 1;
         required int32 y                = 2;
@@ -37,7 +38,8 @@ message _pen {
 }
 
 message _menu {
-    required bool show_cursor           = 1;
+    required string bg                  = 1;
+    required bool show_cursor           = 2;
 }
 
 message _autosave {
@@ -78,24 +80,22 @@ message _joystick {
 message settings {
     required string version             = 1;
     required string language            = 2;
-    required string menu_bg             = 3;
-    required string pen_image           = 4;
-    required string font_path           = 5;
-    required string state_folder        = 6;
-    required string border_image        = 7;
+    required string font_path           = 3;
+    required string state_folder        = 4;
+    required string border_image        = 5;
 
-    required int32 system_volume        = 8;
-    required int32 fast_forward         = 9;
+    required int32 system_volume        = 6;
+    required int32 fast_forward         = 7;
 
-    required bool half_volume           = 10;
-    required bool low_battery_close     = 11;
+    required bool half_volume           = 8;
+    required bool low_battery_close     = 9;
 
-    required _display display           = 12;
-    required _cpu cpu                   = 13;
-    required _pen pen                   = 14;
-    required _menu menu                 = 15;
-    required _autosave autosave         = 16;
-    required _keypad keypad             = 17;
-    required _joystick joystick         = 18;
+    required _display display           = 10;
+    required _cpu cpu                   = 11;
+    required _pen pen                   = 12;
+    required _menu menu                 = 13;
+    required _autosave autosave         = 14;
+    required _keypad keypad             = 15;
+    required _joystick joystick         = 16;
 }
 

@@ -42,8 +42,8 @@
 #include "snd.h"
 #include "cfg.pb.h"
 
-static char cfg_path[MAX_PATH] = { 0 };
 static char home_path[MAX_PATH] = { 0 };
+static char cfg_path[MAX_PATH * 2] = { 0 };
 static settings cfg = settings_init_zero;
 
 #if defined(UT)
@@ -272,8 +272,8 @@ int reset_config_settings(void)
 {
     strncpy(cfg.version, DEF_CFG_VERSION, sizeof(cfg.version));
     strncpy(cfg.language, DEF_CFG_LANGUAGE, sizeof(cfg.language));
-    strncpy(cfg.menu_bg, DEF_CFG_MENU_BG, sizeof(cfg.menu_bg));
-    strncpy(cfg.pen_image, DEF_CFG_PEN_IMAGE, sizeof(cfg.pen_image));
+    strncpy(cfg.menu.bg, DEF_CFG_MENU_BG, sizeof(cfg.menu.bg));
+    strncpy(cfg.pen.image, DEF_CFG_PEN_IMAGE, sizeof(cfg.pen.image));
     strncpy(cfg.font_path, DEF_CFG_FONT_PATH, sizeof(cfg.font_path));
     strncpy(cfg.state_folder, DEF_CFG_STATE_FOLDER, sizeof(cfg.state_folder));
     strncpy(cfg.border_image, DEF_CFG_BORDER_IMAGE, sizeof(cfg.border_image));
@@ -332,8 +332,8 @@ TEST(common_cfg, reset_config_settings)
     TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_VERSION, cfg.version);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_LANGUAGE, cfg.language);
-    TEST_ASSERT_EQUAL_STRING(DEF_CFG_MENU_BG, cfg.menu_bg);
-    TEST_ASSERT_EQUAL_STRING(DEF_CFG_PEN_IMAGE, cfg.pen_image);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_MENU_BG, cfg.menu.bg);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_PEN_IMAGE, cfg.pen.image);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_FONT_PATH, cfg.font_path);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_STATE_FOLDER, cfg.state_folder);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_BORDER_IMAGE, cfg.border_image);
