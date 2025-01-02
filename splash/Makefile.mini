@@ -1,0 +1,18 @@
+TARGET  = show_hotkeys
+CROSS   = /opt/mini/bin/arm-linux-gnueabihf-
+CFLAGS  = -I/opt/mini/arm-buildroot-linux-gnueabihf/sysroot/usr/include -ggdb
+LDFLAGS = -lSDL -lSDL_image -ljson-c
+
+$(shell bin2header mini_cn.png hex_mini_cn > hex_mini_cn.h)
+$(shell bin2header mini_en.png hex_mini_en > hex_mini_en.h)
+
+ifeq ($(PC),1)
+    CROSS  =
+    CFLAGS = -I/usr/include/SDL -DPC
+endif
+
+all:
+	$(CROSS)gcc mini.c $(CFLAGS) $(LDFLAGS) -o $(TARGET)
+
+clean:
+	rm -rf $(TARGET)

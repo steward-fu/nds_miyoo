@@ -210,7 +210,7 @@ int add_adpcm_decode_hook(void *cb)
         err(DTR"invalid parameter(0x%x) in %s\n", cb, __func__);
         return -1;
     }
-    return add_hook_point(FUN_SPU_ADPCM_DECODE_BLOCK, cb);
+    return add_hook_point(hook_table.fun.spu_adpcm_decode_block, cb);
 }
 
 #if defined(UT)
@@ -287,6 +287,30 @@ TEST(detour_hook, add_save_load_state_handler)
 }
 #endif
 
+uint32_t* get_adpcm_step_table(void)
+{
+    return hook_table.var.adpcm.step_table;
+}
+
+#if defined(UT)
+TEST(detour_hook, get_adpcm_step_table)
+{
+    TEST_ASSERT_NOT_NULL(get_adpcm_step_table());
+}
+#endif
+
+uint32_t* get_adpcm_index_step_table(void)
+{
+    return hook_table.var.adpcm.index_step_table;
+}
+
+#if defined(UT)
+TEST(detour_hook, get_adpcm_index_step_table)
+{
+    TEST_ASSERT_NOT_NULL(get_adpcm_index_step_table());
+}
+#endif
+
 #if defined(UT)
 TEST_GROUP_RUNNER(detour_hook)
 {
@@ -298,6 +322,8 @@ TEST_GROUP_RUNNER(detour_hook)
     RUN_TEST_CASE(detour_hook, add_adpcm_decode_hook);
     RUN_TEST_CASE(detour_hook, set_page_size);
     RUN_TEST_CASE(detour_hook, add_save_load_state_handler);
+    RUN_TEST_CASE(detour_hook, get_adpcm_step_table);
+    RUN_TEST_CASE(detour_hook, get_adpcm_index_step_table);
 }
 #endif
 

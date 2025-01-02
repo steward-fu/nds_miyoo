@@ -12,7 +12,7 @@ ifeq ($(PC),1)
 endif
 
 all:
-	$(CROSS)gcc sdl2.c $(CFLAGS) $(LDFLAGS) -o $(TARGET)
+	$(CROSS)gcc a30.c $(CFLAGS) $(LDFLAGS) -o $(TARGET)
 
 push:
 	adb push show_hotkeys /mnt/SDCARD/Emu/drastic

@@ -81,9 +81,6 @@ static int pcm_ready = 0;
 static int pcm_buf_len = 0;
 static uint8_t *pcm_buf = NULL;
 
-static int16_t *adpcm_step_table = (int16_t *)VAR_ADPCM_STEP_TABLE;
-static int8_t *adpcm_index_step_table = (int8_t *)VAR_ADPCM_INDEX_STEP_TABLE;
-
 static int queue_init(queue_t *q, size_t size);
 static int queue_destroy(queue_t *q);
 static int queue_put(queue_t *q, uint8_t *buffer, size_t size);
@@ -125,6 +122,9 @@ static void spu_adpcm_decode_block(spu_channel_struct *channel)
     int32_t sample = 0;
     int16_t *psVar6 = NULL;
     int16_t *psVar7 = NULL;
+    int16_t *adpcm_step_table = (int16_t *)get_adpcm_step_table();
+    int8_t *adpcm_index_step_table = (int8_t *)get_adpcm_index_step_table();
+
 
     do {
         if (!channel) {
@@ -1009,11 +1009,13 @@ int snd_pcm_start(snd_pcm_t *pcm)
     }
 #endif
 
+#if !defined(UT)
     if (add_adpcm_decode_hook(spu_adpcm_decode_block) < 0) {
         err(SND"failed to hook adpcm decode in %s\n", __func__);
         return -1;
     }
     info(SND"added spu hooking successfully\n");
+#endif
 
     pcm_ready = 1;
     info(SND"customized ALSA library is ready in %s\n", __func__);

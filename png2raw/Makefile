@@ -1,4 +1,3 @@
-export CROSS=/opt/mmiyoo/bin/arm-linux-gnueabihf-
 export CC=${CROSS}gcc
 
 .PHONY: all

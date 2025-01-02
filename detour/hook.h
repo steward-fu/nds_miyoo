@@ -21,56 +21,6 @@
 #ifndef __HOOK_H__
 #define __HOOK_H__
 
-    #define VAR_SYSTEM                                  0x083f4000
-    #define VAR_SYSTEM_GAMECARD_NAME                    0x0847e8e8
-    #define VAR_SYSTEM_SAVESTATE_NUM                    0x08479780
-    #define VAR_SDL_SCREEN_BPP                          0x0aee957c
-    #define VAR_SDL_SCREEN_NEED_INIT                    0x0aee95a0
-    #define VAR_SDL_SCREEN_WINDOW                       0x0aee9564
-    #define VAR_SDL_SCREEN_RENDERER                     0x0aee9568
-
-    #define VAR_SDL_SCREEN0_SHOW                        0x0aee9544
-    #define VAR_SDL_SCREEN0_HRES_MODE                   0x0aee9545
-    #define VAR_SDL_SCREEN0_TEXTURE                     0x0aee952c
-    #define VAR_SDL_SCREEN0_PIXELS                      0x0aee9530
-    #define VAR_SDL_SCREEN0_X                           0x0aee9534
-    #define VAR_SDL_SCREEN0_Y                           0x0aee9538
-
-    #define VAR_SDL_SCREEN1_SHOW                        0x0aee9560
-    #define VAR_SDL_SCREEN1_HRES_MODE                   0x0aee9561
-    #define VAR_SDL_SCREEN1_TEXTURE                     0x0aee9548
-    #define VAR_SDL_SCREEN1_PIXELS                      0x0aee954c
-    #define VAR_SDL_SCREEN1_X                           0x0aee9550
-    #define VAR_SDL_SCREEN1_Y                           0x0aee9554
-
-    #define VAR_ADPCM_STEP_TABLE                        0x0815a600
-    #define VAR_ADPCM_INDEX_STEP_TABLE                  0x0815a6b8
-    #define VAR_DESMUME_FOOTER_STR                      0x0815a740
-
-    #define VAR_PCM_HANDLER                             0x083e532c
-    #define VAR_FAST_FORWARD                            0x08006ad0
-
-    #define FUN_FREE                                    0x08003e58
-    #define FUN_REALLOC                                 0x0800435c
-    #define FUN_MALLOC                                  0x080046e0
-    #define FUN_SCREEN_COPY16                           0x080a59d8
-    #define FUN_PRINT_STRING                            0x080a5398
-    #define FUN_LOAD_STATE_INDEX                        0x08095ce4
-    #define FUN_SAVE_STATE_INDEX                        0x08095c10
-    #define FUN_QUIT                                    0x08006444
-    #define FUN_SAVESTATE_PRE                           0x08095a80
-    #define FUN_SAVESTATE_POST                          0x08095154
-    #define FUN_UPDATE_SCREEN                           0x080a83c0
-    #define FUN_LOAD_STATE                              0x080951c0
-    #define FUN_SAVE_STATE                              0x0809580c
-    #define FUN_BLIT_SCREEN_MENU                        0x080a62d8
-    #define FUN_INITIALIZE_BACKUP                       0x08092f40
-    #define FUN_SET_SCREEN_MENU_OFF                     0x080a8240
-    #define FUN_GET_SCREEN_PTR                          0x080a890c
-    #define FUN_SPU_ADPCM_DECODE_BLOCK                  0x0808d268
-    #define FUN_RENDER_SCANLINE_TILED_4BPP              0x080bcf74
-    #define FUN_RENDER_POLYGON_SETUP_PERSPECTIVE_STEPS  0x080c1cd4
-
     #define ALIGN_ADDR(addr) ((void*)((size_t)(addr) & ~(page_size - 1)))
 
     typedef struct _system {
@@ -146,6 +96,8 @@
     int add_adpcm_decode_hook(void *cb);
     int add_save_load_state_handler(const char *path);
     int set_page_size(size_t ps);
+    uint32_t* get_adpcm_step_table(void);
+    uint32_t* get_adpcm_index_step_table(void);
 
 #endif
 

@@ -219,7 +219,7 @@ static void* sdl_malloc(size_t size)
     static int idx = 0;
 
     void *r = NULL;
-    uint32_t bpp = *((uint32_t *)VAR_SDL_SCREEN_BPP);
+    uint32_t bpp = 0;//*((uint32_t *)VAR_SDL_SCREEN_BPP);
 
     if ((size == (NDS_W * NDS_H * bpp)) ||
         (size == (NDS_Wx2 * NDS_Hx2 * bpp)))
@@ -257,7 +257,7 @@ static void sdl_free(void *ptr)
 static void* sdl_realloc(void *ptr, size_t size)
 {
     void *r = NULL;
-    uint32_t bpp = *((uint32_t *)VAR_SDL_SCREEN_BPP);
+    uint32_t bpp = 0;//*((uint32_t *)VAR_SDL_SCREEN_BPP);
 
     if ((size == (NDS_W * NDS_H * bpp)) ||
         (size == (NDS_Wx2 * NDS_Hx2 * bpp)))
@@ -540,12 +540,12 @@ static int draw_drastic_menu_main(void)
 
         if (top && bottom) {
             SDL_Surface *t = NULL;
-            uint32_t slot = *((uint32_t *)VAR_SYSTEM_SAVESTATE_NUM);
-            nds_load_state_index _func = (nds_load_state_index)FUN_LOAD_STATE_INDEX;
+            uint32_t slot = 0;//*((uint32_t *)VAR_SYSTEM_SAVESTATE_NUM);
+            //nds_load_state_index _func = (nds_load_state_index)FUN_LOAD_STATE_INDEX;
 
             memset(top, 0, len);
             memset(bottom, 0, len);
-            _func((void*)VAR_SYSTEM, slot, top, bottom, 1);
+            //_func((void*)VAR_SYSTEM, slot, top, bottom, 1);
             t = SDL_CreateRGBSurfaceFrom(top, NDS_W, NDS_H, 16, NDS_W * 2, 0, 0, 0, 0);
             if (t) {
                 rt.x = FB_W - (NDS_W + (nds.enable_752x560 ? 30 : 10));
@@ -1348,8 +1348,8 @@ static int process_screen(void)
         }
     }
 
-    nds.screen.bpp = *((uint32_t *)VAR_SDL_SCREEN_BPP);
-    nds.screen.init = *((uint32_t *)VAR_SDL_SCREEN_NEED_INIT);
+//    nds.screen.bpp = *((uint32_t *)VAR_SDL_SCREEN_BPP);
+//    nds.screen.init = *((uint32_t *)VAR_SDL_SCREEN_NEED_INIT);
 
     if (need_reload_bg) {
         reload_bg();
@@ -1365,9 +1365,9 @@ static int process_screen(void)
         SDL_Rect srt = {0, 0, NDS_W, NDS_H};
         SDL_Rect drt = {0, 0, 160, 120};
 
-        nds.screen.hres_mode[idx] = idx ?
-            *((uint8_t *)VAR_SDL_SCREEN1_HRES_MODE):
-            *((uint8_t *)VAR_SDL_SCREEN0_HRES_MODE);
+//        nds.screen.hres_mode[idx] = idx ?
+//            *((uint8_t *)VAR_SDL_SCREEN1_HRES_MODE):
+//            *((uint8_t *)VAR_SDL_SCREEN0_HRES_MODE);
 
         nds.screen.pixels[idx] = gfx.lcd.virAddr[cur_sel][idx];
         if (nds.screen.hres_mode[idx]) {
@@ -1734,7 +1734,7 @@ static int process_screen(void)
     }
 
     if (nds.screen.init) {
-        nds_set_screen_menu_off _func = (nds_set_screen_menu_off)FUN_SET_SCREEN_MENU_OFF;
+        //nds_set_screen_menu_off _func = (nds_set_screen_menu_off)FUN_SET_SCREEN_MENU_OFF;
         _func();
     }
     GFX_Flip();
@@ -1755,8 +1755,8 @@ void sdl_update_screen(void)
     }
     else if (nds.update_screen == 0) {
         gfx.lcd.cur_sel ^= 1;
-        *((uint32_t *)VAR_SDL_SCREEN0_PIXELS) = (uintptr_t)(gfx.lcd.virAddr[gfx.lcd.cur_sel][0]);
-        *((uint32_t *)VAR_SDL_SCREEN1_PIXELS) = (uintptr_t)(gfx.lcd.virAddr[gfx.lcd.cur_sel][1]);
+//        *((uint32_t *)VAR_SDL_SCREEN0_PIXELS) = (uintptr_t)(gfx.lcd.virAddr[gfx.lcd.cur_sel][0]);
+//        *((uint32_t *)VAR_SDL_SCREEN1_PIXELS) = (uintptr_t)(gfx.lcd.virAddr[gfx.lcd.cur_sel][1]);
 #if defined(A30)
         nds.menu.drastic.enable = 0;
 #endif
@@ -4489,19 +4489,19 @@ int MMIYOO_VideoInit(_THIS)
     add_save_load_state_handler(nds.states.path);
     printf(PREFIX"Installed hooking for drastic functions\n");
 
-    detour_hook(FUN_PRINT_STRING, (intptr_t)sdl_print_string);
-    detour_hook(FUN_SAVESTATE_PRE, (intptr_t)sdl_savestate_pre);
-    detour_hook(FUN_SAVESTATE_POST, (intptr_t)sdl_savestate_post);
-    detour_hook(FUN_BLIT_SCREEN_MENU, (intptr_t)sdl_blit_screen_menu);
-    detour_hook(FUN_UPDATE_SCREEN, (intptr_t)sdl_update_screen);
+//    detour_hook(FUN_PRINT_STRING, (intptr_t)sdl_print_string);
+//    detour_hook(FUN_SAVESTATE_PRE, (intptr_t)sdl_savestate_pre);
+//    detour_hook(FUN_SAVESTATE_POST, (intptr_t)sdl_savestate_post);
+//    detour_hook(FUN_BLIT_SCREEN_MENU, (intptr_t)sdl_blit_screen_menu);
+//    detour_hook(FUN_UPDATE_SCREEN, (intptr_t)sdl_update_screen);
 #ifndef UT
     detour_hook(FUN_RENDER_POLYGON_SETUP_PERSPECTIVE_STEPS, (intptr_t)render_polygon_setup_perspective_steps);
 #endif
 
     printf(PREFIX"Installed hooking for libc functions\n");
-    detour_hook(FUN_MALLOC, (intptr_t)sdl_malloc);
-    detour_hook(FUN_REALLOC, (intptr_t)sdl_realloc);
-    detour_hook(FUN_FREE, (intptr_t)sdl_free);
+//    detour_hook(FUN_MALLOC, (intptr_t)sdl_malloc);
+//    detour_hook(FUN_REALLOC, (intptr_t)sdl_realloc);
+//    detour_hook(FUN_FREE, (intptr_t)sdl_free);
     return 0;
 }
 
