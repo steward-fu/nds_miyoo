@@ -35,10 +35,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 
-#include "hex_miyoo_en.h"
-#include "hex_miyoo_cn.h"
-#include "hex_trimui_en.h"
-#include "hex_trimui_cn.h"
+#include "hex_mini_en.h"
+#include "hex_mini_cn.h"
 
 #define JSON_PATH   "resources/settings.json"
 #define JSON_LANG   "lang"
@@ -100,18 +98,12 @@ int main(int argc, char *argv[])
 
     if (is_en) {
         if (FB_BPP == 32) {
-            rw = SDL_RWFromMem(hex_miyoo_en, sizeof(hex_miyoo_en));
-        }
-        else {
-            rw = SDL_RWFromMem(hex_trimui_en, sizeof(hex_trimui_en));
+            rw = SDL_RWFromMem(hex_mini_en, sizeof(hex_mini_en));
         }
     }
     else {
         if (FB_BPP == 32) {
-            rw = SDL_RWFromMem(hex_miyoo_cn, sizeof(hex_miyoo_cn));
-        }
-        else {
-            rw = SDL_RWFromMem(hex_trimui_cn, sizeof(hex_trimui_cn));
+            rw = SDL_RWFromMem(hex_mini_cn, sizeof(hex_mini_cn));
         }
     }
 

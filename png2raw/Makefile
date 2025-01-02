@@ -1,8 +1,6 @@
-export CC=${CROSS}gcc
-
 .PHONY: all
 all:
-	${CC} main.c -o png2raw -lSDL -lSDL_image
+	${CC}gcc main.c -o png2raw -lSDL -lSDL_image
 
 .PHONY: clean
 clean:
