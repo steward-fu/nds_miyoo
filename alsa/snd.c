@@ -50,6 +50,7 @@
 #include "log.h"
 #include "snd.h"
 #include "hook.h"
+#include "drastic.h"
 
 #if defined(MINI)
 #include "mi_ao.h"
@@ -387,13 +388,13 @@ static int open_dsp(void)
         return -1;
     }
 
-    arg = CHANNELS;
+    arg = PCM_CHANNELS;
     if (ioctl(dsp_fd, SOUND_PCM_WRITE_CHANNELS, &arg) < 0) {
         err(SND"failed to set PCM channels in %s\n", __func__);
         return -1;
     }
 
-    arg = FREQ;
+    arg = PCM_FREQ;
     if (ioctl(dsp_fd, SOUND_PCM_WRITE_RATE, &arg) < 0) {
         err(SND"failed to set PCM rate in %s\n", __func__);
         return -1;
@@ -801,7 +802,7 @@ TEST(alsa_snd, snd_pcm_hw_params_set_access)
 
 int snd_pcm_hw_params_set_buffer_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val)
 {
-    *val = SAMPLES * 2 * CHANNELS;
+    *val = PCM_SAMPLES * 2 * PCM_CHANNELS;
     return 0;
 }
 
@@ -811,7 +812,7 @@ TEST(alsa_snd, snd_pcm_hw_params_set_buffer_size_near)
     snd_pcm_uframes_t t = { 0 };
 
     TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_buffer_size_near(NULL, NULL, &t));
-    TEST_ASSERT_EQUAL_INT(SAMPLES * 2 * CHANNELS, t);
+    TEST_ASSERT_EQUAL_INT(PCM_SAMPLES * 2 * PCM_CHANNELS, t);
 }
 #endif
 
@@ -845,7 +846,7 @@ TEST(alsa_snd, snd_pcm_hw_params_set_format)
 
 int snd_pcm_hw_params_set_period_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val, int *dir)
 {
-    *val = PERIOD;
+    *val = PCM_PERIOD;
     return 0;
 }
 
@@ -855,13 +856,13 @@ TEST(alsa_snd, snd_pcm_hw_params_set_period_size_near)
     snd_pcm_uframes_t t = { 0 };
 
     TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_period_size_near(NULL, NULL, &t, NULL));
-    TEST_ASSERT_EQUAL_INT(PERIOD, t);
+    TEST_ASSERT_EQUAL_INT(PCM_PERIOD, t);
 }
 #endif
 
 int snd_pcm_hw_params_set_rate_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir)
 {
-    *val = FREQ;
+    *val = PCM_FREQ;
     return 0;
 }
 
@@ -871,7 +872,7 @@ TEST(alsa_snd, snd_pcm_hw_params_set_rate_near)
     unsigned int t = 0;
 
     TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_rate_near(NULL, NULL, &t, NULL));
-    TEST_ASSERT_EQUAL_INT(FREQ, t);
+    TEST_ASSERT_EQUAL_INT(PCM_FREQ, t);
 }
 #endif
 
@@ -949,7 +950,7 @@ int snd_pcm_start(snd_pcm_t *pcm)
     }
     memset(queue.buffer, 0, DEF_QUEUE_SIZE);
 
-    pcm_buf_len = SAMPLES * 2 * CHANNELS;
+    pcm_buf_len = PCM_SAMPLES * 2 * PCM_CHANNELS;
     pcm_buf = malloc(pcm_buf_len);
     if (NULL == pcm_buf) {
         err(SND"failed to allocate buffer for pcm_buf in %s\n", __func__);
@@ -1008,10 +1009,11 @@ int snd_pcm_start(snd_pcm_t *pcm)
     }
 #endif
 
-    if (detour_hook(FUN_SPU_ADPCM_DECODE_BLOCK, (intptr_t)spu_adpcm_decode_block) < 0) {
+    if (add_adpcm_decode_hook(spu_adpcm_decode_block) < 0) {
+        err(SND"failed to hook adpcm decode in %s\n", __func__);
         return -1;
     }
-    info(SND"enabled spu hooking\n");
+    info(SND"added spu hooking successfully\n");
 
     pcm_ready = 1;
     info(SND"customized ALSA library is ready in %s\n", __func__);
@@ -1031,7 +1033,7 @@ int snd_pcm_close(snd_pcm_t *pcm)
     void *ret = NULL;
 
     if (get_cfg_autosave_enable() > 0) {
-        dtr_savestate(get_cfg_autosave_slot());
+        invoke_drastic_save_state(get_cfg_autosave_slot());
     }
 
     pcm_ready = 0;

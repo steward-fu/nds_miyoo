@@ -1,7 +1,7 @@
 TARGET   = libdetour.so
 LDFLAGS += -fPIC
 LDFLAGS += -shared
-SRC      = hook.c
+SRC      = hook.c drastic.c
 
 .PHONY: all
 all:

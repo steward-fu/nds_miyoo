@@ -13,6 +13,7 @@ endif
 all:
 	$(CROSS)gcc $(SRC) -o $(TARGET) $(CFLAGS) $(LDFLAGS) $(MOREFLAGS)
 
+.PHONY: proto
 proto:
 	sudo protoc --nanopb_out=. cfg.proto
 

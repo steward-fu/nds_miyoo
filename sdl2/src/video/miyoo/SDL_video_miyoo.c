@@ -61,6 +61,8 @@
 #include "nds_bios_arm9.h"
 #include "nds_firmware.h"
 
+#include "drastic.h"
+
 NDS nds = {0};
 GFX gfx = {0};
 MMIYOO_VideoInfo vid = {0};
@@ -1225,7 +1227,7 @@ static int process_screen(void)
         if (need_loadstate > 0) {
             need_loadstate-= 1;
             if (need_loadstate == 0) {
-                dtr_loadstate(nds.auto_slot);
+                invoke_drastic_load_state(nds.auto_slot);
             }
         }
     }
@@ -1853,7 +1855,7 @@ void sigterm_handler(int sig)
     if (ran == 0) {
         ran = 1;
         printf(PREFIX"Oops sigterm !\n");
-        dtr_quit();
+        invoke_drastic_quit();
     }
 }
 
@@ -4483,8 +4485,10 @@ int MMIYOO_VideoInit(_THIS)
     read_config();
     MMIYOO_EventInit();
 
-    detour_init(sysconf(_SC_PAGESIZE), nds.states.path);
+    set_page_size(sysconf(_SC_PAGESIZE));
+    add_save_load_state_handler(nds.states.path);
     printf(PREFIX"Installed hooking for drastic functions\n");
+
     detour_hook(FUN_PRINT_STRING, (intptr_t)sdl_print_string);
     detour_hook(FUN_SAVESTATE_PRE, (intptr_t)sdl_savestate_pre);
     detour_hook(FUN_SAVESTATE_POST, (intptr_t)sdl_savestate_post);
@@ -4516,7 +4520,7 @@ void MMIYOO_VideoQuit(_THIS)
     if (system("sync") < 0) {
         printf("Failed to do sync command\n");
     }
-    detour_quit();
+    restore_detour_hook();
     write_config();
 
     if (fps_info) {
@@ -5184,7 +5188,7 @@ int handle_menu(int key)
         }
 
         if (pre_ff != nds.fast_forward) {
-            dtr_fastforward(nds.fast_forward);
+            set_fast_forward(nds.fast_forward);
             pre_ff = nds.fast_forward;
         }
         nds.menu.enable = 0;

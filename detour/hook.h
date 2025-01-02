@@ -18,13 +18,12 @@
 //    3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef __DETOUR_H__
-#define __DETOUR_H__
+#ifndef __HOOK_H__
+#define __HOOK_H__
 
     #define VAR_SYSTEM                                  0x083f4000
     #define VAR_SYSTEM_GAMECARD_NAME                    0x0847e8e8
     #define VAR_SYSTEM_SAVESTATE_NUM                    0x08479780
-    #define VAR_SDL_SCREEN_RENDERER                     0x0aee9568
     #define VAR_SDL_SCREEN_BPP                          0x0aee957c
     #define VAR_SDL_SCREEN_NEED_INIT                    0x0aee95a0
     #define VAR_SDL_SCREEN_WINDOW                       0x0aee9564
@@ -49,6 +48,7 @@
     #define VAR_DESMUME_FOOTER_STR                      0x0815a740
 
     #define VAR_PCM_HANDLER                             0x083e532c
+    #define VAR_FAST_FORWARD                            0x08006ad0
 
     #define FUN_FREE                                    0x08003e58
     #define FUN_REALLOC                                 0x0800435c
@@ -61,7 +61,6 @@
     #define FUN_SAVESTATE_PRE                           0x08095a80
     #define FUN_SAVESTATE_POST                          0x08095154
     #define FUN_UPDATE_SCREEN                           0x080a83c0
-    #define FUN_SET_SCREEN_MENU_OFF                     0x080a8240
     #define FUN_LOAD_STATE                              0x080951c0
     #define FUN_SAVE_STATE                              0x0809580c
     #define FUN_BLIT_SCREEN_MENU                        0x080a62d8
@@ -72,81 +71,81 @@
     #define FUN_RENDER_SCANLINE_TILED_4BPP              0x080bcf74
     #define FUN_RENDER_POLYGON_SETUP_PERSPECTIVE_STEPS  0x080c1cd4
 
-    #define CODE_FAST_FORWARD                           0x08006ad0
-    #define ALIGN_ADDR(addr)                            ((void*)((size_t)(addr) & ~(page_size - 1)))
+    #define ALIGN_ADDR(addr) ((void*)((size_t)(addr) & ~(page_size - 1)))
 
-    typedef enum _backup_type_enum {
-        BACKUP_TYPE_NONE   = 0,
-        BACKUP_TYPE_FLASH  = 1,
-        BACKUP_TYPE_EEPROM = 2,
-        BACKUP_TYPE_NAND   = 3
-    } backup_type_enum;
+    typedef struct _system {
+        uint32_t *base;
+        uint32_t *gamecard_name;
+        uint32_t *savestate_num;
+    } system_t;
 
-    typedef struct _backup_struct {
-        uint32_t dirty_page_bitmap[2048];
-        char file_path[1024];
-        backup_type_enum type;
-        uint32_t access_address;
-        uint32_t address_mask;
-        uint32_t fix_file_size;
-        uint8_t *data;
-        uint8_t jedec_id[4];
-        uint32_t write_frame_counter;
-        uint16_t mode;
-        uint8_t state;
-        uint8_t status;
-        uint8_t address_bytes;
-        uint8_t state_step;
-        uint8_t firmware;
-        uint8_t footer_written;
-    } backup_struct;
+    typedef struct _screen {
+        uint32_t *show;
+        uint32_t *hres_mode;
+        uint32_t *texture;
+        uint32_t *pixels;
+        uint32_t *x;
+        uint32_t *y;
+    } screen_t;
 
-    typedef struct _spu_channel_struct {
-        int16_t adpcm_sample_cache[64];
-        uint64_t sample_offset;
-        uint64_t frequency_step;
-        uint32_t adpcm_cache_block_offset;
-        uint8_t *io_region;
-        uint8_t *samples;
-        uint32_t sample_address;
-        uint32_t sample_length;
-        uint32_t loop_wrap;
-        int16_t volume_multiplier_left;
-        int16_t volume_multiplier_right;
-        int16_t adpcm_loop_sample;
-        int16_t adpcm_sample;
-        uint8_t format;
-        uint8_t dirty_bits;
-        uint8_t active;
-        uint8_t adpcm_loop_index;
-        uint8_t adpcm_current_index;
-        uint8_t adpcm_looped;
-        uint8_t capture_timer;
-    } spu_channel_struct;
+    typedef struct _sdl {
+        uint32_t *bpp;
+        uint32_t *need_init;
+        uint32_t *window;
+        uint32_t *renderer;
+        screen_t screen[2];
+    } sdl_t;
 
-    typedef void (*nds_free)(void *ptr);
-    typedef void (*nds_set_screen_menu_off)(void);
-    typedef void (*nds_quit)(void *system);
-    typedef void (*nds_screen_copy16)(uint16_t *dest, uint32_t screen_number);
-    typedef void (*nds_spu_adpcm_decode_block)(spu_channel_struct *channel);
+    typedef struct _adpcm {
+        uint32_t *step_table;
+        uint32_t *index_step_table;
+    } adpcm_t;
 
-    typedef void* (*nds_get_screen_ptr)(uint32_t screen_number);
-    typedef void* (*nds_realloc)(void *ptr, size_t size);
-    typedef void* (*nds_malloc)(size_t size);
+    typedef struct _var {
+        system_t system;
 
-    typedef int32_t (*nds_load_state_index)(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only);
-    typedef int32_t (*nds_save_state_index)(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom);
-    typedef int32_t (*nds_load_state)(void *system, const char *path, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only);
-    typedef int32_t (*nds_save_state)(void *system, const char *dir, char *filename, uint16_t *snapshot_top, uint16_t *snapshot_bottom);
+        sdl_t sdl;
 
-    int detour_init(size_t page_size, const char *path);
-    int detour_quit(void);
-    int detour_hook(uint32_t old_func, uint32_t new_func);
+        adpcm_t adpcm;
 
-    int dtr_quit(void);
-    int dtr_savestate(int slot);
-    int dtr_loadstate(int slot);
-    int dtr_fastforward(uint8_t v);
+        uint32_t *pcm_handler;
+        uint32_t *fast_forward;
+        uint32_t *desmume_footer_str;
+    } var_t;
+
+    typedef struct _fun {
+        uintptr_t free;
+        uintptr_t realloc;
+        uintptr_t malloc;
+        uintptr_t screen_copy16;
+        uintptr_t print_string;
+        uintptr_t load_state_index;
+        uintptr_t save_state_index;
+        uintptr_t quit;
+        uintptr_t savestate_pre;
+        uintptr_t savestate_post;
+        uintptr_t update_screen;
+        uintptr_t load_state;
+        uintptr_t save_state;
+        uintptr_t blit_screen_menu;
+        uintptr_t initialize_backup;
+        uintptr_t set_screen_menu_off;
+        uintptr_t get_screen_ptr;
+        uintptr_t spu_adpcm_decode_block;
+        uintptr_t render_scanline_tiled_4bpp;
+        uintptr_t render_polygon_setup_perspective_steps;
+    } fun_t;
+
+    typedef struct _hook_table {
+        fun_t fun;
+        var_t var;
+    } hook_table_t;
+
+    int init_detour_hook(void);
+    int restore_detour_hook(void);
+    int add_adpcm_decode_hook(void *cb);
+    int add_save_load_state_handler(const char *path);
+    int set_page_size(size_t ps);
 
 #endif
 
