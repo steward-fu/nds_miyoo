@@ -247,7 +247,7 @@ int add_save_load_state_handler(const char *state_path)
     drastic_save_load_state_hook = 0;
 
     if (!state_path) {
-        err(DTR"invalid parameter(0x%x) in %s\n", __func__);
+        err(DTR"invalid parameter(0x%x) in %s\n", state_path, __func__);
         return -1;
     }
 
