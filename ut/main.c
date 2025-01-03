@@ -12,6 +12,7 @@ static void runAllTests(void)
     RUN_TEST_GROUP(detour_drastic);
     RUN_TEST_GROUP(sdl2_audio_miyoo);
     RUN_TEST_GROUP(sdl2_render_miyoo);
+    RUN_TEST_GROUP(sdl2_joystick_miyoo);
 //    RUN_TEST_GROUP(sdl2_video_miyoo);
 //    RUN_TEST_GROUP(sdl2_event_miyoo);
 }

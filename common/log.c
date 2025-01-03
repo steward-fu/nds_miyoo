@@ -36,6 +36,18 @@
 
 static int debug_level = LOG_LEVEL_DEFAULT;
 
+#if defined(UT)
+TEST_GROUP(common_log);
+
+TEST_SETUP(common_log)
+{
+}
+
+TEST_TEAR_DOWN(common_log)
+{
+}
+#endif
+
 int set_debug_level(int newlevel)
 {
     debug_level = newlevel;
@@ -43,6 +55,14 @@ int set_debug_level(int newlevel)
 
     return debug_level;
 }
+
+#if defined(UT)
+TEST(common_log, set_debug_level)
+{
+    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_ERR, set_debug_level(LOG_LEVEL_ERR));
+    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_DEBUG, set_debug_level(LOG_LEVEL_DEBUG));
+}
+#endif
 
 int write_log_to_file(int level, const char *msg, const char *fmt, ...)
 {
@@ -80,22 +100,6 @@ int write_log_to_file(int level, const char *msg, const char *fmt, ...)
 }
 
 #if defined(UT)
-TEST_GROUP(common_log);
-
-TEST_SETUP(common_log)
-{
-}
-
-TEST_TEAR_DOWN(common_log)
-{
-}
-
-TEST(common_log, set_debug_level)
-{
-    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_ERR, set_debug_level(LOG_LEVEL_ERR));
-    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_DEBUG, set_debug_level(LOG_LEVEL_DEBUG));
-}
-
 TEST(common_log, write_log_to_file)
 {
     TEST_ASSERT_EQUAL_INT(LOG_LEVEL_ERR, set_debug_level(LOG_LEVEL_ERR));
@@ -106,7 +110,9 @@ TEST(common_log, write_log_to_file)
     TEST_ASSERT_EQUAL_INT(0, write_log_to_file(LOG_LEVEL_ERR, INFO, COM"run test with error level\n"));
     TEST_ASSERT_EQUAL_INT(0, write_log_to_file(LOG_LEVEL_DEBUG, INFO, COM"run test with debug level\n"));
 }
+#endif
 
+#if defined(UT)
 TEST_GROUP_RUNNER(common_log)
 {
     RUN_TEST_CASE(common_log, set_debug_level);

@@ -443,7 +443,7 @@ typedef struct _NDS {
         char path[MAX_PATH];
     } pen;
 
-#ifdef A30
+#if defined(A30) || defined(UT)
     struct _JOY {
         int max_x;
         int zero_x;
