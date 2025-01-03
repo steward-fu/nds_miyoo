@@ -5,15 +5,6 @@ USE_752x560_RES=0
 
 mydir=`dirname "$0"`
 
-purge_devil() {
-    if pgrep -f "/dev/l" > /dev/null; then
-        echo "Process /dev/l is running. Killing it now..."
-        killall -9 l
-    else
-        echo "Process /dev/l is not running."
-    fi
-}
-
 cd $mydir
 if [ ! -f "/tmp/.show_hotkeys" ]; then
     touch /tmp/.show_hotkeys
@@ -33,7 +24,6 @@ else
     killall audioserver
     killall audioserver.mod
 fi
-#purge_devil
 
 if [  -d "/customer/app/skin_large" ]; then
     USE_752x560_RES=1

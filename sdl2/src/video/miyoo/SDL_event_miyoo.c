@@ -101,11 +101,11 @@
     #define VOLDOWN 114
 #endif
 
-MMIYOO_EventInfo evt = {0};
+MiyooEventInfo evt = {0};
 
 extern GFX gfx;
 extern NDS nds;
-extern MMIYOO_VideoInfo vid;
+extern MiyooVideoInfo vid;
 extern int pixel_filter;
 
 static int running = 0;
@@ -896,7 +896,7 @@ int EventUpdate(void *data)
     return 0;
 }
 
-void MMIYOO_EventInit(void)
+void MiyooEventInit(void)
 {
 #ifdef MINI
     DIR *dir = NULL;
@@ -939,7 +939,7 @@ void MMIYOO_EventInit(void)
 #endif
 }
 
-void MMIYOO_EventDeinit(void)
+void MiyooEventDeinit(void)
 {
     running = 0;
     SDL_WaitThread(thread, NULL);
@@ -950,7 +950,7 @@ void MMIYOO_EventDeinit(void)
     }
 }
 
-void MMIYOO_PumpEvents(_THIS)
+void MiyooPumpEvents(_THIS)
 {
     SDL_SemWait(event_sem);
     if (nds.menu.enable) {

@@ -477,9 +477,9 @@
 /* Enable dynamic libsamplerate support */
 #undef SDL_LIBSAMPLERATE_DYNAMIC
 
-#undef SDL_VIDEO_DRIVER_MMIYOO
-#undef SDL_VIDEO_RENDER_MMIYOO
-#undef SDL_AUDIO_DRIVER_MMIYOO
-#undef SDL_JOYSTICK_MMIYOO
+#undef SDL_VIDEO_DRIVER_MIYOO
+#undef SDL_VIDEO_RENDER_MIYOO
+#undef SDL_AUDIO_DRIVER_MIYOO
+#undef SDL_JOYSTICK_MIYOO
 
 #endif /* SDL_config_h_ */

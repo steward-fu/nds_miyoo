@@ -65,9 +65,9 @@
 
 NDS nds = {0};
 GFX gfx = {0};
-MMIYOO_VideoInfo vid = {0};
+MiyooVideoInfo vid = {0};
 
-extern MMIYOO_EventInfo evt;
+extern MiyooEventInfo evt;
 
 int FB_W = 0;
 int FB_H = 0;
@@ -86,9 +86,9 @@ static pthread_t thread;
 static int need_reload_bg = RELOAD_BG_COUNT;
 static SDL_Surface *cvt = NULL;
 
-static int MMIYOO_VideoInit(_THIS);
-static int MMIYOO_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode);
-static void MMIYOO_VideoQuit(_THIS);
+static int MiyooVideoInit(_THIS);
+static int MiyooSetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode);
+static void MiyooVideoQuit(_THIS);
 
 static CUST_MENU drastic_menu = {0};
 static char *translate[MAX_LANG_LINE] = {0};
@@ -1735,7 +1735,7 @@ static int process_screen(void)
 
     if (nds.screen.init) {
         //nds_set_screen_menu_off _func = (nds_set_screen_menu_off)FUN_SET_SCREEN_MENU_OFF;
-        _func();
+        //_func();
     }
     GFX_Flip();
     return 0;
@@ -4327,21 +4327,17 @@ int reload_overlay(void)
     return 0;
 }
 
-static int MMIYOO_Available(void)
+static int MiyooAvailable(void)
 {
-    const char *envr = SDL_getenv("SDL_VIDEODRIVER");
-    if((envr) && (SDL_strcmp(envr, MMIYOO_DRIVER_NAME) == 0)) {
-        return 1;
-    }
-    return 0;
+    return 1;
 }
 
-static void MMIYOO_DeleteDevice(SDL_VideoDevice *device)
+static void MiyooDeleteDevice(SDL_VideoDevice *device)
 {
     SDL_free(device);
 }
 
-int MMIYOO_CreateWindow(_THIS, SDL_Window *window)
+int MiyooCreateWindow(_THIS, SDL_Window *window)
 {
     vid.window = window;
     SDL_SetMouseFocus(window);
@@ -4350,16 +4346,16 @@ int MMIYOO_CreateWindow(_THIS, SDL_Window *window)
     return 0;
 }
 
-int MMIYOO_CreateWindowFrom(_THIS, SDL_Window *window, const void *data)
+int MiyooCreateWindowFrom(_THIS, SDL_Window *window, const void *data)
 {
     return SDL_Unsupported();
 }
 
-static SDL_VideoDevice *MMIYOO_CreateDevice(int devindex)
+static SDL_VideoDevice *MiyooCreateDevice(int devindex)
 {
     SDL_VideoDevice *device = NULL;
 
-    if(!MMIYOO_Available()) {
+    if(!MiyooAvailable()) {
         return (0);
     }
 
@@ -4370,19 +4366,19 @@ static SDL_VideoDevice *MMIYOO_CreateDevice(int devindex)
     }
     device->is_dummy = SDL_TRUE;
 
-    device->VideoInit = MMIYOO_VideoInit;
-    device->VideoQuit = MMIYOO_VideoQuit;
-    device->SetDisplayMode = MMIYOO_SetDisplayMode;
-    device->CreateSDLWindow = MMIYOO_CreateWindow;
-    device->CreateSDLWindowFrom = MMIYOO_CreateWindowFrom;
-    device->free = MMIYOO_DeleteDevice;
-    device->PumpEvents = MMIYOO_PumpEvents;
+    device->VideoInit = MiyooVideoInit;
+    device->VideoQuit = MiyooVideoQuit;
+    device->SetDisplayMode = MiyooSetDisplayMode;
+    device->CreateSDLWindow = MiyooCreateWindow;
+    device->CreateSDLWindowFrom = MiyooCreateWindowFrom;
+    device->free = MiyooDeleteDevice;
+    device->PumpEvents = MiyooPumpEvents;
     return device;
 }
 
-VideoBootStrap MMIYOO_bootstrap = {MMIYOO_DRIVER_NAME, "MMIYOO VIDEO DRIVER", MMIYOO_CreateDevice};
+VideoBootStrap MiyooVideo_bootstrap = {"Miyoo", "Miyoo Video Driver", MiyooCreateDevice};
 
-int MMIYOO_VideoInit(_THIS)
+int MiyooVideoInit(_THIS)
 {
 #ifdef MINI
     FILE *fd = NULL;
@@ -4392,7 +4388,7 @@ int MMIYOO_VideoInit(_THIS)
     SDL_DisplayMode mode = {0};
     SDL_VideoDisplay display = {0};
 
-    printf(PREFIX"MMIYOO_VideoInit\n");
+    printf(PREFIX"MiyooVideoInit\n");
 #ifndef UT
     signal(SIGTERM, sigterm_handler);
 #endif
@@ -4483,7 +4479,7 @@ int MMIYOO_VideoInit(_THIS)
 
     GFX_Init();
     read_config();
-    MMIYOO_EventInit();
+    MiyooEventInit();
 
     set_page_size(sysconf(_SC_PAGESIZE));
     add_save_load_state_handler(nds.states.path);
@@ -4505,14 +4501,14 @@ int MMIYOO_VideoInit(_THIS)
     return 0;
 }
 
-static int MMIYOO_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
+static int MiyooSetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
 {
     return 0;
 }
 
-void MMIYOO_VideoQuit(_THIS)
+void MiyooVideoQuit(_THIS)
 {
-    printf(PREFIX"MMIYOO_VideoQuit\n");
+    printf(PREFIX"MiyooVideoQuit\n");
     printf(PREFIX"Wait for savestate complete\n");
     while (savestate_busy) {
         usleep(1000000);
@@ -4595,7 +4591,7 @@ void MMIYOO_VideoQuit(_THIS)
     GFX_Quit();
 
     printf(PREFIX"Free Event resources\n");
-    MMIYOO_EventDeinit();
+    MiyooEventDeinit();
 
     printf(PREFIX"Free Lang resources\n");
     lang_unload();
@@ -5117,7 +5113,7 @@ int handle_menu(int key)
             }
             if (nds.joy.mode == MYJOY_MODE_STYLUS) {
                 if (evt.mode == MMIYOO_MOUSE_MODE) {
-                    evt.mode = MMIYOO_KEYPAD_MODE;
+                    evt.mode = MiyooKEYPAD_MODE;
                 }
             }
             break;

@@ -21,18 +21,16 @@
 #ifndef __SDL_AUDIO_MIYOO_H__
 #define __SDL_AUDIO_MIYOO_H__
 
-#include "../../SDL_internal.h"
 #include "../SDL_sysaudio.h"
+#include "../../SDL_internal.h"
 
 #define _THIS SDL_AudioDevice *this
 
 struct SDL_PrivateAudioData {
-    int audio_fd;
-    Uint8 *mixbuf;
     int mixlen;
+    int audio_fd;
+    uint8_t *mixbuf;
 };
-
-#define FUDGE_TICKS 10
 
 #endif
 

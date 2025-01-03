@@ -72,7 +72,7 @@ static int running = 0;
 static SDL_Thread *thread = NULL;
 
 extern NDS nds;
-extern MMIYOO_VideoInfo vid;
+extern Miyoo_VideoInfo vid;
 
 static int uart_open(const char *port)
 {

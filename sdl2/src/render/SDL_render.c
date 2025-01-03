@@ -120,8 +120,8 @@ static const SDL_RenderDriver *render_drivers[] = {
 #if SDL_VIDEO_RENDER_SW
     &SW_RenderDriver,
 #endif
-#if SDL_VIDEO_RENDER_MMIYOO
-    &MMIYOO_RenderDriver
+#if SDL_VIDEO_RENDER_MIYOO
+    &Miyoo_RenderDriver
 #endif
 };
 #endif /* !SDL_RENDER_DISABLED */

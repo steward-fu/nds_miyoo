@@ -149,7 +149,6 @@
 #define DRASTIC_MENU_YES_FILE       "drastic_yes.png"
 #define DRASTIC_MENU_NO_FILE        "drastic_no.png"
 #define DRASTIC_MENU_CURSOR_FILE    "drastic_cursor.png"
-#define MMIYOO_DRIVER_NAME          "mmiyoo"
 #define BASE_REG_RIU_PA             0x1f000000
 #define BASE_REG_MPLL_PA            (BASE_REG_RIU_PA + 0x103000 * 2)
 #define PLL_SIZE                    0x1000
@@ -290,7 +289,7 @@ typedef struct MMIYOO_VideoInfo {
 #ifdef MINI
     int sar_fd;
 #endif
-} MMIYOO_VideoInfo;
+} MiyooVideoInfo;
 
 typedef struct _GFX {
     int fb_dev;

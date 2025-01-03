@@ -53,7 +53,7 @@
 #define MMIYOO_KEYPAD_MODE 0
 #define MMIYOO_MOUSE_MODE  1
 
-typedef struct _MMIYOO_EventInfo {
+typedef struct _MiyooEventInfo {
     struct _keypad{
         uint32_t cur_keys;
         uint32_t pre_keys;
@@ -67,11 +67,11 @@ typedef struct _MMIYOO_EventInfo {
     } mouse;
 
     int mode;
-} MMIYOO_EventInfo;
+} MiyooEventInfo;
 
-extern void MMIYOO_EventInit(void);
-extern void MMIYOO_EventDeinit(void);
-extern void MMIYOO_PumpEvents(_THIS);
+extern void MiyooEventInit(void);
+extern void MiyooEventDeinit(void);
+extern void MiyooPumpEvents(_THIS);
 
 #endif
 

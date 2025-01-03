@@ -10,7 +10,7 @@ static void runAllTests(void)
     RUN_TEST_GROUP(alsa_snd);
     RUN_TEST_GROUP(detour_hook);
     RUN_TEST_GROUP(detour_drastic);
-//    RUN_TEST_GROUP(sdl2_audio_mmiyoo);
+    RUN_TEST_GROUP(sdl2_audio_miyoo);
 //    RUN_TEST_GROUP(sdl2_video_mmiyoo);
 //    RUN_TEST_GROUP(sdl2_event_mmiyoo);
 //    RUN_TEST_GROUP(sdl2_render_mmiyoo);

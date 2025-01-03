@@ -27,7 +27,7 @@
 #include "../SDL_sysrender.h"
 #include "SDL_hints.h"
 
-typedef struct MMIYOO_TextureData {
+typedef struct Miyoo_TextureData {
     void *data;
     unsigned int size;
     unsigned int width;
@@ -35,25 +35,25 @@ typedef struct MMIYOO_TextureData {
     unsigned int bits;
     unsigned int format;
     unsigned int pitch;
-} MMIYOO_TextureData;
+} Miyoo_TextureData;
 
 typedef struct {
     SDL_Texture *boundTarget;
     SDL_bool initialized;
     unsigned int bpp;
     SDL_bool vsync;
-} MMIYOO_RenderData;
+} Miyoo_RenderData;
 
 extern NDS nds;
 extern int show_fps;
 
-static void MMIYOO_WindowEvent(SDL_Renderer *renderer, const SDL_WindowEvent *event)
+static void Miyoo_WindowEvent(SDL_Renderer *renderer, const SDL_WindowEvent *event)
 {
 }
 
-static int MMIYOO_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
+static int Miyoo_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
 {
-    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData *)SDL_calloc(1, sizeof(*mmiyoo_texture));
+    Miyoo_TextureData *mmiyoo_texture = (Miyoo_TextureData *)SDL_calloc(1, sizeof(*mmiyoo_texture));
 
     if(!mmiyoo_texture) {
         printf(PREFIX"Failed to create texture\n");
@@ -91,52 +91,52 @@ static int MMIYOO_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
     return 0;
 }
 
-static int MMIYOO_LockTexture(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *rect, void **pixels, int *pitch)
+static int Miyoo_LockTexture(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *rect, void **pixels, int *pitch)
 {
-    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData*)texture->driverdata;
+    Miyoo_TextureData *mmiyoo_texture = (Miyoo_TextureData*)texture->driverdata;
 
     *pixels = mmiyoo_texture->data;
     *pitch = mmiyoo_texture->pitch;
     return 0;
 }
 
-static int MMIYOO_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *rect, const void *pixels, int pitch)
+static int Miyoo_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *rect, const void *pixels, int pitch)
 {
     return 0;
 }
 
-static void MMIYOO_UnlockTexture(SDL_Renderer *renderer, SDL_Texture *texture)
+static void Miyoo_UnlockTexture(SDL_Renderer *renderer, SDL_Texture *texture)
 {
     SDL_Rect rect = {0};
-    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData*)texture->driverdata;
+    Miyoo_TextureData *mmiyoo_texture = (Miyoo_TextureData*)texture->driverdata;
 
     rect.x = 0;
     rect.y = 0;
     rect.w = texture->w;
     rect.h = texture->h;
-    MMIYOO_UpdateTexture(renderer, texture, &rect, mmiyoo_texture->data, mmiyoo_texture->pitch);
+    Miyoo_UpdateTexture(renderer, texture, &rect, mmiyoo_texture->data, mmiyoo_texture->pitch);
 }
 
-static void MMIYOO_SetTextureScaleMode(SDL_Renderer *renderer, SDL_Texture *texture, SDL_ScaleMode scaleMode)
+static void Miyoo_SetTextureScaleMode(SDL_Renderer *renderer, SDL_Texture *texture, SDL_ScaleMode scaleMode)
 {
 }
 
-static int MMIYOO_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
-{
-    return 0;
-}
-
-static int MMIYOO_QueueSetViewport(SDL_Renderer *renderer, SDL_RenderCommand *cmd)
+static int Miyoo_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
 {
     return 0;
 }
 
-static int MMIYOO_QueueDrawPoints(SDL_Renderer *renderer, SDL_RenderCommand *cmd, const SDL_FPoint *points, int count)
+static int Miyoo_QueueSetViewport(SDL_Renderer *renderer, SDL_RenderCommand *cmd)
 {
     return 0;
 }
 
-static int MMIYOO_QueueGeometry(SDL_Renderer *renderer,
+static int Miyoo_QueueDrawPoints(SDL_Renderer *renderer, SDL_RenderCommand *cmd, const SDL_FPoint *points, int count)
+{
+    return 0;
+}
+
+static int Miyoo_QueueGeometry(SDL_Renderer *renderer,
     SDL_RenderCommand *cmd,
     SDL_Texture *texture,
     const float *xy,
@@ -155,12 +155,12 @@ static int MMIYOO_QueueGeometry(SDL_Renderer *renderer,
     return 0;
 }
 
-static int MMIYOO_QueueFillRects(SDL_Renderer *renderer, SDL_RenderCommand *cmd, const SDL_FRect *rects, int count)
+static int Miyoo_QueueFillRects(SDL_Renderer *renderer, SDL_RenderCommand *cmd, const SDL_FRect *rects, int count)
 {
     return 0;
 }
 
-static int MMIYOO_QueueCopy(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_FRect *dstrect)
+static int Miyoo_QueueCopy(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_FRect *dstrect)
 {
     show_fps = 0;
     nds.menu.drastic.enable = 1;
@@ -170,29 +170,29 @@ static int MMIYOO_QueueCopy(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_
     return 0;
 }
 
-static int MMIYOO_QueueCopyEx(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_Texture *texture,
+static int Miyoo_QueueCopyEx(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_Texture *texture,
     const SDL_Rect *srcrect, const SDL_FRect *dstrect, const double angle, const SDL_FPoint *center, const SDL_RendererFlip flip)
 {
     return 0;
 }
 
-static int MMIYOO_RunCommandQueue(SDL_Renderer *renderer, SDL_RenderCommand *cmd, void *vertices, size_t vertsize)
+static int Miyoo_RunCommandQueue(SDL_Renderer *renderer, SDL_RenderCommand *cmd, void *vertices, size_t vertsize)
 {
     return 0;
 }
 
-static int MMIYOO_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect, Uint32 pixel_format, void *pixels, int pitch)
+static int Miyoo_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect, Uint32 pixel_format, void *pixels, int pitch)
 {
     return SDL_Unsupported();
 }
 
-static void MMIYOO_RenderPresent(SDL_Renderer *renderer)
+static void Miyoo_RenderPresent(SDL_Renderer *renderer)
 {
 }
 
-static void MMIYOO_DestroyTexture(SDL_Renderer *renderer, SDL_Texture *texture)
+static void Miyoo_DestroyTexture(SDL_Renderer *renderer, SDL_Texture *texture)
 {
-    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData*)texture->driverdata;
+    Miyoo_TextureData *mmiyoo_texture = (Miyoo_TextureData*)texture->driverdata;
 
     if (mmiyoo_texture) {
         if (mmiyoo_texture->data) {
@@ -203,9 +203,9 @@ static void MMIYOO_DestroyTexture(SDL_Renderer *renderer, SDL_Texture *texture)
     }
 }
 
-static void MMIYOO_DestroyRenderer(SDL_Renderer *renderer)
+static void Miyoo_DestroyRenderer(SDL_Renderer *renderer)
 {
-    MMIYOO_RenderData *data = (MMIYOO_RenderData *)renderer->driverdata;
+    Miyoo_RenderData *data = (Miyoo_RenderData *)renderer->driverdata;
 
     if(data) {
         if(!data->initialized) {
@@ -218,16 +218,16 @@ static void MMIYOO_DestroyRenderer(SDL_Renderer *renderer)
     SDL_free(renderer);
 }
 
-static int MMIYOO_SetVSync(SDL_Renderer *renderer, const int vsync)
+static int Miyoo_SetVSync(SDL_Renderer *renderer, const int vsync)
 {
     return 0;
 }
 
-SDL_Renderer *MMIYOO_CreateRenderer(SDL_Window *window, Uint32 flags)
+SDL_Renderer *Miyoo_CreateRenderer(SDL_Window *window, Uint32 flags)
 {
     int pixelformat = 0;
     SDL_Renderer *renderer = NULL;
-    MMIYOO_RenderData *data = NULL;
+    Miyoo_RenderData *data = NULL;
 
     renderer = (SDL_Renderer *) SDL_calloc(1, sizeof(*renderer));
     if(!renderer) {
@@ -236,36 +236,36 @@ SDL_Renderer *MMIYOO_CreateRenderer(SDL_Window *window, Uint32 flags)
         return NULL;
     }
 
-    data = (MMIYOO_RenderData *) SDL_calloc(1, sizeof(*data));
+    data = (Miyoo_RenderData *) SDL_calloc(1, sizeof(*data));
     if(!data) {
         printf(PREFIX"Failed to create render data\n");
-        MMIYOO_DestroyRenderer(renderer);
+        Miyoo_DestroyRenderer(renderer);
         SDL_OutOfMemory();
         return NULL;
     }
 
-    renderer->WindowEvent = MMIYOO_WindowEvent;
-    renderer->CreateTexture = MMIYOO_CreateTexture;
-    renderer->UpdateTexture = MMIYOO_UpdateTexture;
-    renderer->LockTexture = MMIYOO_LockTexture;
-    renderer->UnlockTexture = MMIYOO_UnlockTexture;
-    renderer->SetTextureScaleMode = MMIYOO_SetTextureScaleMode;
-    renderer->SetRenderTarget = MMIYOO_SetRenderTarget;
-    renderer->QueueSetViewport = MMIYOO_QueueSetViewport;
-    renderer->QueueSetDrawColor = MMIYOO_QueueSetViewport;
-    renderer->QueueDrawPoints = MMIYOO_QueueDrawPoints;
-    renderer->QueueDrawLines = MMIYOO_QueueDrawPoints;
-    renderer->QueueGeometry = MMIYOO_QueueGeometry;
-    renderer->QueueFillRects = MMIYOO_QueueFillRects;
-    renderer->QueueCopy = MMIYOO_QueueCopy;
-    renderer->QueueCopyEx = MMIYOO_QueueCopyEx;
-    renderer->RunCommandQueue = MMIYOO_RunCommandQueue;
-    renderer->RenderReadPixels = MMIYOO_RenderReadPixels;
-    renderer->RenderPresent = MMIYOO_RenderPresent;
-    renderer->DestroyTexture = MMIYOO_DestroyTexture;
-    renderer->DestroyRenderer = MMIYOO_DestroyRenderer;
-    renderer->SetVSync = MMIYOO_SetVSync;
-    renderer->info = MMIYOO_RenderDriver.info;
+    renderer->WindowEvent = Miyoo_WindowEvent;
+    renderer->CreateTexture = Miyoo_CreateTexture;
+    renderer->UpdateTexture = Miyoo_UpdateTexture;
+    renderer->LockTexture = Miyoo_LockTexture;
+    renderer->UnlockTexture = Miyoo_UnlockTexture;
+    renderer->SetTextureScaleMode = Miyoo_SetTextureScaleMode;
+    renderer->SetRenderTarget = Miyoo_SetRenderTarget;
+    renderer->QueueSetViewport = Miyoo_QueueSetViewport;
+    renderer->QueueSetDrawColor = Miyoo_QueueSetViewport;
+    renderer->QueueDrawPoints = Miyoo_QueueDrawPoints;
+    renderer->QueueDrawLines = Miyoo_QueueDrawPoints;
+    renderer->QueueGeometry = Miyoo_QueueGeometry;
+    renderer->QueueFillRects = Miyoo_QueueFillRects;
+    renderer->QueueCopy = Miyoo_QueueCopy;
+    renderer->QueueCopyEx = Miyoo_QueueCopyEx;
+    renderer->RunCommandQueue = Miyoo_RunCommandQueue;
+    renderer->RenderReadPixels = Miyoo_RenderReadPixels;
+    renderer->RenderPresent = Miyoo_RenderPresent;
+    renderer->DestroyTexture = Miyoo_DestroyTexture;
+    renderer->DestroyRenderer = Miyoo_DestroyRenderer;
+    renderer->SetVSync = Miyoo_SetVSync;
+    renderer->info = Miyoo_RenderDriver.info;
     renderer->info.flags = (SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     renderer->driverdata = data;
     renderer->window = window;
@@ -294,10 +294,10 @@ SDL_Renderer *MMIYOO_CreateRenderer(SDL_Window *window, Uint32 flags)
     return renderer;
 }
 
-SDL_RenderDriver MMIYOO_RenderDriver = {
-    .CreateRenderer = MMIYOO_CreateRenderer,
+SDL_RenderDriver Miyoo_RenderDriver = {
+    .CreateRenderer = Miyoo_CreateRenderer,
     .info = {
-        .name = "MMIYOO",
+        .name = "MMiyoo",
         .flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE,
         .num_texture_formats = 2,
         .texture_formats = {
@@ -321,14 +321,14 @@ TEST_TEAR_DOWN(sdl2_render_mmiyoo)
 {
 }
 
-TEST(sdl2_render_mmiyoo, MMIYOO_SetVSync)
+TEST(sdl2_render_mmiyoo, Miyoo_SetVSync)
 {
-    TEST_ASSERT_EQUAL(MMIYOO_SetVSync(NULL, 0), 0);
+    TEST_ASSERT_EQUAL(Miyoo_SetVSync(NULL, 0), 0);
 }
 
 TEST_GROUP_RUNNER(sdl2_render_mmiyoo)
 {
-    RUN_TEST_CASE(sdl2_render_mmiyoo, MMIYOO_SetVSync);
+    RUN_TEST_CASE(sdl2_render_mmiyoo, Miyoo_SetVSync);
 }
 #endif
 
