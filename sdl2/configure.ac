@@ -2431,7 +2431,7 @@ CheckUtVideo()
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DUT -fPIC -I../include/sdl2 -I../detour -I../common -I../ut/extras/fixture/src -I../ut/src -I../ut/extras/memory/src"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DUT -fPIC -I../include/sdl2 -I../detour -I../common -I../ut/extras/fixture/src -I../ut/src -I../ut/extras/memory/src -fsanitize=address,leak,undefined -fno-omit-frame-pointer"
         EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lEGL -lGLESv2 -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi
@@ -2471,6 +2471,7 @@ CheckUtAudio()
         AC_DEFINE(SDL_AUDIO_DRIVER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/audio/miyoo/*.c"
         have_audio=yes
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fsanitize=address,leak,undefined -fno-omit-frame-pointer"
         EXTRA_LDFLAGS="$EXTRA_LDFLAGS -l:libasound.so.2"
         SUMMARY_audio="${SUMMARY_audio} miyoo"
     fi

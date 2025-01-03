@@ -1152,6 +1152,10 @@ int process_drastic_menu(void)
 {
     int layer = get_current_menu_layer();
 
+#if defined(UT)
+    return 0;
+#endif
+
     if (layer == NDS_DRASTIC_MENU_MAIN) {
         SDL_SoftStretch(nds.menu.drastic.bg0, NULL, nds.menu.drastic.main, NULL);
     }
@@ -1190,7 +1194,9 @@ int process_drastic_menu(void)
     }
 #if defined(A30)
     nds.update_menu = 1;
-#else
+#endif
+
+#if defined(MINI)
     GFX_Copy(-1, nds.menu.drastic.main->pixels, nds.menu.drastic.main->clip_rect, nds.menu.drastic.main->clip_rect, nds.menu.drastic.main->pitch, 0, E_MI_GFX_ROTATE_180);
     GFX_Flip();
     GFX_Copy(-1, nds.menu.drastic.main->pixels, nds.menu.drastic.main->clip_rect, nds.menu.drastic.main->clip_rect, nds.menu.drastic.main->pitch, 0, E_MI_GFX_ROTATE_180);

@@ -70,7 +70,6 @@ int write_log_to_file(int level, const char *msg, const char *fmt, ...)
         timeinfo->tm_min,
         timeinfo->tm_sec);
 
-
     va_start(va, fmt);
     fprintf(file, "%s", msg);
     vfprintf(file, fmt, va);

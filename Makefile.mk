@@ -63,6 +63,8 @@ ifeq ($(MOD),ut)
     CFLAGS  += -I../ut/src
     CFLAGS  += -I../ut/extras/memory/src
     CFLAGS  += -I../ut/extras/fixture/src
+    CFLAGS  += -fno-omit-frame-pointer
+    CFLAGS  += -fsanitize=address,leak,undefined
 endif
 
 export CC=${CROSS}gcc

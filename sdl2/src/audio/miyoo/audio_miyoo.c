@@ -279,6 +279,7 @@ TEST(sdl2_audio_miyoo, AudioInit)
 #if defined(UT)
 TEST_GROUP_RUNNER(sdl2_audio_miyoo)
 {
+    RUN_TEST_CASE(sdl2_audio_miyoo, CloseDevice);
     RUN_TEST_CASE(sdl2_audio_miyoo, OpenDevice);
     RUN_TEST_CASE(sdl2_audio_miyoo, PlayDevice);
     RUN_TEST_CASE(sdl2_audio_miyoo, GetDeviceBuf);
