@@ -38,14 +38,15 @@
 
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+
 #include "SDL_version.h"
 #include "SDL_syswm.h"
 #include "SDL_loadso.h"
 #include "SDL_events.h"
 #include "SDL_video.h"
 #include "SDL_mouse.h"
-#include "SDL_video_miyoo.h"
-#include "SDL_event_miyoo.h"
+#include "video_miyoo.h"
+#include "event_miyoo.h"
 
 #include "cfg.h"
 #include "hook.h"

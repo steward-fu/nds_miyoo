@@ -42,7 +42,7 @@
 #include "snd.h"
 #include "cfg.pb.h"
 
-static char home_path[MAX_PATH] = { 0 };
+char home_path[MAX_PATH] = { 0 };
 static char cfg_path[MAX_PATH * 2] = { 0 };
 static settings cfg = settings_init_zero;
 

@@ -27,7 +27,7 @@
 #include "SDL_joystick.h"
 #include "../SDL_sysjoystick.h"
 #include "../SDL_joystick_c.h"
-#include "../../video/miyoo/SDL_video_miyoo.h"
+#include "../../video/miyoo/video_miyoo.h"
 
 #if defined(A30) || defined(UT)
 #include <stdio.h>

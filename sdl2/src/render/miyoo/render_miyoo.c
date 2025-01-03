@@ -22,8 +22,8 @@
 #include <stdbool.h>
 
 #include "../../SDL_internal.h"
-#include "../../video/miyoo/SDL_video_miyoo.h"
-#include "../../video/miyoo/SDL_event_miyoo.h"
+#include "../../video/miyoo/video_miyoo.h"
+#include "../../video/miyoo/event_miyoo.h"
 #include "../SDL_sysrender.h"
 #include "SDL_hints.h"
 

@@ -38,6 +38,10 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 
+#if defined(UT)
+#include "unity_fixture.h"
+#endif
+
 #include "../../SDL_internal.h"
 #include "../SDL_sysvideo.h"
 #include "../SDL_sysvideo.h"
@@ -51,23 +55,18 @@
 #include "SDL_events.h"
 #include "SDL_video.h"
 #include "SDL_mouse.h"
-#include "SDL_video_miyoo.h"
-#include "SDL_event_miyoo.h"
+#include "video_miyoo.h"
+#include "event_miyoo.h"
 
-#include "hex_pen.h"
-#include "drastic_bios_arm7.h"
-#include "drastic_bios_arm9.h"
-#include "nds_bios_arm7.h"
-#include "nds_bios_arm9.h"
-#include "nds_firmware.h"
-
+#include "log.h"
+#include "pen.h"
 #include "drastic.h"
 
 NDS nds = {0};
 GFX gfx = {0};
 MiyooVideoInfo vid = {0};
 
-extern MiyooEventInfo evt;
+extern miyoo_event_t evt;
 
 int FB_W = 0;
 int FB_H = 0;
@@ -212,6 +211,18 @@ static struct _cpu_clock cpu_clock[] = {
 };
 
 static int max_cpu_item = sizeof(cpu_clock) / sizeof(struct _cpu_clock);
+#endif
+
+#if defined(UT)
+TEST_GROUP(sdl2_video_miyoo);
+
+TEST_SETUP(sdl2_video_miyoo)
+{
+}
+
+TEST_TEAR_DOWN(sdl2_video_miyoo)
+{
+}
 #endif
 
 static void* sdl_malloc(size_t size)
@@ -408,6 +419,13 @@ static int get_current_menu_layer(void)
     }
     return -1;
 }
+
+#ifdef UT
+TEST(sdl2_video_miyoo, get_current_menu_layer)
+{
+    TEST_ASSERT_EQUAL(get_current_menu_layer(), -1);
+}
+#endif
 
 static int draw_drastic_menu_main(void)
 {
@@ -1593,12 +1611,12 @@ static int process_screen(void)
         }
 
 #ifdef A30
-        if (show_pen && ((evt.mode == MMIYOO_MOUSE_MODE) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
+        if (show_pen && ((evt.dev_mode == MOUSE_MODE) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
 #else
-        if (show_pen && (evt.mode == MMIYOO_MOUSE_MODE)) {
+        if (show_pen && (evt.dev_mode == MOUSE_MODE)) {
 #endif
 #else
-        if (show_pen && (evt.mode == MMIYOO_MOUSE_MODE)) {
+        if (show_pen && (evt.dev_mode == MOUSE_MODE)) {
 #endif
             draw_pen(nds.screen.pixels[idx], srt.w, nds.screen.pitch[idx]);
 
@@ -2319,8 +2337,6 @@ static int read_config(void)
 #endif
     json_object_put(jfile);
 
-    load_config_settings();
-
 #ifdef A30
     nds.joy.max_x = 200;
     nds.joy.zero_x = 135;
@@ -2967,21 +2983,21 @@ void GFX_Init(void)
     if (getcwd(nds.bios.path, sizeof(nds.bios.path))) {
         strcat(nds.bios.path, "/");
         strcat(nds.bios.path, BIOS_PATH);
-
-        snprintf(buf, sizeof(buf), "%s/drastic_bios_arm7.bin", nds.bios.path);
-        write_file(buf, drastic_bios_arm7, sizeof(drastic_bios_arm7));
-
-        snprintf(buf, sizeof(buf), "%s/drastic_bios_arm9.bin", nds.bios.path);
-        write_file(buf, drastic_bios_arm9, sizeof(drastic_bios_arm9));
-
-        snprintf(buf, sizeof(buf), "%s/nds_bios_arm7.bin", nds.bios.path);
-        write_file(buf, nds_bios_arm7, sizeof(nds_bios_arm7));
-
-        snprintf(buf, sizeof(buf), "%s/nds_bios_arm9.bin", nds.bios.path);
-        write_file(buf, nds_bios_arm9, sizeof(nds_bios_arm9));
-
-        snprintf(buf, sizeof(buf), "%s/nds_firmware.bin", nds.bios.path);
-        write_file(buf, nds_firmware, sizeof(nds_firmware));
+//
+//        snprintf(buf, sizeof(buf), "%s/drastic_bios_arm7.bin", nds.bios.path);
+//        write_file(buf, drastic_bios_arm7, sizeof(drastic_bios_arm7));
+//
+//        snprintf(buf, sizeof(buf), "%s/drastic_bios_arm9.bin", nds.bios.path);
+//        write_file(buf, drastic_bios_arm9, sizeof(drastic_bios_arm9));
+//
+//        snprintf(buf, sizeof(buf), "%s/nds_bios_arm7.bin", nds.bios.path);
+//        write_file(buf, nds_bios_arm7, sizeof(nds_bios_arm7));
+//
+//        snprintf(buf, sizeof(buf), "%s/nds_bios_arm9.bin", nds.bios.path);
+//        write_file(buf, nds_bios_arm9, sizeof(nds_bios_arm9));
+//
+//        snprintf(buf, sizeof(buf), "%s/nds_firmware.bin", nds.bios.path);
+//        write_file(buf, nds_firmware, sizeof(nds_firmware));
     }
 
     cvt = SDL_CreateRGBSurface(SDL_SWSURFACE, FB_W, FB_H, 32, 0, 0, 0, 0);
@@ -4333,11 +4349,6 @@ int reload_overlay(void)
     return 0;
 }
 
-static int MiyooAvailable(void)
-{
-    return 1;
-}
-
 static void MiyooDeleteDevice(SDL_VideoDevice *device)
 {
     SDL_free(device);
@@ -4357,18 +4368,14 @@ int MiyooCreateWindowFrom(_THIS, SDL_Window *window, const void *data)
     return SDL_Unsupported();
 }
 
-static SDL_VideoDevice *MiyooCreateDevice(int devindex)
+static SDL_VideoDevice *CreateDevice(int devindex)
 {
     SDL_VideoDevice *device = NULL;
 
-    if(!MiyooAvailable()) {
-        return (0);
-    }
-
-    device = (SDL_VideoDevice *) SDL_calloc(1, sizeof(SDL_VideoDevice));
+    device = (SDL_VideoDevice *)SDL_calloc(1, sizeof(SDL_VideoDevice));
     if(!device) {
         SDL_OutOfMemory();
-        return (0);
+        return NULL;
     }
     device->is_dummy = SDL_TRUE;
 
@@ -4378,11 +4385,15 @@ static SDL_VideoDevice *MiyooCreateDevice(int devindex)
     device->CreateSDLWindow = MiyooCreateWindow;
     device->CreateSDLWindowFrom = MiyooCreateWindowFrom;
     device->free = MiyooDeleteDevice;
-    device->PumpEvents = MiyooPumpEvents;
+    device->PumpEvents = PumpEvents;
+
+    unlink(LOG_FILE_NAME);
+    init_config_settings();
+    load_config_settings();
     return device;
 }
 
-VideoBootStrap MiyooVideo_bootstrap = {"Miyoo", "Miyoo Video Driver", MiyooCreateDevice};
+VideoBootStrap MiyooVideo_bootstrap = {"Miyoo", "Miyoo Video Driver", CreateDevice};
 
 int MiyooVideoInit(_THIS)
 {
@@ -4485,7 +4496,7 @@ int MiyooVideoInit(_THIS)
 
     GFX_Init();
     read_config();
-    MiyooEventInit();
+    EventInit();
 
     set_page_size(sysconf(_SC_PAGESIZE));
     add_save_load_state_handler(nds.states.path);
@@ -4597,7 +4608,7 @@ void MiyooVideoQuit(_THIS)
     GFX_Quit();
 
     printf(PREFIX"Free Event resources\n");
-    MiyooEventDeinit();
+    EventDeinit();
 
     printf(PREFIX"Free Lang resources\n");
     lang_unload();
@@ -4859,17 +4870,17 @@ int handle_menu(int key)
     }
 
     switch (key) {
-    case MYKEY_UP:
+    case KEY_BIT_UP:
         if (cur_sel > 0) {
             cur_sel-= 1;
         }
         break;
-    case MYKEY_DOWN:
+    case KEY_BIT_DOWN:
         if (cur_sel < (MENU_LAST - 1)) {
             cur_sel+= 1;
         }
         break;
-    case MYKEY_LEFT:
+    case KEY_BIT_LEFT:
         switch(cur_sel) {
         case MENU_LANG:
             lang_prev();
@@ -5014,7 +5025,7 @@ int handle_menu(int key)
             break;
         }
         break;
-    case MYKEY_RIGHT:
+    case KEY_BIT_RIGHT:
         switch(cur_sel) {
         case MENU_LANG:
             lang_next();
@@ -5164,7 +5175,7 @@ int handle_menu(int key)
             break;
         }
         break;
-    case MYKEY_B:
+    case KEY_BIT_B:
         if (cur_cpuclock != pre_cpuclock) {
 #ifdef MINI
             set_cpuclock(cur_cpuclock);
@@ -5834,26 +5845,9 @@ int handle_menu(int key)
 }
 
 #ifdef UT
-#include "unity_fixture.h"
-
-TEST_GROUP(sdl2_video_mmiyoo);
-
-TEST_SETUP(sdl2_video_mmiyoo)
+TEST_GROUP_RUNNER(sdl2_video_miyoo)
 {
-}
-
-TEST_TEAR_DOWN(sdl2_video_mmiyoo)
-{
-}
-
-TEST(sdl2_video_mmiyoo, get_current_menu_layer)
-{
-    TEST_ASSERT_EQUAL(get_current_menu_layer(), -1);
-}
-
-TEST_GROUP_RUNNER(sdl2_video_mmiyoo)
-{
-    RUN_TEST_CASE(sdl2_video_mmiyoo, get_current_menu_layer);
+    RUN_TEST_CASE(sdl2_video_miyoo, get_current_menu_layer);
 }
 #endif
 
