@@ -54,7 +54,7 @@
 #endif
 
 extern NDS nds;
-static miyoo_joystick_t myjoy = { 0 };
+miyoo_joystick_t myjoy = { 0 };
 
 #if defined(UT)
 TEST_GROUP(sdl2_joystick_miyoo);
@@ -701,7 +701,11 @@ void JoystickQuit(void)
 {
 #if defined(A30) || defined(UT)
     myjoy.running = 0;
-    SDL_WaitThread(myjoy.thread, NULL);
+
+    if (myjoy.thread) {
+        SDL_WaitThread(myjoy.thread, NULL);
+        myjoy.thread = NULL;
+    }
 
     if (myjoy.dev_fd > 0) {
         close(myjoy.dev_fd);

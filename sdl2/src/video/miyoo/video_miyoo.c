@@ -66,7 +66,7 @@ NDS nds = {0};
 GFX gfx = {0};
 MiyooVideoInfo vid = {0};
 
-extern miyoo_event_t evt;
+extern miyoo_event_t myevent;
 
 int FB_W = 0;
 int FB_H = 0;
@@ -281,14 +281,14 @@ static void* sdl_realloc(void *ptr, size_t size)
     return r;
 }
 
-#ifdef UT
+#if defined(UT)
 int get_bat_val(void)
 {
     return 0;
 }
 #endif
 
-#ifdef MINI
+#if defined(MINI)
 static int get_bat_val(void)
 {
     int r = 0;
@@ -326,7 +326,7 @@ static int get_bat_val(void)
 }
 #endif
 
-#ifdef A30
+#if defined(A30)
 static int get_bat_val(void)
 {
     static int maxv = 0;
@@ -420,7 +420,7 @@ static int get_current_menu_layer(void)
     return -1;
 }
 
-#ifdef UT
+#if defined(UT)
 TEST(sdl2_video_miyoo, get_current_menu_layer)
 {
     TEST_ASSERT_EQUAL(get_current_menu_layer(), -1);
@@ -531,7 +531,7 @@ static int draw_drastic_menu_main(void)
 
     y = 10;
 
-#ifdef A30
+#if defined(A30)
     if (nds.chk_bat) {
         snprintf(buf, sizeof(buf), "Rel "NDS_VER", Res %s, BAT %d%%", "640*480", get_bat_val());
     }
@@ -540,7 +540,7 @@ static int draw_drastic_menu_main(void)
     }
 #endif
 
-#ifdef MINI
+#if defined(MINI)
     if (nds.chk_bat) {
         snprintf(buf, sizeof(buf), "Rel "NDS_VER", Res %s, BAT %d%%", nds.enable_752x560 ? "752*560" : "640*480", get_bat_val());
     }
@@ -1610,17 +1610,17 @@ static int process_screen(void)
             drt.x = (drt.x == 0) ? 320 : 0;
         }
 
-#ifdef A30
-        if (show_pen && ((evt.dev_mode == MOUSE_MODE) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
+#if defined(A30)
+        if (show_pen && ((myevent.dev_mode == MOUSE_MODE) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
 #else
-        if (show_pen && (evt.dev_mode == MOUSE_MODE)) {
+        if (show_pen && (myevent.dev_mode == MOUSE_MODE)) {
 #endif
 #else
-        if (show_pen && (evt.dev_mode == MOUSE_MODE)) {
+        if (show_pen && (myevent.dev_mode == MOUSE_MODE)) {
 #endif
             draw_pen(nds.screen.pixels[idx], srt.w, nds.screen.pitch[idx]);
 
-#ifdef A30
+#if defined(A30)
             if (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)) {
                 nds.joy.show_cnt -= 1;
             }
@@ -1664,7 +1664,7 @@ static int process_screen(void)
 #endif
 
         if (need_update) {
-#ifdef MINI
+#if defined(MINI)
             MI_SYS_FlushInvCache(nds.screen.pixels[idx], nds.screen.pitch[idx] * srt.h);
 #endif
 
@@ -2208,7 +2208,7 @@ static int read_config(void)
         nds.chk_bat = json_object_get_int(jval) ? 1: 0;
     }
 
-#ifdef A30
+#if defined(A30)
     json_object_object_get_ex(jfile, JSON_NDS_JOY_MODE, &jval);
     if (jval) {
         nds.joy.mode = json_object_get_int(jval);
@@ -2337,7 +2337,7 @@ static int read_config(void)
 #endif
     json_object_put(jfile);
 
-#ifdef A30
+#if defined(A30)
     nds.joy.max_x = 200;
     nds.joy.zero_x = 135;
     nds.joy.min_x = 75;
@@ -2383,7 +2383,7 @@ static int write_config(void)
     json_object_object_add(jfile, JSON_NDS_FAST_FORWARD, json_object_new_int(nds.fast_forward));
     json_object_object_add(jfile, JSON_NDS_CHK_BAT, json_object_new_int(nds.chk_bat));
 
-#ifdef A30
+#if defined(A30)
     json_object_object_add(jfile, JSON_NDS_JOY_MODE, json_object_new_int(nds.joy.mode));
     json_object_object_add(jfile, JSON_NDS_JOY_DZONE, json_object_new_int(nds.joy.dzone));
     json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY0, json_object_new_int(nds.joy.cuskey[0]));
@@ -2399,7 +2399,7 @@ static int write_config(void)
     return 0;
 }
 
-#ifdef MINI
+#if defined(MINI)
 static int get_cpuclock(void)
 {
     static const uint64_t divsrc = 432000000llu * 524288;
@@ -2655,7 +2655,7 @@ static int get_overlay_count(void)
     return get_file_count(nds.overlay.path);
 }
 
-#ifdef UT
+#if defined(UT)
 int fb_init(void)
 {
     return 0;
@@ -2667,7 +2667,7 @@ int fb_quit(void)
 }
 #endif
 
-#ifdef A30
+#if defined(A30)
 static int get_core(int index)
 {
     FILE *fd = NULL;
@@ -2826,7 +2826,7 @@ int fb_quit(void)
 }
 #endif
 
-#ifdef MINI
+#if defined(MINI)
 int fb_init(void)
 {
 #if USE_MASK
@@ -3056,7 +3056,7 @@ void GFX_Quit(void)
 
 void GFX_Clear(void)
 {
-#ifdef MINI
+#if defined(MINI)
     MI_SYS_MemsetPa(gfx.fb.phyAddr, 0, FB_SIZE);
     MI_SYS_MemsetPa(gfx.tmp.phyAddr, 0, TMP_SIZE);
     MI_SYS_MemsetPa(gfx.lcd.phyAddr[0][0], 0, SCREEN_DMA_SIZE);
@@ -3094,8 +3094,8 @@ int draw_pen(void *pixels, int width, int pitch)
         scale = 2;
     }
 
-    x = (evt.mouse.x * sw) / evt.mouse.maxx;
-    y = (evt.mouse.y * sh) / evt.mouse.maxy;
+    x = (myevent.mouse.x * sw) / myevent.mouse.maxx;
+    y = (myevent.mouse.y * sh) / myevent.mouse.maxy;
 
     if (nds.pen.img) {
         w = nds.pen.img->w;
@@ -3265,7 +3265,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
     }
 #endif
 
-#ifdef MINI
+#if defined(MINI)
     int cc = 0;
     int copy_it = 1;
     int dma_found = 0;
@@ -3942,7 +3942,7 @@ void GFX_Flip(void)
     }
 #endif
 
-#ifdef MINI
+#if defined(MINI)
     ioctl(gfx.fb_dev, FBIOPAN_DISPLAY, &gfx.vinfo);
     gfx.vinfo.yoffset ^= FB_H;
 #endif
@@ -4335,7 +4335,7 @@ int reload_overlay(void)
                     SDL_BlitSurface(t, NULL, nds.overlay.img, NULL);
                     SDL_FreeSurface(t);
 
-#ifdef MINI
+#if defined(MINI)
                     neon_memcpy(gfx.overlay.virAddr, nds.overlay.img->pixels, FB_W * FB_H * 4);
                     MI_SYS_FlushInvCache(gfx.overlay.virAddr, FB_W * FB_H * FB_BPP);
 #endif
@@ -4397,7 +4397,7 @@ VideoBootStrap MiyooVideo_bootstrap = {"Miyoo", "Miyoo Video Driver", CreateDevi
 
 int MiyooVideoInit(_THIS)
 {
-#ifdef MINI
+#if defined(MINI)
     FILE *fd = NULL;
     char buf[MAX_PATH] = {0};
 #endif
@@ -4475,7 +4475,7 @@ int MiyooVideoInit(_THIS)
     FB_SIZE = FB_W * FB_H * FB_BPP * 2;
     TMP_SIZE = FB_W * FB_H * FB_BPP;
 
-#ifdef MINI
+#if defined(MINI)
     fd = popen("fbset | grep \"mode \"", "r");
     if (fd) {
         fgets(buf, sizeof(buf), fd);
@@ -4710,7 +4710,7 @@ static const char *HOTKEY[] = {
     "MENU", "SELECT"
 };
 
-#ifdef A30
+#if defined(A30)
 static const char *JOY_MODE[] = {
     "Disable", "D-Pad", "Stylus", "Customized Key"
 };
@@ -4754,7 +4754,7 @@ enum {
     MENU_LANG = 0,
 #if defined(A30)
     MENU_CPU_CORE,
-#ifdef A30
+#if defined(A30)
     MENU_CPU_CLOCK,
 #endif
 #else
@@ -4774,7 +4774,7 @@ enum {
     MENU_PEN_YV,
     MENU_CURSOR,
     MENU_FAST_FORWARD,
-#ifdef A30
+#if defined(A30)
     MENU_JOY_MODE,
     MENU_JOY_CUSKEY0,
     MENU_JOY_CUSKEY1,
@@ -4791,7 +4791,7 @@ static const char *MENU_ITEM[] = {
     "Language",
 #if defined(A30)
     "CPU Core",
-#ifdef A30
+#if defined(A30)
     "CPU Clock",
 #endif
 #else
@@ -4811,7 +4811,7 @@ static const char *MENU_ITEM[] = {
     "Pen Y Speed",
     "Cursor",
     "Fast Forward",
-#ifdef A30
+#if defined(A30)
     "Joy Mode",
     "  Joy Up",
     "  Joy Down",
@@ -4829,7 +4829,7 @@ int handle_menu(int key)
 #if defined(A30)
     static uint32_t cur_cpucore = INIT_CPU_CORE;
     static uint32_t pre_cpucore = INIT_CPU_CORE;
-#ifdef A30
+#if defined(A30)
     static uint32_t cur_cpuclock = INIT_CPU_CLOCK;
     static uint32_t pre_cpuclock = INIT_CPU_CLOCK;
 #endif
@@ -4864,7 +4864,7 @@ int handle_menu(int key)
     }
 
     if (pre_cpuclock == 0) {
-#ifdef MINI
+#if defined(MINI)
         cur_cpuclock = pre_cpuclock = get_cpuclock();
 #endif
     }
@@ -4891,7 +4891,7 @@ int handle_menu(int key)
                 cur_cpucore-= 1;
             }
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_CPU_CLOCK:
             if (cur_cpuclock > nds.mincpu) {
                 cur_cpuclock-= 50;
@@ -4978,7 +4978,7 @@ int handle_menu(int key)
                 nds.fast_forward -= 1;
             }
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_JOY_MODE:
             if (nds.joy.mode > 0) {
                 nds.joy.mode -= 1;
@@ -5036,7 +5036,7 @@ int handle_menu(int key)
                 cur_cpucore+= 1;
             }
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_CPU_CLOCK:
             if (cur_cpuclock < nds.maxcpu) {
                 cur_cpuclock+= 50;
@@ -5123,14 +5123,14 @@ int handle_menu(int key)
                 nds.fast_forward += 1;
             }
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_JOY_MODE:
             if (nds.joy.mode < MYJOY_MODE_LAST) {
                 nds.joy.mode += 1;
             }
             if (nds.joy.mode == MYJOY_MODE_STYLUS) {
-                if (evt.mode == MMIYOO_MOUSE_MODE) {
-                    evt.mode = MiyooKEYPAD_MODE;
+                if (myevent.mode == MMIYOO_MOUSE_MODE) {
+                    myevent.mode = MiyooKEYPAD_MODE;
                 }
             }
             break;
@@ -5177,11 +5177,11 @@ int handle_menu(int key)
         break;
     case KEY_BIT_B:
         if (cur_cpuclock != pre_cpuclock) {
-#ifdef MINI
+#if defined(MINI)
             set_cpuclock(cur_cpuclock);
 #endif
 
-#ifdef A30
+#if defined(A30)
             set_best_match_cpu_clock(cur_cpuclock);
 #endif
             pre_cpuclock = cur_cpuclock;
@@ -5290,7 +5290,7 @@ int handle_menu(int key)
                 col1 = unsel_col;
             }
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_JOY_CUSKEY0:
         case MENU_JOY_CUSKEY1:
         case MENU_JOY_CUSKEY2:
@@ -5357,7 +5357,7 @@ int handle_menu(int key)
         case MENU_CPU_CORE:
             snprintf(buf, sizeof(buf), "%d", cur_cpucore);
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_CPU_CLOCK:
             snprintf(buf, sizeof(buf), "%dMHz", cur_cpuclock);
             break;
@@ -5428,14 +5428,14 @@ int handle_menu(int key)
             snprintf(buf, sizeof(buf), "%s", DPAD[nds.keys_rotate % 3]);
             break;
         case MENU_PEN_XV:
-#ifdef A30
+#if defined(A30)
             snprintf(buf, sizeof(buf), "%d (80000)", nds.pen.xv);
 #else
             snprintf(buf, sizeof(buf), "%d (30000)", nds.pen.xv);
 #endif
             break;
         case MENU_PEN_YV:
-#ifdef A30
+#if defined(A30)
             snprintf(buf, sizeof(buf), "%d (85000)", nds.pen.yv);
 #else
             snprintf(buf, sizeof(buf), "%d (35000)", nds.pen.yv);
@@ -5447,7 +5447,7 @@ int handle_menu(int key)
         case MENU_FAST_FORWARD:
             snprintf(buf, sizeof(buf), "%d (6)", nds.fast_forward);
             break;
-#ifdef A30
+#if defined(A30)
         case MENU_JOY_MODE:
             snprintf(buf, sizeof(buf), "%s", to_lang(JOY_MODE[nds.joy.mode]));
             break;
@@ -5844,7 +5844,7 @@ int handle_menu(int key)
     return 0;
 }
 
-#ifdef UT
+#if defined(UT)
 TEST_GROUP_RUNNER(sdl2_video_miyoo)
 {
     RUN_TEST_CASE(sdl2_video_miyoo, get_current_menu_layer);

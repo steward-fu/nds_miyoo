@@ -78,7 +78,7 @@
 #define MAX_PATH                128
 #endif
 
-#ifdef UT
+#if defined(UT)
 #define DEF_FB_W                640
 #define DEF_FB_H                480
 #define FB_BPP                  4
@@ -89,7 +89,7 @@
 #define DEF_FONT_SIZE           24
 #endif
 
-#ifdef A30
+#if defined(A30) || defined(UT)
 #define DEF_FB_W                640
 #define DEF_FB_H                480
 #define FB_BPP                  4
@@ -97,7 +97,6 @@
 #define IMG_H                   480
 #define SCREEN_DMA_SIZE         (NDS_Wx2 * NDS_Hx2 * 4)
 #define RELOAD_BG_COUNT         120
-#define USE_MYJOY               1
 #define MYJOY_MODE_DISABLE      0
 #define MYJOY_MODE_KEYPAD       1
 #define MYJOY_MODE_STYLUS       2
@@ -287,7 +286,7 @@ typedef struct MMIYOO_VideoInfo {
     uint32_t *cpu_ptr;
 #endif
 
-#ifdef MINI
+#if defined(MINI)
     int sar_fd;
 #endif
 } MiyooVideoInfo;
@@ -302,13 +301,13 @@ typedef struct _GFX {
         void *virAddr;
 #endif
 
-#ifdef MINI
+#if defined(MINI)
         void *virAddr;
         MI_PHY phyAddr;
 #endif
     } fb, tmp, overlay;
 
-#ifdef MINI
+#if defined(MINI)
     struct {
         void *virAddr[2];
         MI_PHY phyAddr[2];
@@ -318,13 +317,13 @@ typedef struct _GFX {
     struct {
         int cur_sel;
         void *virAddr[2][2];
-#ifdef MINI
+#if defined(MINI)
         MI_PHY phyAddr[2][2];
 #endif
     } lcd;
 
     struct _HW {
-#ifdef MINI
+#if defined(MINI)
         struct _BUF {
             MI_GFX_Surface_t surf;
             MI_GFX_Rect_t rt;
@@ -478,7 +477,7 @@ typedef struct _CUST_MENU {
     CUST_MENU_SUB item[MAX_MENU_LINE];
 } CUST_MENU;
 
-#ifdef A30
+#if defined(A30)
 struct _cpu_clock {
     int clk;
     uint32_t reg;

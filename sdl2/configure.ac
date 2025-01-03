@@ -2405,7 +2405,7 @@ CheckA30Video()
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c $srcdir/src/video/miyoo/*.S"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DA30 -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3 -I../detour -I../common -I../include/sdl2"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DA30 -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3 -I../detour -I../common -I../alsa -I../include/sdl2"
         EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lMali -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi
@@ -2418,7 +2418,7 @@ CheckMiniVideo()
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c $srcdir/src/video/miyoo/*.S"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DMINI -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3 -I../include/mini -I../detour -I../common -I../include/sdl2"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DMINI -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3 -I../include/mini -I../detour -I../common -I../alsa -I../include/sdl2"
         EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lEGL -lGLESv2 -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi
@@ -2431,7 +2431,8 @@ CheckUtVideo()
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DUT -fPIC -I../include/sdl2 -I../detour -I../common -I../ut/extras/fixture/src -I../ut/src -I../ut/extras/memory/src -fsanitize=address,leak,undefined -fno-omit-frame-pointer"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DUT -fPIC -I../include/sdl2 -I../detour -I../common -I../alsa"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../ut/extras/fixture/src -I../ut/src -I../ut/extras/memory/src -fsanitize=address,leak,undefined -fno-omit-frame-pointer"
         EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lEGL -lGLESv2 -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi

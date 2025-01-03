@@ -114,7 +114,20 @@ typedef struct _miyoo_event_t {
         int max_y;
     } mouse;
 
+    int dev_fd;
     dev_mode_t dev_mode;
+
+    int running;
+    SDL_Thread *thread;
+
+    SDL_sem *event_sem;
+
+    int lower_speed;
+#if defined(MINI) || defined(UT)
+    int stock_os;
+#endif
+
+    SDL_Scancode report_key[32];
 } miyoo_event_t;
 
 void EventInit(void);
