@@ -43,8 +43,9 @@
 #include "cfg.pb.h"
 
 char home_path[MAX_PATH] = { 0 };
+settings cfg = settings_init_zero;
+
 static char cfg_path[MAX_PATH * 2] = { 0 };
-static settings cfg = settings_init_zero;
 
 #if defined(UT)
 TEST_GROUP(common_cfg);
@@ -66,71 +67,6 @@ TEST_SETUP(common_cfg)
 TEST_TEAR_DOWN(common_cfg)
 {
     unlink(JSON_SYS_FILE);
-}
-#endif
-
-int get_system_volume(void)
-{
-    struct json_object *jval = NULL;
-    struct json_object *jfile = NULL;
-
-    jfile = json_object_from_file(JSON_SYS_PATH);
-    if (jfile ==  NULL) {
-        err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
-        return -1;
-    }
-
-    if (json_object_object_get_ex(jfile, JSON_SYS_VOLUME, &jval)) {
-        cfg.system_volume = json_object_get_int(jval);
-        info(COM"read system volume(%d) in %s\n", cfg.system_volume, __func__);
-    }
-    else {
-        err(COM"failed to read system volume in %s\n", __func__);
-    }
-    json_object_put(jfile);
-    return cfg.system_volume;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_system_volume)
-{
-    set_system_volume(1);
-    TEST_ASSERT_EQUAL_INT(1, get_system_volume());
-    TEST_ASSERT_EQUAL_INT(1, cfg.system_volume);
-}
-#endif
-
-int set_system_volume(int vol)
-{
-    struct json_object *jval = NULL;
-    struct json_object *jfile = NULL;
-
-    if ((vol < 0) || (vol > MAX_VOLUME)) {
-        err(COM"invalid parameter(vol:%d) in %s\n", vol, __func__);
-        return -1;
-    }
-
-    jfile = json_object_from_file(JSON_SYS_PATH);
-    if (jfile ==  NULL) {
-        err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
-        return -1;
-    }
-
-    json_object_object_add(jfile, JSON_SYS_VOLUME, json_object_new_int(vol));
-    info(COM"wrote new system volume(%d) in %s\n", vol, __func__);
-
-    json_object_to_file_ext(JSON_SYS_PATH, jfile, JSON_C_TO_STRING_PRETTY);
-    json_object_put(jfile);
-    return vol;
-}
-
-#if defined(UT)
-TEST(common_cfg, set_system_volume)
-{
-    TEST_ASSERT_EQUAL_INT(-1, set_system_volume(-1));
-    TEST_ASSERT_EQUAL_INT(0, set_system_volume(0));
-    TEST_ASSERT_EQUAL_INT(1, set_system_volume(1));
-    TEST_ASSERT_EQUAL_INT(-1, set_system_volume(MAX_VOLUME + 1));
 }
 #endif
 
@@ -191,18 +127,30 @@ int update_config_settings(void)
     pb_ostream_t stream = pb_ostream_from_buffer(buf, MAX_MALLOC_SIZE);
     cfg.has_display = true;
     cfg.display.has_small = true;
+
     cfg.has_cpu = true;
     cfg.cpu.has_freq = true;
     cfg.cpu.has_core = true;
+
     cfg.has_pen = true;
+    cfg.pen.has_show = true;
     cfg.pen.has_speed = true;
+
     cfg.has_menu = true;
     cfg.has_autosave = true;
-    cfg.has_keypad = true;
-    cfg.keypad.has_swap = true;
-    cfg.has_joystick = true;
-    cfg.joystick.has_remap_left = true;
-    cfg.joystick.has_remap_right = true;
+
+    cfg.has_key = true;
+    cfg.key.has_swap = true;
+
+    cfg.has_joy = true;
+    cfg.joy.has_left = true;
+    cfg.joy.has_right = true;
+    cfg.joy.left.has_x = true;
+    cfg.joy.left.has_y = true;
+    cfg.joy.left.has_remap = true;
+    cfg.joy.right.has_x = true;
+    cfg.joy.right.has_y = true;
+    cfg.joy.right.has_remap = true;
     pb_encode(&stream, settings_fields, &cfg);
 
     unlink(cfg_path);
@@ -238,8 +186,9 @@ TEST(common_cfg, update_config_settings)
     cfg.pen.speed.x = 44;
     strncpy(cfg.menu.bg, "YYY", sizeof(cfg.menu.bg));
     cfg.autosave.slot = 55;
-    cfg.keypad.swap.l1_l2 = true;
-    cfg.joystick.remap_left.top = 66;
+    cfg.key.swap.l1_l2 = true;
+    cfg.joy.left.remap.up = 66;
+    cfg.joy.right.remap.left = 66;
 
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
     TEST_ASSERT_EQUAL_INT(0, load_config_settings());
@@ -252,8 +201,9 @@ TEST(common_cfg, update_config_settings)
     TEST_ASSERT_EQUAL_INT(44, cfg.pen.speed.x);
     TEST_ASSERT_EQUAL_STRING("YYY", cfg.menu.bg);
     TEST_ASSERT_EQUAL_INT(55, cfg.autosave.slot);
-    TEST_ASSERT_EQUAL_INT(true, cfg.keypad.swap.l1_l2);
-    TEST_ASSERT_EQUAL_INT(66, cfg.joystick.remap_left.top);
+    TEST_ASSERT_EQUAL_INT(true, cfg.key.swap.l1_l2);
+    TEST_ASSERT_EQUAL_INT(66, cfg.joy.left.remap.up);
+    TEST_ASSERT_EQUAL_INT(77, cfg.joy.right.remap.left);
     
     TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
@@ -304,17 +254,23 @@ int reset_config_settings(void)
 {
     strncpy(cfg.version, DEF_CFG_VERSION, sizeof(cfg.version));
     strncpy(cfg.language, DEF_CFG_LANGUAGE, sizeof(cfg.language));
-    strncpy(cfg.menu.bg, DEF_CFG_MENU_BG, sizeof(cfg.menu.bg));
-    strncpy(cfg.pen.image, DEF_CFG_PEN_IMAGE, sizeof(cfg.pen.image));
     strncpy(cfg.font_path, DEF_CFG_FONT_PATH, sizeof(cfg.font_path));
     strncpy(cfg.state_folder, DEF_CFG_STATE_FOLDER, sizeof(cfg.state_folder));
     strncpy(cfg.border_image, DEF_CFG_BORDER_IMAGE, sizeof(cfg.border_image));
 
+    cfg.debug_level = DEF_CFG_DEBUG_LEVEL;
     cfg.system_volume = 0;
     cfg.fast_forward = DEF_CFG_FAST_FORWARD;
-
     cfg.half_volume = DEF_CFG_HALF_VOLUME;
     cfg.low_battery_close = DEF_CFG_LOW_BATTERY_CLOSE;
+
+    cfg.cpu.freq.min = DEF_CFG_CPU_FREQ_MIN;
+    cfg.cpu.freq.max = DEF_CFG_CPU_FREQ_MAX;
+    cfg.cpu.core.min = DEF_CFG_CPU_CORE_MIN;
+    cfg.cpu.core.max = DEF_CFG_CPU_CORE_MAX;
+
+    strncpy(cfg.menu.bg, DEF_CFG_MENU_BG, sizeof(cfg.menu.bg));
+    cfg.menu.show_cursor = DEF_CFG_MENU_SHOW_CURSOR;
 
     cfg.display.layout = DEF_CFG_DISPLAY_LAYOUT;
     cfg.display.alt_layout = DEF_CFG_DISPLAY_ALT_LAYOUT;
@@ -322,37 +278,52 @@ int reset_config_settings(void)
     cfg.display.small.border = DEF_CFG_DISPLAY_SMALL_BORDER;
     cfg.display.small.position = DEF_CFG_DISPLAY_SMALL_POSITION;
 
-    cfg.cpu.freq.min = DEF_CFG_CPU_FREQ_MIN;
-    cfg.cpu.freq.max = DEF_CFG_CPU_FREQ_MAX;
-    cfg.cpu.core.min = DEF_CFG_CPU_CORE_MIN;
-    cfg.cpu.core.max = DEF_CFG_CPU_CORE_MAX;
-
-    cfg.pen.screen0 = DEF_CFG_PEN_SCREEN0;
-    cfg.pen.speed.x = DEF_CFG_PEN_SPEED_X;
-    cfg.pen.speed.y = DEF_CFG_PEN_SPEED_Y;
-
-    cfg.menu.show_cursor = DEF_CFG_MENU_SHOW_CURSOR;
-
     cfg.autosave.enable = DEF_CFG_AUTOSAVE_ENABLE;
     cfg.autosave.slot = DEF_CFG_AUTOSAVE_SLOT;
 
-    cfg.keypad.rotate = DEF_CFG_KEYPAD_ROTATE;
-    cfg.keypad.hotkey = DEF_CFG_KEYPAD_HOTKEY;
-    cfg.keypad.swap.l1_l2 = DEF_CFG_KEYPAD_SWAP_L1_L2;
-    cfg.keypad.swap.r1_r2 = DEF_CFG_KEYPAD_SWAP_R1_R2;
+    cfg.pen.show.mode = DEF_CFG_PEN_SHOW_MODE;
+    cfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
+    strncpy(cfg.pen.image, DEF_CFG_PEN_IMAGE, sizeof(cfg.pen.image));
+    cfg.pen.screen = DEF_CFG_PEN_SCREEN;
+    cfg.pen.speed.x = DEF_CFG_PEN_SPEED_X;
+    cfg.pen.speed.y = DEF_CFG_PEN_SPEED_Y;
 
-    cfg.joystick.mode = DEF_CFG_JOYSTICK_MODE;
-    cfg.joystick.dead_zone = DEF_CFG_JOYSTICK_DEAD_ZONE;
-    cfg.joystick.remap_left.top = DEF_CFG_JOYSTICK_REMAP_LEFT_TOP;
-    cfg.joystick.remap_left.down = DEF_CFG_JOYSTICK_REMAP_LEFT_DOWN;
-    cfg.joystick.remap_left.left = DEF_CFG_JOYSTICK_REMAP_LEFT_LEFT;
-    cfg.joystick.remap_left.right = DEF_CFG_JOYSTICK_REMAP_LEFT_RIGHT;
-    cfg.joystick.remap_right.top = DEF_CFG_JOYSTICK_REMAP_RIGHT_TOP;
-    cfg.joystick.remap_right.down = DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN;
-    cfg.joystick.remap_right.left = DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT;
-    cfg.joystick.remap_right.right = DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT;
+    cfg.key.rotate = DEF_CFG_KEY_ROTATE;
+    cfg.key.hotkey = DEF_CFG_KEY_HOTKEY;
+    cfg.key.swap.l1_l2 = DEF_CFG_KEY_SWAP_L1_L2;
+    cfg.key.swap.r1_r2 = DEF_CFG_KEY_SWAP_R1_R2;
 
-    cfg.debug_level = DEF_CFG_DEBUG_LEVEL;
+    cfg.joy.left.x.min = DEF_CFG_JOY_MIN;
+    cfg.joy.left.x.max = DEF_CFG_JOY_MAX;
+    cfg.joy.left.x.zero = DEF_CFG_JOY_ZERO;
+    cfg.joy.left.x.step = DEF_CFG_JOY_STEP;
+    cfg.joy.left.x.dead = DEF_CFG_JOY_DEAD;
+    cfg.joy.left.y.min = DEF_CFG_JOY_MIN;
+    cfg.joy.left.y.max = DEF_CFG_JOY_MAX;
+    cfg.joy.left.y.zero = DEF_CFG_JOY_ZERO;
+    cfg.joy.left.y.step = DEF_CFG_JOY_STEP;
+    cfg.joy.left.y.dead = DEF_CFG_JOY_DEAD;
+    cfg.joy.left.mode = DEF_CFG_JOY_MODE;
+    cfg.joy.left.remap.up = DEF_CFG_JOY_REMAP_UP;
+    cfg.joy.left.remap.down = DEF_CFG_JOY_REMAP_DOWN;
+    cfg.joy.left.remap.left = DEF_CFG_JOY_REMAP_LEFT;
+    cfg.joy.left.remap.right = DEF_CFG_JOY_REMAP_RIGHT;
+
+    cfg.joy.right.x.min = DEF_CFG_JOY_MIN;
+    cfg.joy.right.x.max = DEF_CFG_JOY_MAX;
+    cfg.joy.right.x.zero = DEF_CFG_JOY_ZERO;
+    cfg.joy.right.x.step = DEF_CFG_JOY_STEP;
+    cfg.joy.right.x.dead = DEF_CFG_JOY_DEAD;
+    cfg.joy.right.y.min = DEF_CFG_JOY_MIN;
+    cfg.joy.right.y.max = DEF_CFG_JOY_MAX;
+    cfg.joy.right.y.zero = DEF_CFG_JOY_ZERO;
+    cfg.joy.right.y.step = DEF_CFG_JOY_STEP;
+    cfg.joy.right.y.dead = DEF_CFG_JOY_DEAD;
+    cfg.joy.right.mode = DEF_CFG_JOY_MODE;
+    cfg.joy.right.remap.up = DEF_CFG_JOY_REMAP_UP;
+    cfg.joy.right.remap.down = DEF_CFG_JOY_REMAP_DOWN;
+    cfg.joy.right.remap.right = DEF_CFG_JOY_REMAP_LEFT;
+    cfg.joy.right.remap.right = DEF_CFG_JOY_REMAP_RIGHT;
 
     if (get_system_volume() < 0) {
         return -1;
@@ -367,18 +338,26 @@ TEST(common_cfg, reset_config_settings)
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
     TEST_ASSERT_EQUAL_INT(0, load_config_settings());
 
+    memset(&cfg, 0, sizeof(cfg));
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_VERSION, cfg.version);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_LANGUAGE, cfg.language);
-    TEST_ASSERT_EQUAL_STRING(DEF_CFG_MENU_BG, cfg.menu.bg);
-    TEST_ASSERT_EQUAL_STRING(DEF_CFG_PEN_IMAGE, cfg.pen.image);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_FONT_PATH, cfg.font_path);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_STATE_FOLDER, cfg.state_folder);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_BORDER_IMAGE, cfg.border_image);
 
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DEBUG_LEVEL, cfg.debug_level);
+    TEST_ASSERT_EQUAL_INT(100, cfg.system_volume);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_FAST_FORWARD, cfg.fast_forward);
-
     TEST_ASSERT_EQUAL_INT(DEF_CFG_HALF_VOLUME, cfg.half_volume);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_LOW_BATTERY_CLOSE, cfg.low_battery_close);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_FREQ_MIN, cfg.cpu.freq.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_FREQ_MAX, cfg.cpu.freq.max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_CORE_MIN, cfg.cpu.core.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_CORE_MAX, cfg.cpu.core.max);
+
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_MENU_BG, cfg.menu.bg);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_MENU_SHOW_CURSOR, cfg.menu.show_cursor);
 
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_LAYOUT, cfg.display.layout);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_ALT_LAYOUT, cfg.display.alt_layout);
@@ -386,142 +365,62 @@ TEST(common_cfg, reset_config_settings)
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_BORDER, cfg.display.small.border);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_POSITION, cfg.display.small.position);
 
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_FREQ_MIN, cfg.cpu.freq.min);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_FREQ_MAX, cfg.cpu.freq.max);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_CORE_MIN, cfg.cpu.core.min);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_CPU_CORE_MAX, cfg.cpu.core.max);
-
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SCREEN0, cfg.pen.screen0);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SPEED_X, cfg.pen.speed.x);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SPEED_Y, cfg.pen.speed.y);
-
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_MENU_SHOW_CURSOR, cfg.menu.show_cursor);
-
     TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_ENABLE, cfg.autosave.enable);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_SLOT, cfg.autosave.slot);
 
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_ROTATE, cfg.keypad.rotate);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_HOTKEY, cfg.keypad.hotkey);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_SWAP_L1_L2, cfg.keypad.swap.l1_l2);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEYPAD_SWAP_R1_R2, cfg.keypad.swap.r1_r2);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SHOW_MODE, cfg.pen.show.mode);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SHOW_COUNT, cfg.pen.show.count);
+    TEST_ASSERT_EQUAL_STRING(DEF_CFG_PEN_IMAGE, cfg.pen.image);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SCREEN, cfg.pen.screen);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SPEED_X, cfg.pen.speed.x);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SPEED_Y, cfg.pen.speed.y);
 
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_MODE, cfg.joystick.mode);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_DEAD_ZONE, cfg.joystick.dead_zone);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_TOP, cfg.joystick.remap_left.top);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_DOWN, cfg.joystick.remap_left.down);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_LEFT, cfg.joystick.remap_left.left);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_LEFT_RIGHT, cfg.joystick.remap_left.right);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_TOP, cfg.joystick.remap_right.top);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN, cfg.joystick.remap_right.down);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT, cfg.joystick.remap_right.left);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT, cfg.joystick.remap_right.right);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEY_ROTATE, cfg.key.rotate);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEY_HOTKEY, cfg.key.hotkey);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEY_SWAP_L1_L2, cfg.key.swap.l1_l2);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_KEY_SWAP_R1_R2, cfg.key.swap.r1_r2);
 
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_DEBUG_LEVEL, cfg.debug_level);
-}
-#endif
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MIN, cfg.joy.left.x.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MAX, cfg.joy.left.x.max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_ZERO, cfg.joy.left.x.zero);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_STEP, cfg.joy.left.x.step);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_DEAD, cfg.joy.left.x.dead);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MIN, cfg.joy.left.y.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MAX, cfg.joy.left.y.max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_ZERO, cfg.joy.left.y.zero);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_STEP, cfg.joy.left.y.step);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_DEAD, cfg.joy.left.y.dead);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MODE, cfg.joy.left.mode);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_UP, cfg.joy.left.remap.up);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_DOWN, cfg.joy.left.remap.down);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_LEFT, cfg.joy.left.remap.left);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_RIGHT, cfg.joy.left.remap.right);
 
-int get_cfg_half_volume(void)
-{
-    return cfg.half_volume;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_half_volume)
-{
-    TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_half_volume());
-}
-#endif
-
-int get_cfg_autosave_enable(void)
-{
-    return cfg.autosave.enable;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_autosave_enable)
-{
-    cfg.autosave.enable = 0;
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_autosave_enable());
-
-    cfg.autosave.enable = 1;
-    TEST_ASSERT_EQUAL_INT(1, get_cfg_autosave_enable());
-}
-#endif
-
-int get_cfg_autosave_slot(void)
-{
-    return cfg.autosave.slot;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_autosave_slot)
-{
-    cfg.autosave.slot = 0;
-    TEST_ASSERT_EQUAL_INT(0, get_cfg_autosave_slot());
-
-    cfg.autosave.slot = 10;
-    TEST_ASSERT_EQUAL_INT(10, get_cfg_autosave_slot());
-}
-#endif
-
-int get_cfg_pen_speed_x(void)
-{
-    return cfg.pen.speed.x;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_pen_speed_x)
-{
-    cfg.pen.speed.x = 100;
-    TEST_ASSERT_EQUAL_INT(100, get_cfg_pen_speed_x());
-}
-#endif
-
-int get_cfg_pen_speed_y(void)
-{
-    return cfg.pen.speed.y;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_pen_speed_y)
-{
-    cfg.pen.speed.y = 100;
-    TEST_ASSERT_EQUAL_INT(100, get_cfg_pen_speed_y());
-}
-#endif
-
-hotkey_t get_cfg_keypad_hotkey(void)
-{
-    return cfg.keypad.hotkey;
-}
-
-#if defined(UT)
-TEST(common_cfg, get_cfg_keypad_hotkey)
-{
-    cfg.keypad.hotkey = HOTKEY_MENU;
-    TEST_ASSERT_EQUAL_INT(HOTKEY_MENU, get_cfg_keypad_hotkey());
-
-    cfg.keypad.hotkey = HOTKEY_SELECT;
-    TEST_ASSERT_EQUAL_INT(HOTKEY_SELECT, get_cfg_keypad_hotkey());
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MIN, cfg.joy.right.x.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MAX, cfg.joy.right.x.max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_ZERO, cfg.joy.right.x.zero);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_STEP, cfg.joy.right.x.step);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_DEAD, cfg.joy.right.x.dead);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MIN, cfg.joy.right.y.min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MAX, cfg.joy.right.y.max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_ZERO, cfg.joy.right.y.zero);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_STEP, cfg.joy.right.y.step);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_DEAD, cfg.joy.right.y.dead);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MODE, cfg.joy.right.mode);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_UP, cfg.joy.right.remap.up);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_DOWN, cfg.joy.right.remap.down);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_LEFT, cfg.joy.right.remap.right);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_RIGHT, cfg.joy.right.remap.right);
 }
 #endif
 
 #if defined(UT)
 TEST_GROUP_RUNNER(common_cfg)
 {
-    RUN_TEST_CASE(common_cfg, get_system_volume);
-    RUN_TEST_CASE(common_cfg, set_system_volume);
     RUN_TEST_CASE(common_cfg, load_config_settings);
     RUN_TEST_CASE(common_cfg, update_config_settings);
     RUN_TEST_CASE(common_cfg, init_config_settings);
     RUN_TEST_CASE(common_cfg, reset_config_settings);
-    RUN_TEST_CASE(common_cfg, get_cfg_half_volume);
-    RUN_TEST_CASE(common_cfg, get_cfg_autosave_enable);
-    RUN_TEST_CASE(common_cfg, get_cfg_autosave_slot);
-    RUN_TEST_CASE(common_cfg, get_cfg_pen_speed_x);
-    RUN_TEST_CASE(common_cfg, get_cfg_pen_speed_y);
-    RUN_TEST_CASE(common_cfg, get_cfg_keypad_hotkey);
 }
 #endif
 

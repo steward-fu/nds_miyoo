@@ -27,10 +27,20 @@ message _cpu {
 }
 
 message _pen {
-    string image                = 1;
-    bool screen0                = 2;
+    _show show                  = 1;
+    message _show {
+        int32 count             = 1;
+        _mode mode              = 2;
+        enum _mode {
+            MODE_AUTO           = 0;
+            MODE_ALWAYS         = 1;
+        }
+    }
 
-    _speed speed                = 3;
+    string image                = 2;
+    int32 screen                = 3;
+
+    _speed speed                = 4;
     message _speed {
         int32 x                 = 1;
         int32 y                 = 2;
@@ -47,13 +57,13 @@ message _autosave {
     int32 slot                  = 2;
 }
 
-message _keypad {
+message _key {
     int32 rotate                = 1;
 
     _hotkey hotkey              = 2;
     enum _hotkey {
-        menu                    = 0;
-        select                  = 1;
+        HOTKEY_MENU             = 0;
+        HOTKEY_SELECT           = 1;
     }
 
     _swap swap                  = 3;
@@ -63,23 +73,34 @@ message _keypad {
     }
 }
 
-message _joystick {
-    _mode mode                  = 1;
-    enum _mode {
-        keypad                  = 0;
-        pen                     = 1;
-        remap                   = 2;
-    }
+message _joy {
+    _lr left                    = 1;
+    _lr right                   = 2;
+    message _lr {
+        _xy x                   = 1;
+        _xy y                   = 2;
+        message _xy {
+            int32 min           = 1;
+            int32 max           = 2;
+            int32 zero          = 3;
+            int32 step          = 4;
+            int32 dead          = 5;
+        }
 
-    int32 dead_zone             = 2;
+        _mode mode              = 3;
+        enum _mode {
+            MODE_KEY            = 0;
+            MODE_PEN            = 1;
+            MODE_REMAP          = 2;
+        }
 
-    _remap remap_left           = 3;
-    _remap remap_right          = 4;
-    message _remap {
-        int32 top               = 1;
-        int32 down              = 2;
-        int32 left              = 3;
-        int32 right             = 4;
+        _remap remap            = 4;
+        message _remap {
+            int32 up            = 1;
+            int32 down          = 2;
+            int32 left          = 3;
+            int32 right         = 4;
+        }
     }
 }
 
@@ -97,12 +118,13 @@ message settings {
     bool half_volume            = 9;
     bool low_battery_close      = 10;
 
-    _display display            = 11;
-    _cpu cpu                    = 12;
-    _pen pen                    = 13;
-    _menu menu                  = 14;
-    _autosave autosave          = 15;
-    _keypad keypad              = 16;
-    _joystick joystick          = 17;
+    _cpu cpu                    = 11;
+    _menu menu                  = 12;
+    _display display            = 13;
+    _autosave autosave          = 14;
+
+    _pen pen                    = 15;
+    _key key                    = 16;
+    _joy joy                    = 17;
 }
 

@@ -62,11 +62,13 @@
 #include "cfg.h"
 #include "pen.h"
 #include "drastic.h"
+#include "cfg.pb.h"
 
 NDS nds = {0};
 GFX gfx = {0};
 MiyooVideoInfo vid = {0};
 
+extern settings cfg;
 extern miyoo_event_t myevent;
 
 int FB_W = 0;
@@ -1613,12 +1615,12 @@ static int process_screen(void)
         }
 
 #if defined(A30)
-        if (show_pen && ((myevent.dev_mode == MOUSE_MODE) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
+        if (show_pen && ((myevent.dev.mode == DEV_MODE_PEN) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
 #else
-        if (show_pen && (myevent.dev_mode == MOUSE_MODE)) {
+        if (show_pen && (myevent.dev.mode == DEV_MODE_PEN)) {
 #endif
 #else
-        if (show_pen && (myevent.dev_mode == MOUSE_MODE)) {
+        if (show_pen && (myevent.dev.mode == DEV_MODE_PEN)) {
 #endif
             draw_pen(nds.screen.pixels[idx], srt.w, nds.screen.pitch[idx]);
 
@@ -5129,8 +5131,8 @@ int handle_menu(int key)
                 nds.joy.mode += 1;
             }
             if (nds.joy.mode == MYJOY_MODE_STYLUS) {
-                if (myevent.mode == MMIYOO_MOUSE_MODE) {
-                    myevent.mode = MiyooKEYPAD_MODE;
+                if (myevent.mode == MMIYOO_DEV_MODE_PEN) {
+                    myevent.mode = MiyooDEV_MODE_KEY;
                 }
             }
             break;
@@ -5368,7 +5370,7 @@ int handle_menu(int key)
             break;
 #endif
         case MENU_HOTKEY:
-            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[get_cfg_keypad_hotkey()]));
+            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[get_cfg_key_hotkey()]));
             break;
         case MENU_SWAP_L1L2:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.swap_l1l2 ? "Yes" : "No"));
@@ -5429,23 +5431,23 @@ int handle_menu(int key)
             break;
         case MENU_PEN_XV:
 #if defined(A30)
-            snprintf(buf, sizeof(buf), "%d (80000)", get_cfg_pen_speed_x());
+            snprintf(buf, sizeof(buf), "%d (80000)", cfg.pen.speed.x);
 #else
-            snprintf(buf, sizeof(buf), "%d (30000)", get_cfg_pen_speed_x());
+            snprintf(buf, sizeof(buf), "%d (30000)", cfg.pen.speed.x);
 #endif
             break;
         case MENU_PEN_YV:
 #if defined(A30)
-            snprintf(buf, sizeof(buf), "%d (85000)", get_cfg_pen_speed_y());
+            snprintf(buf, sizeof(buf), "%d (85000)", cfg.pen.speed.y);
 #else
-            snprintf(buf, sizeof(buf), "%d (35000)", get_cfg_pen_speed_y());
+            snprintf(buf, sizeof(buf), "%d (35000)", cfg.pen.speed.y);
 #endif
             break;
         case MENU_CURSOR:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.menu.show_cursor ? "Show" : "Hide"));
             break;
         case MENU_FAST_FORWARD:
-            snprintf(buf, sizeof(buf), "%d (6)", nds.fast_forward);
+            snprintf(buf, sizeof(buf), "%d (6)", cfg.fast_forward);
             break;
 #if defined(A30)
         case MENU_JOY_MODE:

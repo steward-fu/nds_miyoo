@@ -47,6 +47,7 @@
 #endif
 
 #include "log.h"
+#include "cfg.pb.h"
 #include "joystick_miyoo.h"
 
 #if defined(UT)
@@ -54,6 +55,7 @@
 #endif
 
 extern NDS nds;
+extern settings cfg;
 miyoo_joystick_t myjoy = { 0 };
 
 #if defined(UT)
@@ -308,9 +310,11 @@ TEST(sdl2_joystick_miyoo, uart_read)
 }
 #endif
 
-static int filter_dead_zone(int newAxis, int oldAxis)
+static int filter_dead_zone(int idx, int newAxis, int oldAxis)
 {
-    if (abs(newAxis - oldAxis) < nds.joy.dzone) {
+    int dead = (idx == 0) ? cfg.joy.left.x.dead : cfg.joy.left.y.dead;
+
+    if (abs(newAxis - oldAxis) < dead) {
         return 1;
     }
     return 0;
@@ -319,11 +323,11 @@ static int filter_dead_zone(int newAxis, int oldAxis)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, filter_dead_zone)
 {
-    nds.joy.dzone = 10;
-    TEST_ASSERT_EQUAL_INT(0, filter_dead_zone(100, 0));
+    nds.joy.left.x.dead = 10;
+    TEST_ASSERT_EQUAL_INT(0, filter_dead_zone(0, 100, 0));
 
-    nds.joy.dzone = 100;
-    TEST_ASSERT_EQUAL_INT(1, filter_dead_zone(10, 0));
+    nds.joy.left.y.dead = 100;
+    TEST_ASSERT_EQUAL_INT(1, filter_dead_zone(1, 10, 0));
 }
 #endif
 
@@ -353,7 +357,7 @@ static void update_axis_values(void)
 
     for (i = 0; i < A30_AXIS_MAX_LEN; i++) {
         if (myjoy.cur_axis[i] != myjoy.last_axis[i]) {
-            if (!filter_dead_zone(myjoy.cur_axis[i], myjoy.last_axis[i])) {
+            if (!filter_dead_zone(i, myjoy.cur_axis[i], myjoy.last_axis[i])) {
                 if (i == 0) {
                     myjoy.last_x = limit_value(myjoy.cur_axis[i]);
                     debug(SDL"joystick x:%d in %s\n", myjoy.last_x, __func__);
@@ -371,11 +375,12 @@ static void update_axis_values(void)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, update_axis_values)
 {
-    nds.joy.dzone = 0;
+    cfg.joy.left.x.dead = 0;
     myjoy.last_x = 0;
     myjoy.cur_axis[0] = 100;
     myjoy.last_axis[0] = 0;
 
+    cfg.joy.left.y.dead = 0;
     myjoy.last_y = 0;
     myjoy.cur_axis[1] = 100;
     myjoy.last_axis[1] = 0;
@@ -383,11 +388,12 @@ TEST(sdl2_joystick_miyoo, update_axis_values)
     TEST_ASSERT_EQUAL_INT(100, myjoy.last_x);
     TEST_ASSERT_EQUAL_INT(100, myjoy.last_y);
 
-    nds.joy.dzone = 110;
+    cfg.joy.left.x.dead = 110;
     myjoy.last_x = 0;
     myjoy.cur_axis[0] = 100;
     myjoy.last_axis[0] = 0;
 
+    cfg.joy.left.y.dead = 110;
     myjoy.last_y = 0;
     myjoy.cur_axis[1] = 100;
     myjoy.last_axis[1] = 0;
@@ -402,21 +408,21 @@ static int frame_to_axis_x(uint8_t x)
     int div = 0;
     int value = 0;
 
-    div = nds.joy.max_x - nds.joy.zero_x;
-    if ((x > nds.joy.zero_x) && (div > 0)) {
-        value = ((x - nds.joy.zero_x) * 126) / div;
+    div = cfg.joy.left.x.max - cfg.joy.left.x.zero;
+    if ((x > cfg.joy.left.x.zero) && (div > 0)) {
+        value = ((x - cfg.joy.left.x.zero) * 126) / div;
     }
 
-    div = nds.joy.zero_x - nds.joy.min_x;
-    if ((x < nds.joy.zero_x) && (div > 0)) {
-        value = ((x - nds.joy.zero_x) * 126) / div;
+    div = cfg.joy.left.x.zero - cfg.joy.left.x.min;
+    if ((x < cfg.joy.left.x.zero) && (div > 0)) {
+        value = ((x - cfg.joy.left.x.zero) * 126) / div;
     }
 
-    if (value > 0 && value < nds.joy.dzone) {
+    if (value > 0 && value < cfg.joy.left.x.dead) {
         return 0;
     }
 
-    if (value < 0 && value > -(nds.joy.dzone)) {
+    if (value < 0 && value > -(cfg.joy.left.x.dead)) {
         return 0;
     }
     return value;
@@ -425,19 +431,19 @@ static int frame_to_axis_x(uint8_t x)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, frame_to_axis_x)
 {
-    nds.joy.max_x = 0;
-    nds.joy.zero_x = 0;
-    nds.joy.dzone = 0;
+    cfg.joy.left.x.max = 0;
+    cfg.joy.left.x.zero = 0;
+    cfg.joy.left.x.dead = 0;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_x(0));
 
-    nds.joy.max_x = 1;
-    nds.joy.zero_x = 0;
-    nds.joy.dzone = 0;
+    cfg.joy.left.x.max = 1;
+    cfg.joy.left.x.zero = 0;
+    cfg.joy.left.x.dead = 0;
     TEST_ASSERT_EQUAL_INT(32130, frame_to_axis_x(255));
 
-    nds.joy.max_x = 1;
-    nds.joy.zero_x = 0;
-    nds.joy.dzone = 32131;
+    cfg.joy.left.x.max = 1;
+    cfg.joy.left.x.zero = 0;
+    cfg.joy.left.x.dead = 32131;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_x(255));
 }
 #endif
@@ -447,21 +453,21 @@ static int frame_to_axis_y(uint8_t y)
     int div = 0;
     int value = 0;
 
-    div = nds.joy.max_y - nds.joy.zero_y;
-    if ((y > nds.joy.zero_y) && (div > 0)) {
-        value = ((y - nds.joy.zero_y) * 126) / div;
+    div = cfg.joy.left.y.max - cfg.joy.left.y.zero;
+    if ((y > cfg.joy.left.y.zero) && (div > 0)) {
+        value = ((y - cfg.joy.left.y.zero) * 126) / div;
     }
 
-    div = nds.joy.zero_y - nds.joy.min_y;
-    if ((y < nds.joy.zero_y) && (div > 0)) {
-        value = ((y - nds.joy.zero_y) * 126) / div;
+    div = cfg.joy.left.y.zero - cfg.joy.left.y.min;
+    if ((y < cfg.joy.left.y.zero) && (div > 0)) {
+        value = ((y - cfg.joy.left.y.zero) * 126) / div;
     }
 
-    if ((value > 0) && (value < nds.joy.dzone)) {
+    if ((value > 0) && (value < cfg.joy.left.y.dead)) {
         return 0;
     }
 
-    if ((value < 0) && (value > -(nds.joy.dzone))) {
+    if ((value < 0) && (value > -(cfg.joy.left.y.dead))) {
         return 0;
     }
 
@@ -471,19 +477,19 @@ static int frame_to_axis_y(uint8_t y)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, frame_to_axis_y)
 {
-    nds.joy.max_y = 0;
-    nds.joy.zero_y = 0;
-    nds.joy.dzone = 0;
+    cfg.joy.left.y.max = 0;
+    cfg.joy.left.y.zero = 0;
+    cfg.joy.left.y.dead = 0;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_y(0));
 
-    nds.joy.max_y = 1;
-    nds.joy.zero_y = 0;
-    nds.joy.dzone = 0;
+    cfg.joy.left.y.max = 1;
+    cfg.joy.left.y.zero = 0;
+    cfg.joy.left.y.dead = 0;
     TEST_ASSERT_EQUAL_INT(32130, frame_to_axis_y(255));
 
-    nds.joy.max_y = 1;
-    nds.joy.zero_y = 0;
-    nds.joy.dzone = 32131;
+    cfg.joy.left.y.max = 1;
+    cfg.joy.left.y.zero = 0;
+    cfg.joy.left.y.dead = 32131;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_y(255));
 }
 #endif
@@ -636,12 +642,12 @@ static int read_joystick_config(void)
 TEST(sdl2_joystick_miyoo, read_joystick_config)
 {
     TEST_ASSERT_EQUAL_INT(0, read_joystick_config());
-    TEST_ASSERT_EQUAL_INT(UT_X_MIN, myjoy.x_min);
-    TEST_ASSERT_EQUAL_INT(UT_X_MAX, myjoy.x_max);
-    TEST_ASSERT_EQUAL_INT(UT_X_ZERO, myjoy.x_zero);
-    TEST_ASSERT_EQUAL_INT(UT_Y_MIN, myjoy.y_min);
-    TEST_ASSERT_EQUAL_INT(UT_Y_MAX, myjoy.y_max);
-    TEST_ASSERT_EQUAL_INT(UT_Y_ZERO, myjoy.y_zero);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MIN, myjoy.x_min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MAX, myjoy.x_max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_ZERO, myjoy.x_zero);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MIN, myjoy.y_min);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MAX, myjoy.y_max);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_ZERO, myjoy.y_zero);
 }
 #endif
 

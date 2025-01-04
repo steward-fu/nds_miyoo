@@ -96,42 +96,43 @@
 #define KEY_BIT_VOLDOWN         22
 
 typedef enum _move_dir {
-    LEFT_RIGHT = 0,
-    UP_DOWN
+    MOVE_DIR_LEFT_RIGHT = 0,
+    MOVE_DIR_UP_DOWN
 } move_dir_t;
 
 typedef enum _dev_mode {
-    KEYPAD_MODE = 0,
-    MOUSE_MODE
+    DEV_MODE_KEY = 0,
+    DEV_MODE_PEN
 } dev_mode_t;
 
 typedef struct _miyoo_event_t {
-    struct _keypad{
-        uint32_t cur_keys;
-        uint32_t pre_keys;
-    } keypad;
+#if defined(MINI) || defined(UT)
+    int stock_os;
+#endif
 
-    struct _mouse{
+    struct _key {
+        uint32_t cur_bits;
+        uint32_t pre_bits;
+        SDL_Scancode report_key[32];
+    } key;
+
+    struct _pen {
         int x;
         int y;
         int max_x;
         int max_y;
         int lower_speed;
         clock_t pre_ticks;
-    } mouse;
+    } pen;
 
-    int dev_fd;
-    dev_mode_t dev_mode;
+    struct _dev {
+        int fd;
+        dev_mode_t mode;
+    } dev;
 
     int running;
     SDL_sem *lock;
     SDL_Thread *thread;
-
-#if defined(MINI) || defined(UT)
-    int stock_os;
-#endif
-
-    SDL_Scancode report_key[32];
 } miyoo_event_t;
 
 void EventInit(void);

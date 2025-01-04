@@ -41,11 +41,6 @@
 #define MAX_PATH            128
 #define MAX_MALLOC_SIZE     4096
 
-typedef enum _hotkey {
-    HOTKEY_MENU = 0,
-    HOTKEY_SELECT
-} hotkey_t;
-
 #define DEF_CFG_VERSION                         "20250101"
 #define DEF_CFG_LANGUAGE                        "en_US"
 #define DEF_CFG_MENU_BG                         "menu/640/1/bg.png"
@@ -65,40 +60,34 @@ typedef enum _hotkey {
 #define DEF_CFG_CPU_FREQ_MAX                    3000
 #define DEF_CFG_CPU_CORE_MIN                    1
 #define DEF_CFG_CPU_CORE_MAX                    4
-#define DEF_CFG_PEN_SCREEN0                     true
+#define DEF_CFG_PEN_SHOW_MODE                   0
+#define DEF_CFG_PEN_SHOW_COUNT                  3000
+#define DEF_CFG_PEN_SCREEN                      0
 #define DEF_CFG_PEN_SPEED_X                     30000
 #define DEF_CFG_PEN_SPEED_Y                     35000
 #define DEF_CFG_MENU_SHOW_CURSOR                true
 #define DEF_CFG_AUTOSAVE_ENABLE                 true
 #define DEF_CFG_AUTOSAVE_SLOT                   10
-#define DEF_CFG_KEYPAD_ROTATE                   0
-#define DEF_CFG_KEYPAD_HOTKEY                   0
-#define DEF_CFG_KEYPAD_SWAP_L1_L2               0
-#define DEF_CFG_KEYPAD_SWAP_R1_R2               0
-#define DEF_CFG_JOYSTICK_MODE                   0
-#define DEF_CFG_JOYSTICK_DEAD_ZONE              65
-#define DEF_CFG_JOYSTICK_REMAP_LEFT_TOP         0
-#define DEF_CFG_JOYSTICK_REMAP_LEFT_DOWN        1
-#define DEF_CFG_JOYSTICK_REMAP_LEFT_LEFT        2
-#define DEF_CFG_JOYSTICK_REMAP_LEFT_RIGHT       3
-#define DEF_CFG_JOYSTICK_REMAP_RIGHT_TOP        0
-#define DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN       1
-#define DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT       2
-#define DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT      3
+#define DEF_CFG_KEY_ROTATE                      0
+#define DEF_CFG_KEY_HOTKEY                      0
+#define DEF_CFG_KEY_SWAP_L1_L2                  0
+#define DEF_CFG_KEY_SWAP_R1_R2                  0
+#define DEF_CFG_JOY_MIN                         10
+#define DEF_CFG_JOY_MAX                         100
+#define DEF_CFG_JOY_ZERO                        65
+#define DEF_CFG_JOY_STEP                        10
+#define DEF_CFG_JOY_DEAD                        65
+#define DEF_CFG_JOY_MODE                        0
+#define DEF_CFG_JOY_REMAP_UP                    0
+#define DEF_CFG_JOY_REMAP_DOWN                  1
+#define DEF_CFG_JOY_REMAP_LEFT                  2
+#define DEF_CFG_JOY_REMAP_RIGHT                 3
 #define DEF_CFG_DEBUG_LEVEL                     LOG_LEVEL_ERR
 
 int init_config_settings(void);
 int load_config_settings(void);
 int reset_config_settings(void);
 int update_config_settings(void);
-int get_system_volume(void);
-int set_system_volume(int vol);
-int get_cfg_half_volume(void);
-int get_cfg_autosave_enable(void);
-int get_cfg_autosave_slot(void);
-int get_cfg_pen_speed_x(void);
-int get_cfg_pen_speed_y(void);
-hotkey_t get_cfg_keypad_hotkey(void);
 
 #endif
 

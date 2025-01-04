@@ -10,16 +10,21 @@
 #endif
 
 /* Enum definitions */
-typedef enum __keypad__hotkey {
-    _keypad__hotkey_menu = 0,
-    _keypad__hotkey_select = 1
-} _keypad__hotkey;
+typedef enum __pen__show__mode {
+    _pen__show__mode_MODE_AUTO = 0,
+    _pen__show__mode_MODE_ALWAYS = 1
+} _pen__show__mode;
 
-typedef enum __joystick__mode {
-    _joystick__mode_keypad = 0,
-    _joystick__mode_pen = 1,
-    _joystick__mode_remap = 2
-} _joystick__mode;
+typedef enum __key__hotkey {
+    _key__hotkey_HOTKEY_MENU = 0,
+    _key__hotkey_HOTKEY_SELECT = 1
+} _key__hotkey;
+
+typedef enum __joy__lr__mode {
+    _joy__lr__mode_MODE_KEY = 0,
+    _joy__lr__mode_MODE_PEN = 1,
+    _joy__lr__mode_MODE_REMAP = 2
+} _joy__lr__mode;
 
 /* Struct definitions */
 typedef struct __display__small {
@@ -52,14 +57,21 @@ typedef struct __cpu {
     _cpu__core core;
 } _cpu;
 
+typedef struct __pen__show {
+    int32_t count;
+    _pen__show__mode mode;
+} _pen__show;
+
 typedef struct __pen__speed {
     int32_t x;
     int32_t y;
 } _pen__speed;
 
 typedef struct __pen {
+    bool has_show;
+    _pen__show show;
     char image[255];
-    bool screen0;
+    int32_t screen;
     bool has_speed;
     _pen__speed speed;
 } _pen;
@@ -74,33 +86,49 @@ typedef struct __autosave {
     int32_t slot;
 } _autosave;
 
-typedef struct __keypad__swap {
+typedef struct __key__swap {
     bool l1_l2;
     bool r1_r2;
-} _keypad__swap;
+} _key__swap;
 
-typedef struct __keypad {
+typedef struct __key {
     int32_t rotate;
-    _keypad__hotkey hotkey;
+    _key__hotkey hotkey;
     bool has_swap;
-    _keypad__swap swap;
-} _keypad;
+    _key__swap swap;
+} _key;
 
-typedef struct __joystick__remap {
-    int32_t top;
+typedef struct __joy__lr__xy {
+    int32_t min;
+    int32_t max;
+    int32_t zero;
+    int32_t step;
+    int32_t dead;
+} _joy__lr__xy;
+
+typedef struct __joy__lr__remap {
+    int32_t up;
     int32_t down;
     int32_t left;
     int32_t right;
-} _joystick__remap;
+} _joy__lr__remap;
 
-typedef struct __joystick {
-    _joystick__mode mode;
-    int32_t dead_zone;
-    bool has_remap_left;
-    _joystick__remap remap_left;
-    bool has_remap_right;
-    _joystick__remap remap_right;
-} _joystick;
+typedef struct __joy__lr {
+    bool has_x;
+    _joy__lr__xy x;
+    bool has_y;
+    _joy__lr__xy y;
+    _joy__lr__mode mode;
+    bool has_remap;
+    _joy__lr__remap remap;
+} _joy__lr;
+
+typedef struct __joy {
+    bool has_left;
+    _joy__lr left;
+    bool has_right;
+    _joy__lr right;
+} _joy;
 
 typedef struct _settings {
     char version[255];
@@ -113,20 +141,20 @@ typedef struct _settings {
     int32_t fast_forward;
     bool half_volume;
     bool low_battery_close;
-    bool has_display;
-    _display display;
     bool has_cpu;
     _cpu cpu;
-    bool has_pen;
-    _pen pen;
     bool has_menu;
     _menu menu;
+    bool has_display;
+    _display display;
     bool has_autosave;
     _autosave autosave;
-    bool has_keypad;
-    _keypad keypad;
-    bool has_joystick;
-    _joystick joystick;
+    bool has_pen;
+    _pen pen;
+    bool has_key;
+    _key key;
+    bool has_joy;
+    _joy joy;
 } settings;
 
 
@@ -135,27 +163,35 @@ extern "C" {
 #endif
 
 /* Helper constants for enums */
-#define __keypad__hotkey_MIN _keypad__hotkey_menu
-#define __keypad__hotkey_MAX _keypad__hotkey_select
-#define __keypad__hotkey_ARRAYSIZE ((_keypad__hotkey)(_keypad__hotkey_select+1))
+#define __pen__show__mode_MIN _pen__show__mode_MODE_AUTO
+#define __pen__show__mode_MAX _pen__show__mode_MODE_ALWAYS
+#define __pen__show__mode_ARRAYSIZE ((_pen__show__mode)(_pen__show__mode_MODE_ALWAYS+1))
 
-#define __joystick__mode_MIN _joystick__mode_keypad
-#define __joystick__mode_MAX _joystick__mode_remap
-#define __joystick__mode_ARRAYSIZE ((_joystick__mode)(_joystick__mode_remap+1))
+#define __key__hotkey_MIN _key__hotkey_HOTKEY_MENU
+#define __key__hotkey_MAX _key__hotkey_HOTKEY_SELECT
+#define __key__hotkey_ARRAYSIZE ((_key__hotkey)(_key__hotkey_HOTKEY_SELECT+1))
 
-
-
-
-
-
+#define __joy__lr__mode_MIN _joy__lr__mode_MODE_KEY
+#define __joy__lr__mode_MAX _joy__lr__mode_MODE_REMAP
+#define __joy__lr__mode_ARRAYSIZE ((_joy__lr__mode)(_joy__lr__mode_MODE_REMAP+1))
 
 
 
 
-#define _keypad_hotkey_ENUMTYPE _keypad__hotkey
 
 
-#define _joystick_mode_ENUMTYPE _joystick__mode
+
+#define _pen__show_mode_ENUMTYPE _pen__show__mode
+
+
+
+
+#define _key_hotkey_ENUMTYPE _key__hotkey
+
+
+
+#define _joy__lr_mode_ENUMTYPE _joy__lr__mode
+
 
 
 
@@ -166,29 +202,35 @@ extern "C" {
 #define _cpu_init_default                        {false, _cpu__freq_init_default, false, _cpu__core_init_default}
 #define _cpu__freq_init_default                  {0, 0}
 #define _cpu__core_init_default                  {0, 0}
-#define _pen_init_default                        {"", 0, false, _pen__speed_init_default}
+#define _pen_init_default                        {false, _pen__show_init_default, "", 0, false, _pen__speed_init_default}
+#define _pen__show_init_default                  {0, __pen__show__mode_MIN}
 #define _pen__speed_init_default                 {0, 0}
 #define _menu_init_default                       {"", 0}
 #define _autosave_init_default                   {0, 0}
-#define _keypad_init_default                     {0, __keypad__hotkey_MIN, false, _keypad__swap_init_default}
-#define _keypad__swap_init_default               {0, 0}
-#define _joystick_init_default                   {__joystick__mode_MIN, 0, false, _joystick__remap_init_default, false, _joystick__remap_init_default}
-#define _joystick__remap_init_default            {0, 0, 0, 0}
-#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, 0, false, _display_init_default, false, _cpu_init_default, false, _pen_init_default, false, _menu_init_default, false, _autosave_init_default, false, _keypad_init_default, false, _joystick_init_default}
+#define _key_init_default                        {0, __key__hotkey_MIN, false, _key__swap_init_default}
+#define _key__swap_init_default                  {0, 0}
+#define _joy_init_default                        {false, _joy__lr_init_default, false, _joy__lr_init_default}
+#define _joy__lr_init_default                    {false, _joy__lr__xy_init_default, false, _joy__lr__xy_init_default, __joy__lr__mode_MIN, false, _joy__lr__remap_init_default}
+#define _joy__lr__xy_init_default                {0, 0, 0, 0, 0}
+#define _joy__lr__remap_init_default             {0, 0, 0, 0}
+#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, 0, false, _cpu_init_default, false, _menu_init_default, false, _display_init_default, false, _autosave_init_default, false, _pen_init_default, false, _key_init_default, false, _joy_init_default}
 #define _display_init_zero                       {0, 0, false, _display__small_init_zero}
 #define _display__small_init_zero                {0, 0, 0}
 #define _cpu_init_zero                           {false, _cpu__freq_init_zero, false, _cpu__core_init_zero}
 #define _cpu__freq_init_zero                     {0, 0}
 #define _cpu__core_init_zero                     {0, 0}
-#define _pen_init_zero                           {"", 0, false, _pen__speed_init_zero}
+#define _pen_init_zero                           {false, _pen__show_init_zero, "", 0, false, _pen__speed_init_zero}
+#define _pen__show_init_zero                     {0, __pen__show__mode_MIN}
 #define _pen__speed_init_zero                    {0, 0}
 #define _menu_init_zero                          {"", 0}
 #define _autosave_init_zero                      {0, 0}
-#define _keypad_init_zero                        {0, __keypad__hotkey_MIN, false, _keypad__swap_init_zero}
-#define _keypad__swap_init_zero                  {0, 0}
-#define _joystick_init_zero                      {__joystick__mode_MIN, 0, false, _joystick__remap_init_zero, false, _joystick__remap_init_zero}
-#define _joystick__remap_init_zero               {0, 0, 0, 0}
-#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, 0, false, _display_init_zero, false, _cpu_init_zero, false, _pen_init_zero, false, _menu_init_zero, false, _autosave_init_zero, false, _keypad_init_zero, false, _joystick_init_zero}
+#define _key_init_zero                           {0, __key__hotkey_MIN, false, _key__swap_init_zero}
+#define _key__swap_init_zero                     {0, 0}
+#define _joy_init_zero                           {false, _joy__lr_init_zero, false, _joy__lr_init_zero}
+#define _joy__lr_init_zero                       {false, _joy__lr__xy_init_zero, false, _joy__lr__xy_init_zero, __joy__lr__mode_MIN, false, _joy__lr__remap_init_zero}
+#define _joy__lr__xy_init_zero                   {0, 0, 0, 0, 0}
+#define _joy__lr__remap_init_zero                {0, 0, 0, 0}
+#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, 0, false, _cpu_init_zero, false, _menu_init_zero, false, _display_init_zero, false, _autosave_init_zero, false, _pen_init_zero, false, _key_init_zero, false, _joy_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define _display__small_alpha_tag                1
@@ -203,28 +245,38 @@ extern "C" {
 #define _cpu__core_max_tag                       2
 #define _cpu_freq_tag                            1
 #define _cpu_core_tag                            2
+#define _pen__show_count_tag                     1
+#define _pen__show_mode_tag                      2
 #define _pen__speed_x_tag                        1
 #define _pen__speed_y_tag                        2
-#define _pen_image_tag                           1
-#define _pen_screen0_tag                         2
-#define _pen_speed_tag                           3
+#define _pen_show_tag                            1
+#define _pen_image_tag                           2
+#define _pen_screen_tag                          3
+#define _pen_speed_tag                           4
 #define _menu_bg_tag                             1
 #define _menu_show_cursor_tag                    2
 #define _autosave_enable_tag                     1
 #define _autosave_slot_tag                       2
-#define _keypad__swap_l1_l2_tag                  1
-#define _keypad__swap_r1_r2_tag                  2
-#define _keypad_rotate_tag                       1
-#define _keypad_hotkey_tag                       2
-#define _keypad_swap_tag                         3
-#define _joystick__remap_top_tag                 1
-#define _joystick__remap_down_tag                2
-#define _joystick__remap_left_tag                3
-#define _joystick__remap_right_tag               4
-#define _joystick_mode_tag                       1
-#define _joystick_dead_zone_tag                  2
-#define _joystick_remap_left_tag                 3
-#define _joystick_remap_right_tag                4
+#define _key__swap_l1_l2_tag                     1
+#define _key__swap_r1_r2_tag                     2
+#define _key_rotate_tag                          1
+#define _key_hotkey_tag                          2
+#define _key_swap_tag                            3
+#define _joy__lr__xy_min_tag                     1
+#define _joy__lr__xy_max_tag                     2
+#define _joy__lr__xy_zero_tag                    3
+#define _joy__lr__xy_step_tag                    4
+#define _joy__lr__xy_dead_tag                    5
+#define _joy__lr__remap_up_tag                   1
+#define _joy__lr__remap_down_tag                 2
+#define _joy__lr__remap_left_tag                 3
+#define _joy__lr__remap_right_tag                4
+#define _joy__lr_x_tag                           1
+#define _joy__lr_y_tag                           2
+#define _joy__lr_mode_tag                        3
+#define _joy__lr_remap_tag                       4
+#define _joy_left_tag                            1
+#define _joy_right_tag                           2
 #define settings_version_tag                     1
 #define settings_language_tag                    2
 #define settings_font_path_tag                   3
@@ -235,13 +287,13 @@ extern "C" {
 #define settings_fast_forward_tag                8
 #define settings_half_volume_tag                 9
 #define settings_low_battery_close_tag           10
-#define settings_display_tag                     11
-#define settings_cpu_tag                         12
-#define settings_pen_tag                         13
-#define settings_menu_tag                        14
-#define settings_autosave_tag                    15
-#define settings_keypad_tag                      16
-#define settings_joystick_tag                    17
+#define settings_cpu_tag                         11
+#define settings_menu_tag                        12
+#define settings_display_tag                     13
+#define settings_autosave_tag                    14
+#define settings_pen_tag                         15
+#define settings_key_tag                         16
+#define settings_joy_tag                         17
 
 /* Struct field encoding specification for nanopb */
 #define _display_FIELDLIST(X, a) \
@@ -280,12 +332,20 @@ X(a, STATIC,   SINGULAR, INT32,    max,               2)
 #define _cpu__core_DEFAULT NULL
 
 #define _pen_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, STRING,   image,             1) \
-X(a, STATIC,   SINGULAR, BOOL,     screen0,           2) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  speed,             3)
+X(a, STATIC,   OPTIONAL, MESSAGE,  show,              1) \
+X(a, STATIC,   SINGULAR, STRING,   image,             2) \
+X(a, STATIC,   SINGULAR, INT32,    screen,            3) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  speed,             4)
 #define _pen_CALLBACK NULL
 #define _pen_DEFAULT NULL
+#define _pen_show_MSGTYPE _pen__show
 #define _pen_speed_MSGTYPE _pen__speed
+
+#define _pen__show_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, INT32,    count,             1) \
+X(a, STATIC,   SINGULAR, UENUM,    mode,              2)
+#define _pen__show_CALLBACK NULL
+#define _pen__show_DEFAULT NULL
 
 #define _pen__speed_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    x,                 1) \
@@ -305,37 +365,55 @@ X(a, STATIC,   SINGULAR, INT32,    slot,              2)
 #define _autosave_CALLBACK NULL
 #define _autosave_DEFAULT NULL
 
-#define _keypad_FIELDLIST(X, a) \
+#define _key_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    rotate,            1) \
 X(a, STATIC,   SINGULAR, UENUM,    hotkey,            2) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  swap,              3)
-#define _keypad_CALLBACK NULL
-#define _keypad_DEFAULT NULL
-#define _keypad_swap_MSGTYPE _keypad__swap
+#define _key_CALLBACK NULL
+#define _key_DEFAULT NULL
+#define _key_swap_MSGTYPE _key__swap
 
-#define _keypad__swap_FIELDLIST(X, a) \
+#define _key__swap_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, BOOL,     l1_l2,             1) \
 X(a, STATIC,   SINGULAR, BOOL,     r1_r2,             2)
-#define _keypad__swap_CALLBACK NULL
-#define _keypad__swap_DEFAULT NULL
+#define _key__swap_CALLBACK NULL
+#define _key__swap_DEFAULT NULL
 
-#define _joystick_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UENUM,    mode,              1) \
-X(a, STATIC,   SINGULAR, INT32,    dead_zone,         2) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  remap_left,        3) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  remap_right,       4)
-#define _joystick_CALLBACK NULL
-#define _joystick_DEFAULT NULL
-#define _joystick_remap_left_MSGTYPE _joystick__remap
-#define _joystick_remap_right_MSGTYPE _joystick__remap
+#define _joy_FIELDLIST(X, a) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  left,              1) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  right,             2)
+#define _joy_CALLBACK NULL
+#define _joy_DEFAULT NULL
+#define _joy_left_MSGTYPE _joy__lr
+#define _joy_right_MSGTYPE _joy__lr
 
-#define _joystick__remap_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    top,               1) \
+#define _joy__lr_FIELDLIST(X, a) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  x,                 1) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  y,                 2) \
+X(a, STATIC,   SINGULAR, UENUM,    mode,              3) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  remap,             4)
+#define _joy__lr_CALLBACK NULL
+#define _joy__lr_DEFAULT NULL
+#define _joy__lr_x_MSGTYPE _joy__lr__xy
+#define _joy__lr_y_MSGTYPE _joy__lr__xy
+#define _joy__lr_remap_MSGTYPE _joy__lr__remap
+
+#define _joy__lr__xy_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, INT32,    min,               1) \
+X(a, STATIC,   SINGULAR, INT32,    max,               2) \
+X(a, STATIC,   SINGULAR, INT32,    zero,              3) \
+X(a, STATIC,   SINGULAR, INT32,    step,              4) \
+X(a, STATIC,   SINGULAR, INT32,    dead,              5)
+#define _joy__lr__xy_CALLBACK NULL
+#define _joy__lr__xy_DEFAULT NULL
+
+#define _joy__lr__remap_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, INT32,    up,                1) \
 X(a, STATIC,   SINGULAR, INT32,    down,              2) \
 X(a, STATIC,   SINGULAR, INT32,    left,              3) \
 X(a, STATIC,   SINGULAR, INT32,    right,             4)
-#define _joystick__remap_CALLBACK NULL
-#define _joystick__remap_DEFAULT NULL
+#define _joy__lr__remap_CALLBACK NULL
+#define _joy__lr__remap_DEFAULT NULL
 
 #define settings_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, STRING,   version,           1) \
@@ -348,22 +426,22 @@ X(a, STATIC,   SINGULAR, INT32,    system_volume,     7) \
 X(a, STATIC,   SINGULAR, INT32,    fast_forward,      8) \
 X(a, STATIC,   SINGULAR, BOOL,     half_volume,       9) \
 X(a, STATIC,   SINGULAR, BOOL,     low_battery_close,  10) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  display,          11) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              12) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              13) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             14) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         15) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  keypad,           16) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  joystick,         17)
+X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              11) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             12) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  display,          13) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         14) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              15) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  key,              16) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  joy,              17)
 #define settings_CALLBACK NULL
 #define settings_DEFAULT NULL
-#define settings_display_MSGTYPE _display
 #define settings_cpu_MSGTYPE _cpu
-#define settings_pen_MSGTYPE _pen
 #define settings_menu_MSGTYPE _menu
+#define settings_display_MSGTYPE _display
 #define settings_autosave_MSGTYPE _autosave
-#define settings_keypad_MSGTYPE _keypad
-#define settings_joystick_MSGTYPE _joystick
+#define settings_pen_MSGTYPE _pen
+#define settings_key_MSGTYPE _key
+#define settings_joy_MSGTYPE _joy
 
 extern const pb_msgdesc_t _display_msg;
 extern const pb_msgdesc_t _display__small_msg;
@@ -371,13 +449,16 @@ extern const pb_msgdesc_t _cpu_msg;
 extern const pb_msgdesc_t _cpu__freq_msg;
 extern const pb_msgdesc_t _cpu__core_msg;
 extern const pb_msgdesc_t _pen_msg;
+extern const pb_msgdesc_t _pen__show_msg;
 extern const pb_msgdesc_t _pen__speed_msg;
 extern const pb_msgdesc_t _menu_msg;
 extern const pb_msgdesc_t _autosave_msg;
-extern const pb_msgdesc_t _keypad_msg;
-extern const pb_msgdesc_t _keypad__swap_msg;
-extern const pb_msgdesc_t _joystick_msg;
-extern const pb_msgdesc_t _joystick__remap_msg;
+extern const pb_msgdesc_t _key_msg;
+extern const pb_msgdesc_t _key__swap_msg;
+extern const pb_msgdesc_t _joy_msg;
+extern const pb_msgdesc_t _joy__lr_msg;
+extern const pb_msgdesc_t _joy__lr__xy_msg;
+extern const pb_msgdesc_t _joy__lr__remap_msg;
 extern const pb_msgdesc_t settings_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
@@ -387,13 +468,16 @@ extern const pb_msgdesc_t settings_msg;
 #define _cpu__freq_fields &_cpu__freq_msg
 #define _cpu__core_fields &_cpu__core_msg
 #define _pen_fields &_pen_msg
+#define _pen__show_fields &_pen__show_msg
 #define _pen__speed_fields &_pen__speed_msg
 #define _menu_fields &_menu_msg
 #define _autosave_fields &_autosave_msg
-#define _keypad_fields &_keypad_msg
-#define _keypad__swap_fields &_keypad__swap_msg
-#define _joystick_fields &_joystick_msg
-#define _joystick__remap_fields &_joystick__remap_msg
+#define _key_fields &_key_msg
+#define _key__swap_fields &_key__swap_msg
+#define _joy_fields &_joy_msg
+#define _joy__lr_fields &_joy__lr_msg
+#define _joy__lr__xy_fields &_joy__lr__xy_msg
+#define _joy__lr__remap_fields &_joy__lr__remap_msg
 #define settings_fields &settings_msg
 
 /* Maximum encoded size of messages (where known) */
@@ -404,14 +488,17 @@ extern const pb_msgdesc_t settings_msg;
 #define _cpu_size                                48
 #define _display__small_size                     33
 #define _display_size                            57
-#define _joystick__remap_size                    44
-#define _joystick_size                           105
-#define _keypad__swap_size                       4
-#define _keypad_size                             19
+#define _joy__lr__remap_size                     44
+#define _joy__lr__xy_size                        55
+#define _joy__lr_size                            162
+#define _joy_size                                330
+#define _key__swap_size                          4
+#define _key_size                                19
 #define _menu_size                               259
+#define _pen__show_size                          13
 #define _pen__speed_size                         22
-#define _pen_size                                283
-#define settings_size                            2124
+#define _pen_size                                307
+#define settings_size                            2374
 
 #ifdef __cplusplus
 } /* extern "C" */

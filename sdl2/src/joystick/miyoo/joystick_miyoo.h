@@ -31,13 +31,6 @@
 #define A30_JOYSTICK_CFG    "./joypad.config"
 #endif
 
-#define UT_X_MIN    10
-#define UT_X_MAX    100
-#define UT_X_ZERO   65
-#define UT_Y_MIN    15
-#define UT_Y_MAX    120
-#define UT_Y_ZERO   70
-
 #define A30_JOYSTICK_DEV    "/dev/ttyS0"
 #define A30_AXIS_MAX_LEN    16
 #define A30_FRAME_LEN       6

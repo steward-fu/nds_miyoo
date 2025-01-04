@@ -39,6 +39,7 @@
 #include "log.h"
 #include "hook.h"
 #include "drastic.h"
+#include "cfg.pb.h"
 
 #if defined(UT)
 #include "unity_fixture.h"
@@ -47,6 +48,7 @@
 miyoo_event_t myevent = { 0 };
 
 extern miyoo_joystick_t myjoy;
+extern settings cfg;
 
 extern GFX gfx;
 extern NDS nds;
@@ -69,39 +71,39 @@ TEST_TEAR_DOWN(sdl2_event_miyoo)
 }
 #endif
 
-static void rectify_mouse_position(void)
+static void rectify_pen_position(void)
 {
-    if (myevent.mouse.x < 0) {
-        myevent.mouse.x = 0;
+    if (myevent.pen.x < 0) {
+        myevent.pen.x = 0;
     }
-    if (myevent.mouse.x >= myevent.mouse.max_x) {
-        myevent.mouse.x = myevent.mouse.max_x;
+    if (myevent.pen.x >= myevent.pen.max_x) {
+        myevent.pen.x = myevent.pen.max_x;
     }
-    if (myevent.mouse.y < 0) {
-        myevent.mouse.y = 0;
+    if (myevent.pen.y < 0) {
+        myevent.pen.y = 0;
     }
-    if (myevent.mouse.y >= myevent.mouse.max_y) {
-        myevent.mouse.y = myevent.mouse.max_y;
+    if (myevent.pen.y >= myevent.pen.max_y) {
+        myevent.pen.y = myevent.pen.max_y;
     }
 }
 
 #if defined(UT)
-TEST(sdl2_event_miyoo, rectify_mouse_position)
+TEST(sdl2_event_miyoo, rectify_pen_position)
 {
-    myevent.mouse.max_x = 100;
-    myevent.mouse.max_y = 200;
+    myevent.pen.max_x = 100;
+    myevent.pen.max_y = 200;
 
-    myevent.mouse.x = 1000;
-    myevent.mouse.y = 2000;
-    rectify_mouse_position();
-    TEST_ASSERT_EQUAL_INT(myevent.mouse.max_x, myevent.mouse.x);
-    TEST_ASSERT_EQUAL_INT(myevent.mouse.max_y, myevent.mouse.y);
+    myevent.pen.x = 1000;
+    myevent.pen.y = 2000;
+    rectify_pen_position();
+    TEST_ASSERT_EQUAL_INT(myevent.pen.max_x, myevent.pen.x);
+    TEST_ASSERT_EQUAL_INT(myevent.pen.max_y, myevent.pen.y);
 
-    myevent.mouse.x = -1000;
-    myevent.mouse.y = -2000;
-    rectify_mouse_position();
-    TEST_ASSERT_EQUAL_INT(0, myevent.mouse.x);
-    TEST_ASSERT_EQUAL_INT(0, myevent.mouse.y);
+    myevent.pen.x = -1000;
+    myevent.pen.y = -2000;
+    rectify_pen_position();
+    TEST_ASSERT_EQUAL_INT(0, myevent.pen.x);
+    TEST_ASSERT_EQUAL_INT(0, myevent.pen.y);
 }
 #endif
 
@@ -129,27 +131,27 @@ TEST(sdl2_event_miyoo, portrait_screen_layout)
 }
 #endif
 
-static int get_mouse_move_interval(move_dir_t type)
+static int get_pen_move_interval(move_dir_t type)
 {
     float move = 0.0;
     uint32_t div = 0;
     uint32_t yv = get_cfg_pen_speed_y();
     uint32_t xv = get_cfg_pen_speed_x();
 
-    if (myevent.mouse.lower_speed) {
+    if (myevent.pen.lower_speed) {
         yv <<= 1;
         xv <<= 1;
     }
 
     if (portrait_screen_layout(nds.dis_mode)) {
-        div = (type == UP_DOWN) ? yv : xv;
+        div = (type == MOVE_DIR_UP_DOWN) ? yv : xv;
     }
     else {
-        div = (type == LEFT_RIGHT) ? xv : yv;
+        div = (type == MOVE_DIR_LEFT_RIGHT) ? xv : yv;
     }
 
     if (div > 0) {
-        move = ((float)clock() - myevent.mouse.pre_ticks) / div;
+        move = ((float)clock() - myevent.pen.pre_ticks) / div;
     }
 
     if (move <= 0.0) {
@@ -160,13 +162,13 @@ static int get_mouse_move_interval(move_dir_t type)
 }
 
 #if defined(UT)
-TEST(sdl2_event_miyoo, get_mouse_move_interval)
+TEST(sdl2_event_miyoo, get_pen_move_interval)
 {
-    myevent.mouse.pre_ticks = clock();
-    TEST_ASSERT_LESS_THAN(1000, get_mouse_move_interval(UP_DOWN));
+    myevent.pen.pre_ticks = clock();
+    TEST_ASSERT_LESS_THAN(1000, get_pen_move_interval(MOVE_DIR_UP_DOWN));
 
-    myevent.mouse.pre_ticks = clock();
-    TEST_ASSERT_LESS_THAN(1000, get_mouse_move_interval(LEFT_RIGHT));
+    myevent.pen.pre_ticks = clock();
+    TEST_ASSERT_LESS_THAN(1000, get_pen_move_interval(MOVE_DIR_LEFT_RIGHT));
 }
 #endif
 
@@ -175,74 +177,74 @@ static uint32_t release_all_report_keys(void)
     int cc = 0;
 
     for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
-        if (myevent.keypad.cur_keys & 1) {
-            SDL_SendKeyboardKey(SDL_RELEASED, SDL_GetScancodeFromKey(myevent.report_key[cc]));
+        if (myevent.key.cur_bits & 1) {
+            SDL_SendKeyboardKey(SDL_RELEASED, SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
         }
-        myevent.keypad.cur_keys >>= 1;
+        myevent.key.cur_bits >>= 1;
     }
-    myevent.keypad.cur_keys = 0;
+    myevent.key.cur_bits = 0;
 
-    return myevent.keypad.cur_keys;
+    return myevent.key.cur_bits;
 }
 
 #if defined(UT)
 TEST(sdl2_event_miyoo, release_all_report_keys)
 {
-    myevent.keypad.cur_keys = 0xffffffff;
+    myevent.key.cur_bits = 0xffffffff;
     TEST_ASSERT_EQUAL_INT(0, release_all_report_keys());
-    TEST_ASSERT_EQUAL_INT(0, myevent.keypad.cur_keys);
+    TEST_ASSERT_EQUAL_INT(0, myevent.key.cur_bits);
 }
 #endif
 
 static int hit_hotkey(uint32_t bit)
 {
     uint32_t mask = 0;
-    uint32_t hotkey_bit = (get_cfg_keypad_hotkey() == HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+    uint32_t hotkey_bit = (cfg.key.hotkey == KEY_HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
 
     mask = (1 << bit) | (1 << hotkey_bit);
-    return (myevent.keypad.cur_keys ^ mask) ? 0 : 1;
+    return (myevent.key.cur_bits ^ mask) ? 0 : 1;
 }
 
 #if defined(UT)
 TEST(sdl2_event_miyoo, hit_hotkey)
 {
-    uint32_t hotkey_bit = (get_cfg_keypad_hotkey() == HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+    uint32_t hotkey_bit = (cfg.key.hotkey == KEY_HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
 
-    myevent.keypad.cur_keys = 0;
+    myevent.key.cur_bits = 0;
     TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_A));
 
-    myevent.keypad.cur_keys = 1 << hotkey_bit;
+    myevent.key.cur_bits = 1 << hotkey_bit;
     TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_B));
 
-    myevent.keypad.cur_keys |= (1 << KEY_BIT_X);
+    myevent.key.cur_bits |= (1 << KEY_BIT_X);
     TEST_ASSERT_EQUAL_INT(1, hit_hotkey(KEY_BIT_X));
 
-    myevent.keypad.cur_keys |= (1 << KEY_BIT_Y);
+    myevent.key.cur_bits |= (1 << KEY_BIT_Y);
     TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_Y));
 }
 #endif
 
 static uint32_t set_key_bit(uint32_t bit, int val)
 {
-    uint32_t hotkey_bit = (get_cfg_keypad_hotkey() == HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+    uint32_t hotkey_bit = (cfg.key.hotkey == KEY_HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
 
     if (val > 0) {
         if (hotkey_bit == bit) {
-            myevent.keypad.cur_keys = 0;
+            myevent.key.cur_bits = 0;
         }
-        myevent.keypad.cur_keys |= (1 << bit);
+        myevent.key.cur_bits |= (1 << bit);
     }
     else {
-        myevent.keypad.cur_keys &= ~(1 << bit);
+        myevent.key.cur_bits &= ~(1 << bit);
     }
 
-    return myevent.keypad.cur_keys;
+    return myevent.key.cur_bits;
 }
 
 #if defined(UT)
 TEST(sdl2_event_miyoo, set_key_bit)
 {
-    myevent.keypad.cur_keys = 0;
+    myevent.key.cur_bits = 0;
     TEST_ASSERT_EQUAL_INT(0, set_key_bit(KEY_BIT_SELECT, 0));
     TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_B), set_key_bit(KEY_BIT_B, 1));
     TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU), set_key_bit(KEY_BIT_MENU, 1));
@@ -265,7 +267,7 @@ static int update_joystick(void)
 
     int r = 0;
 
-    if (nds.joy.mode == MYJOY_MODE_KEYPAD) {
+    if (cfg.joy.left.mode == JOY_MODE_KEY) {
         static int pre_up = 0;
         static int pre_down = 0;
         static int pre_left = 0;
@@ -336,7 +338,7 @@ static int update_joystick(void)
             }
         }
     }
-    else if (nds.joy.mode == MYJOY_MODE_STYLUS) {
+    else if (cfg.joy.left.mode == JOY_MODE_PEN) {
         static int pre_up = 0;
         static int pre_down = 0;
         static int pre_left = 0;
@@ -387,7 +389,7 @@ static int update_joystick(void)
         }
 
         if (pre_up || pre_down || pre_left || pre_right) {
-            if (myevent.keypad.cur_keys &  (1 << KEY_BIT_Y)) {
+            if (myevent.key.cur_bits &  (1 << KEY_BIT_Y)) {
                 if (pre_right) {
                     static int cc = 0;
 
@@ -407,55 +409,56 @@ static int update_joystick(void)
             else {
                 int x = 0;
                 int y = 0;
-                const int v = MYJOY_MOVE_SPEED;
+                const int xv = cfg.joy.left.x.step;
+                const int yv = cfg.joy.left.y.step;
 
                 if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
                     if (pre_down) {
-                        myevent.mouse.x -= v;
+                        myevent.pen.x -= xv;
                     }
                     if (pre_up) {
-                        myevent.mouse.x += v;
+                        myevent.pen.x += xv;
                     }
                     if (pre_left) {
-                        myevent.mouse.y -= v;
+                        myevent.pen.y -= yv;
                     }
                     if (pre_right) {
-                        myevent.mouse.y += v;
+                        myevent.pen.y += yv;
                     }
                 }
                 else {
                     if (pre_left) {
-                        myevent.mouse.x -= v;
+                        myevent.pen.x -= xv;
                     }
                     if (pre_right) {
-                        myevent.mouse.x += v;
+                        myevent.pen.x += xv;
                     }
                     if (pre_up) {
-                        myevent.mouse.y -= v;
+                        myevent.pen.y -= yv;
                     }
                     if (pre_down) {
-                        myevent.mouse.y += v;
+                        myevent.pen.y += yv;
                     }
                 }
-                rectify_mouse_position();
+                rectify_pen_position();
 
-                x = (myevent.mouse.x * 160) / myevent.mouse.max_x;
-                y = (myevent.mouse.y * 120) / myevent.mouse.max_y;
+                x = (myevent.pen.x * 160) / myevent.pen.max_x;
+                y = (myevent.pen.y * 120) / myevent.pen.max_y;
                 SDL_SendMouseMotion(vid.window, 0, 0, x + 80, y + (nds.pen.pos ? 120 : 0));
             }
-            nds.joy.show_cnt = MYJOY_SHOW_CNT;
+            cfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
         }
     }
-    else if (nds.joy.mode == MYJOY_MODE_CUSKEY) {
+    else if (cfg.joy.left.mode == JOY_MODE_KEY) {
         static int pre_up = 0;
         static int pre_down = 0;
         static int pre_left = 0;
         static int pre_right = 0;
 
-        uint32_t u_key = nds.joy.cuskey[0];
-        uint32_t d_key = nds.joy.cuskey[1];
-        uint32_t l_key = nds.joy.cuskey[2];
-        uint32_t r_key = nds.joy.cuskey[3];
+        uint32_t u_key = cfg.joy.left.remap.up;
+        uint32_t d_key = cfg.joy.left.remap.down;
+        uint32_t l_key = cfg.joy.left.remap.left;
+        uint32_t r_key = cfg.joy.left.remap.right;
 
         if (myjoy.last_x != pre_x) {
             pre_x = myjoy.last_x;
@@ -531,7 +534,7 @@ static int handle_hotkey(void)
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_UP)) {
-        if (myevent.dev_mode == MOUSE_MODE) {
+        if (myevent.dev.mode == DEV_MODE_PEN) {
             switch (nds.dis_mode) {
             case NDS_SCREEN_LAYOUT_0:
             case NDS_SCREEN_LAYOUT_1:
@@ -544,7 +547,7 @@ static int handle_hotkey(void)
             }
         }
 #if defined(A30)
-        if (nds.joy.mode == MYJOY_MODE_STYLUS) {
+        if (get_cfg_joy_mode() == MYJOY_MODE_STYLUS) {
             nds.pen.pos = 1;
         }
 #endif
@@ -552,7 +555,7 @@ static int handle_hotkey(void)
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_DOWN)) {
-        if (myevent.dev_mode == MOUSE_MODE) {
+        if (myevent.dev.mode == DEV_MODE_PEN) {
             switch (nds.dis_mode) {
             case NDS_SCREEN_LAYOUT_0:
             case NDS_SCREEN_LAYOUT_1:
@@ -565,7 +568,7 @@ static int handle_hotkey(void)
             }
         }
 #if defined(A30)
-        if (nds.joy.mode == MYJOY_MODE_STYLUS) {
+        if (get_cfg_joy_mode() == MYJOY_MODE_STYLUS) {
             nds.pen.pos = 0;
         }
 #endif
@@ -597,7 +600,7 @@ static int handle_hotkey(void)
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_A)) {
-        if ((myevent.dev_mode == KEYPAD_MODE) && (nds.hres_mode == 0)) {
+        if ((myevent.dev.mode == DEV_MODE_KEY) && (nds.hres_mode == 0)) {
             uint32_t tmp = nds.alt_mode;
             nds.alt_mode = nds.dis_mode;
             nds.dis_mode = tmp;
@@ -616,7 +619,7 @@ static int handle_hotkey(void)
 
     if (hit_hotkey(KEY_BIT_Y)) {
         if (hotkey_mask) {
-            if (myevent.dev_mode == KEYPAD_MODE) {
+            if (myevent.dev.mode == DEV_MODE_KEY) {
                 if ((nds.overlay.sel >= nds.overlay.max) &&
                     (nds.dis_mode != NDS_SCREEN_LAYOUT_0) &&
                     (nds.dis_mode != NDS_SCREEN_LAYOUT_1) &&
@@ -658,12 +661,12 @@ static int handle_hotkey(void)
             nds.menu.enable = 1;
             usleep(100000);
             handle_menu(-1);
-            myevent.keypad.pre_keys = myevent.keypad.cur_keys = 0;
+            myevent.key.pre_bits = myevent.key.cur_bits = 0;
         }
         set_key_bit(KEY_BIT_START, 0);
     }
 
-    if (get_cfg_keypad_hotkey() == HOTKEY_MENU) {
+    if (cfg.key.hotkey == KEY_HOTKEY_MENU) {
         if (hotkey_mask && hit_hotkey(KEY_BIT_SELECT)) {
             set_key_bit(KEY_BIT_MENU_ONION, 1);
             set_key_bit(KEY_BIT_SELECT, 0);
@@ -695,26 +698,26 @@ static int handle_hotkey(void)
         set_key_bit(KEY_BIT_QSAVE, 1);
         set_key_bit(KEY_BIT_L2, 0);
     }
-    else if (myevent.keypad.cur_keys & (1 << KEY_BIT_L2)) {
+    else if (myevent.key.cur_bits & (1 << KEY_BIT_L2)) {
 #if defined(A30)
-        if (nds.joy.mode != MYJOY_MODE_STYLUS) {
+        if (get_cfg_joy_mode() != MYJOY_MODE_STYLUS) {
 #endif
             if ((nds.menu.enable == 0) && (nds.menu.drastic.enable == 0)) {
-                myevent.dev_mode = (myevent.dev_mode == KEYPAD_MODE) ? MOUSE_MODE : KEYPAD_MODE;
+                myevent.dev.mode = (myevent.dev.mode == DEV_MODE_KEY) ? DEV_MODE_PEN : DEV_MODE_KEY;
                 set_key_bit(KEY_BIT_L2, 0);
 
-                if (myevent.dev_mode == MOUSE_MODE) {
+                if (myevent.dev.mode == DEV_MODE_PEN) {
                     release_all_report_keys();
                 }
-                myevent.mouse.lower_speed = 0;
+                myevent.pen.lower_speed = 0;
             }
 #if defined(A30)
         }
 #endif
     }
 
-    if (!(myevent.keypad.cur_keys & 0x0f)) {
-        myevent.mouse.pre_ticks = clock();
+    if (!(myevent.key.cur_bits & 0x0f)) {
+        myevent.pen.pre_ticks = clock();
     }
 
     return 0;
@@ -797,10 +800,10 @@ static int input_handler(void *data)
             r2 = DEV_KEY_CODE_R2;
         }
 
-        if (myevent.dev_fd > 0) {
+        if (myevent.dev.fd > 0) {
             int r = 0;
 
-            if (read(myevent.dev_fd, &ev, sizeof(struct input_event))) {
+            if (read(myevent.dev.fd, &ev, sizeof(struct input_event))) {
                 if ((ev.type == EV_KEY) && (ev.value != 2)) {
                     r = 1;
                     debug(SDL"%s: code:%d, value:%d in %s\n", INPUT_DEV, ev.code, ev.value, __func__);
@@ -816,7 +819,7 @@ static int input_handler(void *data)
                     if (ev.code == y)       { set_key_bit(KEY_BIT_Y,     ev.value); }
 #if defined(A30)
                     if (ev.code == r2) {
-                        if (nds.joy.mode == MYJOY_MODE_STYLUS) {
+                        if (get_cfg_joy_mode() == MYJOY_MODE_STYLUS) {
                             nds.joy.show_cnt = MYJOY_SHOW_CNT;
                             SDL_SendMouseButton(vid.window, 0, ev.value ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
                         }
@@ -905,14 +908,14 @@ void EventInit(void)
     }
 #endif
 
-    myevent.mouse.max_x = NDS_W;
-    myevent.mouse.max_y = NDS_H;
-    myevent.mouse.x = myevent.mouse.max_x >> 1;
-    myevent.mouse.y = myevent.mouse.max_y >> 1;
-    myevent.dev_mode = KEYPAD_MODE;
+    myevent.pen.max_x = NDS_W;
+    myevent.pen.max_y = NDS_H;
+    myevent.pen.x = myevent.pen.max_x >> 1;
+    myevent.pen.y = myevent.pen.max_y >> 1;
+    myevent.dev.mode = DEV_MODE_KEY;
 
-    myevent.dev_fd = open(INPUT_DEV, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
-    if(myevent.dev_fd < 0){
+    myevent.dev.fd = open(INPUT_DEV, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+    if(myevent.dev.fd < 0){
         err(SDL"failed to open \"%s\" in%s\n", INPUT_DEV, __func__);
         exit(-1);
     }
@@ -923,26 +926,26 @@ void EventInit(void)
         exit(-1);
     }
 
-    myevent.report_key[KEY_BIT_UP] = SDLK_UP;
-    myevent.report_key[KEY_BIT_DOWN] = SDLK_DOWN;
-    myevent.report_key[KEY_BIT_LEFT] = SDLK_LEFT;
-    myevent.report_key[KEY_BIT_RIGHT] = SDLK_RIGHT;
-    myevent.report_key[KEY_BIT_A] = SDLK_SPACE;
-    myevent.report_key[KEY_BIT_B] = SDLK_LCTRL;
-    myevent.report_key[KEY_BIT_X] = SDLK_LSHIFT;
-    myevent.report_key[KEY_BIT_Y] = SDLK_LALT;
-    myevent.report_key[KEY_BIT_L1] = SDLK_e;
-    myevent.report_key[KEY_BIT_R1] = SDLK_t;
-    myevent.report_key[KEY_BIT_L2] = SDLK_TAB;
-    myevent.report_key[KEY_BIT_R2] = SDLK_BACKSPACE;
-    myevent.report_key[KEY_BIT_SELECT] = SDLK_RCTRL;
-    myevent.report_key[KEY_BIT_START] = SDLK_RETURN;
-    myevent.report_key[KEY_BIT_MENU] = SDLK_HOME;
-    myevent.report_key[KEY_BIT_QSAVE] = SDLK_0;
-    myevent.report_key[KEY_BIT_QLOAD] = SDLK_1;
-    myevent.report_key[KEY_BIT_FF] = SDLK_2;
-    myevent.report_key[KEY_BIT_EXIT] = SDLK_3;
-    myevent.report_key[KEY_BIT_MENU_ONION] = SDLK_HOME;
+    myevent.key.report_key[KEY_BIT_UP] = SDLK_UP;
+    myevent.key.report_key[KEY_BIT_DOWN] = SDLK_DOWN;
+    myevent.key.report_key[KEY_BIT_LEFT] = SDLK_LEFT;
+    myevent.key.report_key[KEY_BIT_RIGHT] = SDLK_RIGHT;
+    myevent.key.report_key[KEY_BIT_A] = SDLK_SPACE;
+    myevent.key.report_key[KEY_BIT_B] = SDLK_LCTRL;
+    myevent.key.report_key[KEY_BIT_X] = SDLK_LSHIFT;
+    myevent.key.report_key[KEY_BIT_Y] = SDLK_LALT;
+    myevent.key.report_key[KEY_BIT_L1] = SDLK_e;
+    myevent.key.report_key[KEY_BIT_R1] = SDLK_t;
+    myevent.key.report_key[KEY_BIT_L2] = SDLK_TAB;
+    myevent.key.report_key[KEY_BIT_R2] = SDLK_BACKSPACE;
+    myevent.key.report_key[KEY_BIT_SELECT] = SDLK_RCTRL;
+    myevent.key.report_key[KEY_BIT_START] = SDLK_RETURN;
+    myevent.key.report_key[KEY_BIT_MENU] = SDLK_HOME;
+    myevent.key.report_key[KEY_BIT_QSAVE] = SDLK_0;
+    myevent.key.report_key[KEY_BIT_QLOAD] = SDLK_1;
+    myevent.key.report_key[KEY_BIT_FF] = SDLK_2;
+    myevent.key.report_key[KEY_BIT_EXIT] = SDLK_3;
+    myevent.key.report_key[KEY_BIT_MENU_ONION] = SDLK_HOME;
 
     myevent.thread = SDL_CreateThreadInternal(input_handler, "Miyoo Input Thread", 4096, NULL);
     if(myevent.thread == NULL) {
@@ -964,9 +967,9 @@ void EventDeinit(void)
         myevent.lock = NULL;
     }
 
-    if(myevent.dev_fd > 0) {
-        close(myevent.dev_fd);
-        myevent.dev_fd = -1;
+    if(myevent.dev.fd > 0) {
+        close(myevent.dev.fd);
+        myevent.dev.fd = -1;
     }
 }
 
@@ -976,145 +979,145 @@ void PumpEvents(_THIS)
     if (nds.menu.enable) {
         int cc = 0;
         uint32_t bit = 0;
-        uint32_t changed = myevent.keypad.pre_keys ^ myevent.keypad.cur_keys;
+        uint32_t changed = myevent.key.pre_bits ^ myevent.key.cur_bits;
 
         for (cc=0; cc<=KEY_BIT_LAST; cc++) {
             bit = 1 << cc;
             if (changed & bit) {
-                if ((myevent.keypad.cur_keys & bit) == 0) {
+                if ((myevent.key.cur_bits & bit) == 0) {
                     handle_menu(cc);
                 }
             }
         }
-        myevent.keypad.pre_keys = myevent.keypad.cur_keys;
+        myevent.key.pre_bits = myevent.key.cur_bits;
     }
     else {
-        if (myevent.dev_mode == KEYPAD_MODE) {
-            if (myevent.keypad.pre_keys != myevent.keypad.cur_keys) {
+        if (myevent.dev.mode == DEV_MODE_KEY) {
+            if (myevent.key.pre_bits != myevent.key.cur_bits) {
                 int cc = 0;
                 uint32_t bit = 0;
-                uint32_t changed = myevent.keypad.pre_keys ^ myevent.keypad.cur_keys;
+                uint32_t changed = myevent.key.pre_bits ^ myevent.key.cur_bits;
 
                 for (cc=0; cc<=KEY_BIT_LAST; cc++) {
                     bit = 1 << cc;
 
-                    if ((get_cfg_keypad_hotkey() == HOTKEY_MENU) && (cc == KEY_BIT_MENU)) {
+                    if ((cfg.key.hotkey == KEY_HOTKEY_MENU) && (cc == KEY_BIT_MENU)) {
                         continue;
                     }
 
                     if (changed & bit) {
-                        SDL_SendKeyboardKey((myevent.keypad.cur_keys & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(myevent.report_key[cc]));
+                        SDL_SendKeyboardKey((myevent.key.cur_bits & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
                     }
                 }
 
-                if (myevent.keypad.pre_keys & (1 << KEY_BIT_QSAVE)) {
+                if (myevent.key.pre_bits & (1 << KEY_BIT_QSAVE)) {
                     nds.state|= NDS_STATE_QSAVE;
                     set_key_bit(KEY_BIT_QSAVE, 0);
                 }
-                if (myevent.keypad.pre_keys & (1 << KEY_BIT_QLOAD)) {
+                if (myevent.key.pre_bits & (1 << KEY_BIT_QLOAD)) {
                     nds.state|= NDS_STATE_QLOAD;
                     set_key_bit(KEY_BIT_QLOAD, 0);
                 }
-                if (myevent.keypad.pre_keys & (1 << KEY_BIT_FF)) {
+                if (myevent.key.pre_bits & (1 << KEY_BIT_FF)) {
                     nds.state|= NDS_STATE_FF;
                     set_key_bit(KEY_BIT_FF, 0);
                 }
-                if (myevent.keypad.pre_keys & (1 << KEY_BIT_MENU_ONION)) {
+                if (myevent.key.pre_bits & (1 << KEY_BIT_MENU_ONION)) {
                     set_key_bit(KEY_BIT_MENU_ONION, 0);
                 }
-                if (myevent.keypad.pre_keys & (1 << KEY_BIT_EXIT)) {
+                if (myevent.key.pre_bits & (1 << KEY_BIT_EXIT)) {
                     release_all_report_keys();
                 }
-                myevent.keypad.pre_keys = myevent.keypad.cur_keys;
+                myevent.key.pre_bits = myevent.key.cur_bits;
             }
         }
         else {
             int updated = 0;
             
-            if (myevent.keypad.pre_keys != myevent.keypad.cur_keys) {
+            if (myevent.key.pre_bits != myevent.key.cur_bits) {
                 uint32_t cc = 0;
                 uint32_t bit = 0;
-                uint32_t changed = myevent.keypad.pre_keys ^ myevent.keypad.cur_keys;
+                uint32_t changed = myevent.key.pre_bits ^ myevent.key.cur_bits;
 
                 if (changed & (1 << KEY_BIT_A)) {
-                    SDL_SendMouseButton(vid.window, 0, (myevent.keypad.cur_keys & (1 << KEY_BIT_A)) ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
+                    SDL_SendMouseButton(vid.window, 0, (myevent.key.cur_bits & (1 << KEY_BIT_A)) ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
                 }
 
                 for (cc=0; cc<=KEY_BIT_LAST; cc++) {
                     bit = 1 << cc;
                     if ((cc == KEY_BIT_FF) || (cc == KEY_BIT_QSAVE) || (cc == KEY_BIT_QLOAD) || (cc == KEY_BIT_EXIT) || (cc == KEY_BIT_R2)) {
                         if (changed & bit) {
-                            SDL_SendKeyboardKey((myevent.keypad.cur_keys & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(myevent.report_key[cc]));
+                            SDL_SendKeyboardKey((myevent.key.cur_bits & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
                         }
                     }
                     if (cc == KEY_BIT_R1) {
                         if (changed & bit) {
-                            myevent.mouse.lower_speed = (myevent.keypad.cur_keys & bit);
+                            myevent.pen.lower_speed = (myevent.key.cur_bits & bit);
                         }
                     }
                 }
             }
 
             if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_UP)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.mouse.x+= get_mouse_move_interval(UP_DOWN);
+                    myevent.pen.x+= get_pen_move_interval(MOVE_DIR_UP_DOWN);
                 }
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_DOWN)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.mouse.x-= get_mouse_move_interval(UP_DOWN);
+                    myevent.pen.x-= get_pen_move_interval(MOVE_DIR_UP_DOWN);
                 }
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_LEFT)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.mouse.y-= get_mouse_move_interval(LEFT_RIGHT);
+                    myevent.pen.y-= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
                 }
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_RIGHT)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.mouse.y+= get_mouse_move_interval(LEFT_RIGHT);
+                    myevent.pen.y+= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
                 }
             }
             else {
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_UP)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.mouse.y-= get_mouse_move_interval(UP_DOWN);
+                    myevent.pen.y-= get_pen_move_interval(MOVE_DIR_UP_DOWN);
                 }
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_DOWN)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.mouse.y+= get_mouse_move_interval(UP_DOWN);
+                    myevent.pen.y+= get_pen_move_interval(MOVE_DIR_UP_DOWN);
                 }
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_LEFT)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.mouse.x-= get_mouse_move_interval(LEFT_RIGHT);
+                    myevent.pen.x-= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
                 }
-                if (myevent.keypad.cur_keys & (1 << KEY_BIT_RIGHT)) {
+                if (myevent.key.cur_bits & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.mouse.x+= get_mouse_move_interval(LEFT_RIGHT);
+                    myevent.pen.x+= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
                 }
             }
-            rectify_mouse_position();
+            rectify_pen_position();
 
             if(updated){
                 int x = 0;
                 int y = 0;
 
-                x = (myevent.mouse.x * 160) / myevent.mouse.max_x;
-                y = (myevent.mouse.y * 120) / myevent.mouse.max_y;
+                x = (myevent.pen.x * 160) / myevent.pen.max_x;
+                y = (myevent.pen.y * 120) / myevent.pen.max_y;
                 SDL_SendMouseMotion(vid.window, 0, 0, x + 80, y + (nds.pen.pos ? 120 : 0));
             }
 
-            if (myevent.keypad.pre_keys & (1 << KEY_BIT_QSAVE)) {
+            if (myevent.key.pre_bits & (1 << KEY_BIT_QSAVE)) {
                 set_key_bit(KEY_BIT_QSAVE, 0);
             }
-            if (myevent.keypad.pre_keys & (1 << KEY_BIT_QLOAD)) {
+            if (myevent.key.pre_bits & (1 << KEY_BIT_QLOAD)) {
                 set_key_bit(KEY_BIT_QLOAD, 0);
             }
-            if (myevent.keypad.pre_keys & (1 << KEY_BIT_FF)) {
+            if (myevent.key.pre_bits & (1 << KEY_BIT_FF)) {
                 set_key_bit(KEY_BIT_FF, 0);
             }
-            if (myevent.keypad.pre_keys & (1 << KEY_BIT_EXIT)) {
+            if (myevent.key.pre_bits & (1 << KEY_BIT_EXIT)) {
                 release_all_report_keys();
             }
-            myevent.keypad.pre_keys = myevent.keypad.cur_keys;
+            myevent.key.pre_bits = myevent.key.cur_bits;
         }
     }
     SDL_SemPost(myevent.lock);
@@ -1123,9 +1126,9 @@ void PumpEvents(_THIS)
 #if defined(UT)
 TEST_GROUP_RUNNER(sdl2_event_miyoo)
 {
-RUN_TEST_CASE(sdl2_event_miyoo, rectify_mouse_position);
+RUN_TEST_CASE(sdl2_event_miyoo, rectify_pen_position);
 RUN_TEST_CASE(sdl2_event_miyoo, portrait_screen_layout);
-RUN_TEST_CASE(sdl2_event_miyoo, get_mouse_move_interval);
+RUN_TEST_CASE(sdl2_event_miyoo, get_pen_move_interval);
 RUN_TEST_CASE(sdl2_event_miyoo, release_all_report_keys);
 RUN_TEST_CASE(sdl2_event_miyoo, hit_hotkey);
 RUN_TEST_CASE(sdl2_event_miyoo, set_key_bit);

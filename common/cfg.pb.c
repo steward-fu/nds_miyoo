@@ -24,6 +24,9 @@ PB_BIND(_cpu__core, _cpu__core, AUTO)
 PB_BIND(_pen, _pen, 2)
 
 
+PB_BIND(_pen__show, _pen__show, AUTO)
+
+
 PB_BIND(_pen__speed, _pen__speed, AUTO)
 
 
@@ -33,19 +36,27 @@ PB_BIND(_menu, _menu, 2)
 PB_BIND(_autosave, _autosave, AUTO)
 
 
-PB_BIND(_keypad, _keypad, AUTO)
+PB_BIND(_key, _key, AUTO)
 
 
-PB_BIND(_keypad__swap, _keypad__swap, AUTO)
+PB_BIND(_key__swap, _key__swap, AUTO)
 
 
-PB_BIND(_joystick, _joystick, AUTO)
+PB_BIND(_joy, _joy, AUTO)
 
 
-PB_BIND(_joystick__remap, _joystick__remap, AUTO)
+PB_BIND(_joy__lr, _joy__lr, AUTO)
+
+
+PB_BIND(_joy__lr__xy, _joy__lr__xy, AUTO)
+
+
+PB_BIND(_joy__lr__remap, _joy__lr__remap, AUTO)
 
 
 PB_BIND(settings, settings, 2)
+
+
 
 
 

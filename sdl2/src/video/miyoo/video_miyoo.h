@@ -97,13 +97,13 @@
 #define IMG_H                   480
 #define SCREEN_DMA_SIZE         (NDS_Wx2 * NDS_Hx2 * 4)
 #define RELOAD_BG_COUNT         120
-#define MYJOY_MODE_DISABLE      0
-#define MYJOY_MODE_KEYPAD       1
-#define MYJOY_MODE_STYLUS       2
-#define MYJOY_MODE_CUSKEY       3
-#define MYJOY_MODE_LAST         3
-#define MYJOY_SHOW_CNT          300
-#define MYJOY_MOVE_SPEED        4
+//#define MYJOY_MODE_DISABLE      0
+//#define MYJOY_MODE_KEYPAD       1
+//#define MYJOY_MODE_STYLUS       2
+//#define MYJOY_MODE_CUSKEY       3
+//#define MYJOY_MODE_LAST         3
+//#define MYJOY_SHOW_CNT          300
+//#define MYJOY_MOVE_SPEED        4
 #define INIT_CPU_CORE           2
 #define INIT_CPU_CLOCK          1200
 #define DEINIT_CPU_CORE         2
@@ -443,21 +443,21 @@ typedef struct _NDS {
     } pen;
 
 #if defined(A30) || defined(UT)
-    struct _JOY {
-        int max_x;
-        int zero_x;
-        int min_x;
-
-        int max_y;
-        int zero_y;
-        int min_y;
-
-        int mode;
-        int dzone;
-        int show_cnt;
-
-        int cuskey[4];
-    } joy;
+//    struct _JOY {
+//        int max_x;
+//        int zero_x;
+//        int min_x;
+//
+//        int max_y;
+//        int zero_y;
+//        int min_y;
+//
+//        int mode;
+//        int dzone;
+//        int show_cnt;
+//
+//        int cuskey[4];
+//    } joy;
 #endif
 } NDS;
 
