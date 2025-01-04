@@ -47,5 +47,8 @@ typedef struct {
     pthread_mutex_t lock;
 } queue_t;
 
+int volume_inc(void);
+int volume_dec(void);
+
 #endif
 

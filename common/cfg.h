@@ -41,6 +41,11 @@
 #define MAX_PATH            128
 #define MAX_MALLOC_SIZE     4096
 
+typedef enum _hotkey {
+    HOTKEY_MENU = 0,
+    HOTKEY_SELECT
+} hotkey_t;
+
 #define DEF_CFG_VERSION                         "20250101"
 #define DEF_CFG_LANGUAGE                        "en_US"
 #define DEF_CFG_MENU_BG                         "menu/640/1/bg.png"
@@ -80,6 +85,7 @@
 #define DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN       1
 #define DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT       2
 #define DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT      3
+#define DEF_CFG_DEBUG_LEVEL                     LOG_LEVEL_ERR
 
 int init_config_settings(void);
 int load_config_settings(void);
@@ -90,6 +96,9 @@ int set_system_volume(int vol);
 int get_cfg_half_volume(void);
 int get_cfg_autosave_enable(void);
 int get_cfg_autosave_slot(void);
+int get_cfg_pen_speed_x(void);
+int get_cfg_pen_speed_y(void);
+hotkey_t get_cfg_keypad_hotkey(void);
 
 #endif
 

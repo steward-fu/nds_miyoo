@@ -61,6 +61,7 @@ TEST_GROUP(sdl2_event_miyoo);
 
 TEST_SETUP(sdl2_event_miyoo)
 {
+    reset_config_settings();
 }
 
 TEST_TEAR_DOWN(sdl2_event_miyoo)
@@ -79,48 +80,97 @@ static void rectify_mouse_position(void)
     if (myevent.mouse.y < 0) {
         myevent.mouse.y = 0;
     }
-    if (myevent.mouse.y > myevent.mouse.max_y) {
+    if (myevent.mouse.y >= myevent.mouse.max_y) {
         myevent.mouse.y = myevent.mouse.max_y;
     }
 }
 
-static int horizontal_layout(void)
+#if defined(UT)
+TEST(sdl2_event_miyoo, rectify_mouse_position)
 {
-    if ((nds.dis_mode == NDS_LAYOUT_12) ||
-        (nds.dis_mode == NDS_LAYOUT_13) ||
-        (nds.dis_mode == NDS_LAYOUT_14) ||
-        (nds.dis_mode == NDS_LAYOUT_15))
+    myevent.mouse.max_x = 100;
+    myevent.mouse.max_y = 200;
+
+    myevent.mouse.x = 1000;
+    myevent.mouse.y = 2000;
+    rectify_mouse_position();
+    TEST_ASSERT_EQUAL_INT(myevent.mouse.max_x, myevent.mouse.x);
+    TEST_ASSERT_EQUAL_INT(myevent.mouse.max_y, myevent.mouse.y);
+
+    myevent.mouse.x = -1000;
+    myevent.mouse.y = -2000;
+    rectify_mouse_position();
+    TEST_ASSERT_EQUAL_INT(0, myevent.mouse.x);
+    TEST_ASSERT_EQUAL_INT(0, myevent.mouse.y);
+}
+#endif
+
+static int portrait_screen_layout(int layout)
+{
+    if ((layout == NDS_SCREEN_LAYOUT_12) ||
+        (layout == NDS_SCREEN_LAYOUT_13) ||
+        (layout == NDS_SCREEN_LAYOUT_14) ||
+        (layout == NDS_SCREEN_LAYOUT_15))
     {
         return 1;
     }
     return 0;
 }
 
-static int get_move_interval(int type)
+#if defined(UT)
+TEST(sdl2_event_miyoo, portrait_screen_layout)
+{
+    TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_12));
+    TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_13));
+    TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_14));
+    TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_15));
+
+    TEST_ASSERT_EQUAL_INT(0, portrait_screen_layout(NDS_SCREEN_LAYOUT_10));
+}
+#endif
+
+static int get_mouse_move_interval(move_dir_t type)
 {
     float move = 0.0;
-    long yv = nds.pen.yv;
-    long xv = nds.pen.xv;
+    uint32_t div = 0;
+    uint32_t yv = get_cfg_pen_speed_y();
+    uint32_t xv = get_cfg_pen_speed_x();
 
-    if (myevent.lower_speed) {
-        yv *= 2;
-        xv *= 2;
+    if (myevent.mouse.lower_speed) {
+        yv <<= 1;
+        xv <<= 1;
     }
 
-    if (horizontal_layout()) {
-        move = ((float)clock() - nds.pen.pre_ticks) / ((type == 0) ? yv : xv);
+    if (portrait_screen_layout(nds.dis_mode)) {
+        div = (type == UP_DOWN) ? yv : xv;
     }
     else {
-        move = ((float)clock() - nds.pen.pre_ticks) / ((type == 0) ? xv : yv);
+        div = (type == LEFT_RIGHT) ? xv : yv;
+    }
+
+    if (div > 0) {
+        move = ((float)clock() - myevent.mouse.pre_ticks) / div;
     }
 
     if (move <= 0.0) {
         move = 1.0;
     }
+
     return (int)(1.0 * move);
 }
 
-static void release_all_keys(void)
+#if defined(UT)
+TEST(sdl2_event_miyoo, get_mouse_move_interval)
+{
+    myevent.mouse.pre_ticks = clock();
+    TEST_ASSERT_LESS_THAN(1000, get_mouse_move_interval(UP_DOWN));
+
+    myevent.mouse.pre_ticks = clock();
+    TEST_ASSERT_LESS_THAN(1000, get_mouse_move_interval(LEFT_RIGHT));
+}
+#endif
+
+static uint32_t release_all_report_keys(void)
 {
     int cc = 0;
 
@@ -130,43 +180,77 @@ static void release_all_keys(void)
         }
         myevent.keypad.cur_keys >>= 1;
     }
+    myevent.keypad.cur_keys = 0;
+
+    return myevent.keypad.cur_keys;
 }
+
+#if defined(UT)
+TEST(sdl2_event_miyoo, release_all_report_keys)
+{
+    myevent.keypad.cur_keys = 0xffffffff;
+    TEST_ASSERT_EQUAL_INT(0, release_all_report_keys());
+    TEST_ASSERT_EQUAL_INT(0, myevent.keypad.cur_keys);
+}
+#endif
 
 static int hit_hotkey(uint32_t bit)
 {
     uint32_t mask = 0;
+    uint32_t hotkey_bit = (get_cfg_keypad_hotkey() == HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
 
-    mask = (1 << bit);
-    mask |= (1 << ((nds.hotkey == HOTKEY_BIND_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU));
+    mask = (1 << bit) | (1 << hotkey_bit);
     return (myevent.keypad.cur_keys ^ mask) ? 0 : 1;
 }
 
 #if defined(UT)
 TEST(sdl2_event_miyoo, hit_hotkey)
 {
-    TEST_ASSERT_EQUAL_INT(0, hit_hotkey(0));
+    uint32_t hotkey_bit = (get_cfg_keypad_hotkey() == HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+
+    myevent.keypad.cur_keys = 0;
+    TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_A));
+
+    myevent.keypad.cur_keys = 1 << hotkey_bit;
+    TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_B));
+
+    myevent.keypad.cur_keys |= (1 << KEY_BIT_X);
+    TEST_ASSERT_EQUAL_INT(1, hit_hotkey(KEY_BIT_X));
+
+    myevent.keypad.cur_keys |= (1 << KEY_BIT_Y);
+    TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_Y));
 }
 #endif
 
-static void set_key(uint32_t bit, int val)
+static uint32_t set_key_bit(uint32_t bit, int val)
 {
-    if (val) {
-        if (nds.hotkey == HOTKEY_BIND_SELECT) {
-            if (bit == KEY_BIT_SELECT) {
-                myevent.keypad.cur_keys = (1 << KEY_BIT_SELECT);
-            }
-        }
-        else {
-            if (bit == KEY_BIT_MENU) {
-                myevent.keypad.cur_keys = (1 << KEY_BIT_MENU);
-            }
+    uint32_t hotkey_bit = (get_cfg_keypad_hotkey() == HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+
+    if (val > 0) {
+        if (hotkey_bit == bit) {
+            myevent.keypad.cur_keys = 0;
         }
         myevent.keypad.cur_keys |= (1 << bit);
     }
     else {
         myevent.keypad.cur_keys &= ~(1 << bit);
     }
+
+    return myevent.keypad.cur_keys;
 }
+
+#if defined(UT)
+TEST(sdl2_event_miyoo, set_key_bit)
+{
+    myevent.keypad.cur_keys = 0;
+    TEST_ASSERT_EQUAL_INT(0, set_key_bit(KEY_BIT_SELECT, 0));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_B), set_key_bit(KEY_BIT_B, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU), set_key_bit(KEY_BIT_MENU, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A), set_key_bit(KEY_BIT_A, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A), set_key_bit(KEY_BIT_SELECT, 0));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_A), set_key_bit(KEY_BIT_MENU, 0));
+}
+#endif
 
 #if defined(A30) || defined(UT)
 static int update_joystick(void)
@@ -198,26 +282,26 @@ static int update_joystick(void)
                 if (pre_left == 0) {
                     r = 1;
                     pre_left = 1;
-                    set_key(l_key, 1);
+                    set_key_bit(l_key, 1);
                 }
             }
             else if (pre_x > RTH){
                 if (pre_right == 0) {
                     r = 1;
                     pre_right = 1;
-                    set_key(r_key, 1);
+                    set_key_bit(r_key, 1);
                 }
             }
             else {
                 if (pre_left != 0) {
                     r = 1;
                     pre_left = 0;
-                    set_key(l_key, 0);
+                    set_key_bit(l_key, 0);
                 }
                 if (pre_right != 0) {
                     r = 1;
                     pre_right = 0;
-                    set_key(r_key, 0);
+                    set_key_bit(r_key, 0);
                 }
             }
         }
@@ -228,26 +312,26 @@ static int update_joystick(void)
                 if (pre_up == 0) {
                     r = 1;
                     pre_up = 1;
-                    set_key(u_key, 1);
+                    set_key_bit(u_key, 1);
                 }
             }
             else if (pre_y > DTH){
                 if (pre_down == 0) {
                     r = 1;
                     pre_down = 1;
-                    set_key(d_key, 1);
+                    set_key_bit(d_key, 1);
                 }
             }
             else {
                 if (pre_up != 0) {
                     r = 1;
                     pre_up = 0;
-                    set_key(u_key, 0);
+                    set_key_bit(u_key, 0);
                 }
                 if (pre_down != 0) {
                     r = 1;
                     pre_down = 0;
-                    set_key(d_key, 0);
+                    set_key_bit(d_key, 0);
                 }
             }
         }
@@ -325,7 +409,7 @@ static int update_joystick(void)
                 int y = 0;
                 const int v = MYJOY_MOVE_SPEED;
 
-                if (horizontal_layout() && (nds.keys_rotate == 0)) {
+                if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
                     if (pre_down) {
                         myevent.mouse.x -= v;
                     }
@@ -379,26 +463,26 @@ static int update_joystick(void)
                 if (pre_left == 0) {
                     r = 1;
                     pre_left = 1;
-                    set_key(l_key, 1);
+                    set_key_bit(l_key, 1);
                 }
             }
             else if (pre_x > RTH){
                 if (pre_right == 0) {
                     r = 1;
                     pre_right = 1;
-                    set_key(r_key, 1);
+                    set_key_bit(r_key, 1);
                 }
             }
             else {
                 if (pre_left != 0) {
                     r = 1;
                     pre_left = 0;
-                    set_key(l_key, 0);
+                    set_key_bit(l_key, 0);
                 }
                 if (pre_right != 0) {
                     r = 1;
                     pre_right = 0;
-                    set_key(r_key, 0);
+                    set_key_bit(r_key, 0);
                 }
             }
         }
@@ -409,26 +493,26 @@ static int update_joystick(void)
                 if (pre_up == 0) {
                     r = 1;
                     pre_up = 1;
-                    set_key(u_key, 1);
+                    set_key_bit(u_key, 1);
                 }
             }
             else if (pre_y > DTH){
                 if (pre_down == 0) {
                     r = 1;
                     pre_down = 1;
-                    set_key(d_key, 1);
+                    set_key_bit(d_key, 1);
                 }
             }
             else {
                 if (pre_up != 0) {
                     r = 1;
                     pre_up = 0;
-                    set_key(u_key, 0);
+                    set_key_bit(u_key, 0);
                 }
                 if (pre_down != 0) {
                     r = 1;
                     pre_down = 0;
-                    set_key(d_key, 0);
+                    set_key_bit(d_key, 0);
                 }
             }
         }
@@ -449,10 +533,10 @@ static int handle_hotkey(void)
     if (hotkey_mask && hit_hotkey(KEY_BIT_UP)) {
         if (myevent.dev_mode == MOUSE_MODE) {
             switch (nds.dis_mode) {
-            case NDS_LAYOUT_0:
-            case NDS_LAYOUT_1:
-            case NDS_LAYOUT_2:
-            case NDS_LAYOUT_3:
+            case NDS_SCREEN_LAYOUT_0:
+            case NDS_SCREEN_LAYOUT_1:
+            case NDS_SCREEN_LAYOUT_2:
+            case NDS_SCREEN_LAYOUT_3:
                 break;
             default:
                 nds.pen.pos = 1;
@@ -464,16 +548,16 @@ static int handle_hotkey(void)
             nds.pen.pos = 1;
         }
 #endif
-        set_key(KEY_BIT_UP, 0);
+        set_key_bit(KEY_BIT_UP, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_DOWN)) {
         if (myevent.dev_mode == MOUSE_MODE) {
             switch (nds.dis_mode) {
-            case NDS_LAYOUT_0:
-            case NDS_LAYOUT_1:
-            case NDS_LAYOUT_2:
-            case NDS_LAYOUT_3:
+            case NDS_SCREEN_LAYOUT_0:
+            case NDS_SCREEN_LAYOUT_1:
+            case NDS_SCREEN_LAYOUT_2:
+            case NDS_SCREEN_LAYOUT_3:
                 break;
             default:
                 nds.pen.pos = 0;
@@ -485,7 +569,7 @@ static int handle_hotkey(void)
             nds.pen.pos = 0;
         }
 #endif
-        set_key(KEY_BIT_DOWN, 0);
+        set_key_bit(KEY_BIT_DOWN, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_LEFT)) {
@@ -495,21 +579,21 @@ static int handle_hotkey(void)
             }
         }
         else {
-            nds.dis_mode = NDS_LAYOUT_17;
+            nds.dis_mode = NDS_SCREEN_LAYOUT_17;
         }
-        set_key(KEY_BIT_LEFT, 0);
+        set_key_bit(KEY_BIT_LEFT, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_RIGHT)) {
         if (nds.hres_mode == 0) {
-            if (nds.dis_mode < NDS_LAYOUT_LAST) {
+            if (nds.dis_mode < NDS_SCREEN_LAYOUT_LAST) {
                 nds.dis_mode += 1;
             }
         }
         else {
-            nds.dis_mode = NDS_LAYOUT_18;
+            nds.dis_mode = NDS_SCREEN_LAYOUT_18;
         }
-        set_key(KEY_BIT_RIGHT, 0);
+        set_key_bit(KEY_BIT_RIGHT, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_A)) {
@@ -518,26 +602,26 @@ static int handle_hotkey(void)
             nds.alt_mode = nds.dis_mode;
             nds.dis_mode = tmp;
         }
-        set_key(KEY_BIT_A, 0);
+        set_key_bit(KEY_BIT_A, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_B)) {
         pixel_filter = pixel_filter ? 0 : 1;
-        set_key(KEY_BIT_B, 0);
+        set_key_bit(KEY_BIT_B, 0);
     }
 
     if (hit_hotkey(KEY_BIT_X)) {
-        set_key(KEY_BIT_X, 0);
+        set_key_bit(KEY_BIT_X, 0);
     }
 
     if (hit_hotkey(KEY_BIT_Y)) {
         if (hotkey_mask) {
             if (myevent.dev_mode == KEYPAD_MODE) {
                 if ((nds.overlay.sel >= nds.overlay.max) &&
-                    (nds.dis_mode != NDS_LAYOUT_0) &&
-                    (nds.dis_mode != NDS_LAYOUT_1) &&
-                    (nds.dis_mode != NDS_LAYOUT_3) &&
-                    (nds.dis_mode != NDS_LAYOUT_18))
+                    (nds.dis_mode != NDS_SCREEN_LAYOUT_0) &&
+                    (nds.dis_mode != NDS_SCREEN_LAYOUT_1) &&
+                    (nds.dis_mode != NDS_SCREEN_LAYOUT_3) &&
+                    (nds.dis_mode != NDS_SCREEN_LAYOUT_18))
                 {
                     nds.theme.sel+= 1;
                     if (nds.theme.sel > nds.theme.max) {
@@ -566,7 +650,7 @@ static int handle_hotkey(void)
                 SDL_SendKeyboardKey(SDL_RELEASED, SDLK_e);
             }
         }
-        set_key(KEY_BIT_Y, 0);
+        set_key_bit(KEY_BIT_Y, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_START)) {
@@ -576,13 +660,13 @@ static int handle_hotkey(void)
             handle_menu(-1);
             myevent.keypad.pre_keys = myevent.keypad.cur_keys = 0;
         }
-        set_key(KEY_BIT_START, 0);
+        set_key_bit(KEY_BIT_START, 0);
     }
 
-    if (nds.hotkey == HOTKEY_BIND_MENU) {
+    if (get_cfg_keypad_hotkey() == HOTKEY_MENU) {
         if (hotkey_mask && hit_hotkey(KEY_BIT_SELECT)) {
-            set_key(KEY_BIT_MENU_ONION, 1);
-            set_key(KEY_BIT_SELECT, 0);
+            set_key_bit(KEY_BIT_MENU_ONION, 1);
+            set_key_bit(KEY_BIT_SELECT, 0);
         }
     }
 
@@ -593,23 +677,23 @@ static int handle_hotkey(void)
             pre_ff = nds.fast_forward;
             set_fast_forward(nds.fast_forward);
         }
-        set_key(KEY_BIT_FF, 1);
-        set_key(KEY_BIT_R1, 0);
+        set_key_bit(KEY_BIT_FF, 1);
+        set_key_bit(KEY_BIT_R1, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_L1)) {
-        set_key(KEY_BIT_EXIT, 1);
-        set_key(KEY_BIT_L1, 0);
+        set_key_bit(KEY_BIT_EXIT, 1);
+        set_key_bit(KEY_BIT_L1, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_R2)) {
-        set_key(KEY_BIT_QLOAD, 1);
-        set_key(KEY_BIT_R2, 0);
+        set_key_bit(KEY_BIT_QLOAD, 1);
+        set_key_bit(KEY_BIT_R2, 0);
     }
 
     if (hotkey_mask && hit_hotkey(KEY_BIT_L2)) {
-        set_key(KEY_BIT_QSAVE, 1);
-        set_key(KEY_BIT_L2, 0);
+        set_key_bit(KEY_BIT_QSAVE, 1);
+        set_key_bit(KEY_BIT_L2, 0);
     }
     else if (myevent.keypad.cur_keys & (1 << KEY_BIT_L2)) {
 #if defined(A30)
@@ -617,12 +701,12 @@ static int handle_hotkey(void)
 #endif
             if ((nds.menu.enable == 0) && (nds.menu.drastic.enable == 0)) {
                 myevent.dev_mode = (myevent.dev_mode == KEYPAD_MODE) ? MOUSE_MODE : KEYPAD_MODE;
-                set_key(KEY_BIT_L2, 0);
+                set_key_bit(KEY_BIT_L2, 0);
 
                 if (myevent.dev_mode == MOUSE_MODE) {
-                    release_all_keys();
+                    release_all_report_keys();
                 }
-                myevent.lower_speed = 0;
+                myevent.mouse.lower_speed = 0;
             }
 #if defined(A30)
         }
@@ -630,7 +714,7 @@ static int handle_hotkey(void)
     }
 
     if (!(myevent.keypad.cur_keys & 0x0f)) {
-        nds.pen.pre_ticks = clock();
+        myevent.mouse.pre_ticks = clock();
     }
 
     return 0;
@@ -657,7 +741,7 @@ static int input_handler(void *data)
 
     myevent.running = 1;
     while (myevent.running) {
-        SDL_SemWait(myevent.event_sem);
+        SDL_SemWait(myevent.lock);
 
         if ((nds.menu.enable == 0) && (nds.menu.drastic.enable == 0) && nds.keys_rotate) {
             if (nds.keys_rotate == 1) {
@@ -720,40 +804,40 @@ static int input_handler(void *data)
                 if ((ev.type == EV_KEY) && (ev.value != 2)) {
                     r = 1;
                     debug(SDL"%s: code:%d, value:%d in %s\n", INPUT_DEV, ev.code, ev.value, __func__);
-                    if (ev.code == l1)      { set_key(KEY_BIT_L1,    ev.value); }
-                    if (ev.code == r1)      { set_key(KEY_BIT_R1,    ev.value); }
-                    if (ev.code == up)      { set_key(KEY_BIT_UP,    ev.value); }
-                    if (ev.code == down)    { set_key(KEY_BIT_DOWN,  ev.value); }
-                    if (ev.code == left)    { set_key(KEY_BIT_LEFT,  ev.value); }
-                    if (ev.code == right)   { set_key(KEY_BIT_RIGHT, ev.value); }
-                    if (ev.code == a)       { set_key(KEY_BIT_A,     ev.value); }
-                    if (ev.code == b)       { set_key(KEY_BIT_B,     ev.value); }
-                    if (ev.code == x)       { set_key(KEY_BIT_X,     ev.value); }
-                    if (ev.code == y)       { set_key(KEY_BIT_Y,     ev.value); }
+                    if (ev.code == l1)      { set_key_bit(KEY_BIT_L1,    ev.value); }
+                    if (ev.code == r1)      { set_key_bit(KEY_BIT_R1,    ev.value); }
+                    if (ev.code == up)      { set_key_bit(KEY_BIT_UP,    ev.value); }
+                    if (ev.code == down)    { set_key_bit(KEY_BIT_DOWN,  ev.value); }
+                    if (ev.code == left)    { set_key_bit(KEY_BIT_LEFT,  ev.value); }
+                    if (ev.code == right)   { set_key_bit(KEY_BIT_RIGHT, ev.value); }
+                    if (ev.code == a)       { set_key_bit(KEY_BIT_A,     ev.value); }
+                    if (ev.code == b)       { set_key_bit(KEY_BIT_B,     ev.value); }
+                    if (ev.code == x)       { set_key_bit(KEY_BIT_X,     ev.value); }
+                    if (ev.code == y)       { set_key_bit(KEY_BIT_Y,     ev.value); }
 #if defined(A30)
                     if (ev.code == r2) {
                         if (nds.joy.mode == MYJOY_MODE_STYLUS) {
                             nds.joy.show_cnt = MYJOY_SHOW_CNT;
                             SDL_SendMouseButton(vid.window, 0, ev.value ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
                         }
-                        set_key(KEY_BIT_L2, ev.value);
+                        set_key_bit(KEY_BIT_L2, ev.value);
                     }
-                    if (ev.code == l2)      { set_key(KEY_BIT_R2,    ev.value); }
+                    if (ev.code == l2)      { set_key_bit(KEY_BIT_R2,    ev.value); }
 #endif
 
 #if defined(MINI) || defined(UT)
-                    if (ev.code == r2)      { set_key(KEY_BIT_L2,    ev.value); }
-                    if (ev.code == l2)      { set_key(KEY_BIT_R2,    ev.value); }
+                    if (ev.code == r2)      { set_key_bit(KEY_BIT_L2,    ev.value); }
+                    if (ev.code == l2)      { set_key_bit(KEY_BIT_R2,    ev.value); }
 #endif
 
                     switch (ev.code) {
-                    case DEV_KEY_CODE_START:  set_key(KEY_BIT_START, ev.value);  break;
-                    case DEV_KEY_CODE_SELECT: set_key(KEY_BIT_SELECT, ev.value); break;
-                    case DEV_KEY_CODE_MENU:   set_key(KEY_BIT_MENU, ev.value);   break;
+                    case DEV_KEY_CODE_START:  set_key_bit(KEY_BIT_START, ev.value);  break;
+                    case DEV_KEY_CODE_SELECT: set_key_bit(KEY_BIT_SELECT, ev.value); break;
+                    case DEV_KEY_CODE_MENU:   set_key_bit(KEY_BIT_MENU, ev.value);   break;
 #if defined(MINI) || defined(UT)
-                    case DEV_KEY_CODE_POWER:  set_key(KEY_BIT_POWER, ev.value);  break;
+                    case DEV_KEY_CODE_POWER:  set_key_bit(KEY_BIT_POWER, ev.value);  break;
                     case DEV_KEY_CODE_VOLUP:
-                        set_key(KEY_BIT_VOLUP, ev.value);
+                        set_key_bit(KEY_BIT_VOLUP, ev.value);
                         if (myevent.stock_os) {
                             if (ev.value == 0) {
                                 nds.volume = volume_inc();
@@ -764,7 +848,7 @@ static int input_handler(void *data)
                         }
                         break;
                     case DEV_KEY_CODE_VOLDOWN:
-                        set_key(KEY_BIT_VOLDOWN, ev.value);
+                        set_key_bit(KEY_BIT_VOLDOWN, ev.value);
                         if (myevent.stock_os) {
                             if (ev.value == 0) {
                                 nds.volume = volume_dec();
@@ -778,13 +862,13 @@ static int input_handler(void *data)
 
 #if defined(A30)
                     case DEV_KEY_CODE_VOLUP:
-                        set_key(KEY_BIT_VOLUP, ev.value);
+                        set_key_bit(KEY_BIT_VOLUP, ev.value);
                         if (ev.value == 0) {
                             nds.volume = volume_inc();
                         }
                         break;
                     case DEV_KEY_CODE_VOLDOWN:
-                        set_key(KEY_BIT_VOLDOWN, ev.value);
+                        set_key_bit(KEY_BIT_VOLDOWN, ev.value);
                         if (ev.value == 0) {
                             nds.volume = volume_dec();
                         }
@@ -801,8 +885,8 @@ static int input_handler(void *data)
                 handle_hotkey();
             }
         }
-        SDL_SemPost(myevent.event_sem);
-        usleep(1000000 / 60);
+        SDL_SemPost(myevent.lock);
+        usleep(150000);
     }
     
     return 0;
@@ -833,8 +917,8 @@ void EventInit(void)
         exit(-1);
     }
 
-    myevent.event_sem = SDL_CreateSemaphore(1);
-    if(myevent.event_sem == NULL) {
+    myevent.lock = SDL_CreateSemaphore(1);
+    if(myevent.lock == NULL) {
         err(SDL"failed to create input semaphore in %s\n", __func__);
         exit(-1);
     }
@@ -875,9 +959,9 @@ void EventDeinit(void)
         myevent.thread = NULL;
     }
 
-    if (myevent.event_sem) {
-        SDL_DestroySemaphore(myevent.event_sem);
-        myevent.event_sem = NULL;
+    if (myevent.lock) {
+        SDL_DestroySemaphore(myevent.lock);
+        myevent.lock = NULL;
     }
 
     if(myevent.dev_fd > 0) {
@@ -888,7 +972,7 @@ void EventDeinit(void)
 
 void PumpEvents(_THIS)
 {
-    SDL_SemWait(myevent.event_sem);
+    SDL_SemWait(myevent.lock);
     if (nds.menu.enable) {
         int cc = 0;
         uint32_t bit = 0;
@@ -914,7 +998,7 @@ void PumpEvents(_THIS)
                 for (cc=0; cc<=KEY_BIT_LAST; cc++) {
                     bit = 1 << cc;
 
-                    if ((nds.hotkey == HOTKEY_BIND_MENU) && (cc == KEY_BIT_MENU)) {
+                    if ((get_cfg_keypad_hotkey() == HOTKEY_MENU) && (cc == KEY_BIT_MENU)) {
                         continue;
                     }
 
@@ -925,21 +1009,21 @@ void PumpEvents(_THIS)
 
                 if (myevent.keypad.pre_keys & (1 << KEY_BIT_QSAVE)) {
                     nds.state|= NDS_STATE_QSAVE;
-                    set_key(KEY_BIT_QSAVE, 0);
+                    set_key_bit(KEY_BIT_QSAVE, 0);
                 }
                 if (myevent.keypad.pre_keys & (1 << KEY_BIT_QLOAD)) {
                     nds.state|= NDS_STATE_QLOAD;
-                    set_key(KEY_BIT_QLOAD, 0);
+                    set_key_bit(KEY_BIT_QLOAD, 0);
                 }
                 if (myevent.keypad.pre_keys & (1 << KEY_BIT_FF)) {
                     nds.state|= NDS_STATE_FF;
-                    set_key(KEY_BIT_FF, 0);
+                    set_key_bit(KEY_BIT_FF, 0);
                 }
                 if (myevent.keypad.pre_keys & (1 << KEY_BIT_MENU_ONION)) {
-                    set_key(KEY_BIT_MENU_ONION, 0);
+                    set_key_bit(KEY_BIT_MENU_ONION, 0);
                 }
                 if (myevent.keypad.pre_keys & (1 << KEY_BIT_EXIT)) {
-                    release_all_keys();
+                    release_all_report_keys();
                 }
                 myevent.keypad.pre_keys = myevent.keypad.cur_keys;
             }
@@ -965,46 +1049,46 @@ void PumpEvents(_THIS)
                     }
                     if (cc == KEY_BIT_R1) {
                         if (changed & bit) {
-                            myevent.lower_speed = (myevent.keypad.cur_keys & bit);
+                            myevent.mouse.lower_speed = (myevent.keypad.cur_keys & bit);
                         }
                     }
                 }
             }
 
-            if (horizontal_layout() && (nds.keys_rotate == 0)) {
+            if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.mouse.x+= get_move_interval(1);
+                    myevent.mouse.x+= get_mouse_move_interval(UP_DOWN);
                 }
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.mouse.x-= get_move_interval(1);
+                    myevent.mouse.x-= get_mouse_move_interval(UP_DOWN);
                 }
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.mouse.y-= get_move_interval(0);
+                    myevent.mouse.y-= get_mouse_move_interval(LEFT_RIGHT);
                 }
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.mouse.y+= get_move_interval(0);
+                    myevent.mouse.y+= get_mouse_move_interval(LEFT_RIGHT);
                 }
             }
             else {
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.mouse.y-= get_move_interval(1);
+                    myevent.mouse.y-= get_mouse_move_interval(UP_DOWN);
                 }
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.mouse.y+= get_move_interval(1);
+                    myevent.mouse.y+= get_mouse_move_interval(UP_DOWN);
                 }
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.mouse.x-= get_move_interval(0);
+                    myevent.mouse.x-= get_mouse_move_interval(LEFT_RIGHT);
                 }
                 if (myevent.keypad.cur_keys & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.mouse.x+= get_move_interval(0);
+                    myevent.mouse.x+= get_mouse_move_interval(LEFT_RIGHT);
                 }
             }
             rectify_mouse_position();
@@ -1019,27 +1103,32 @@ void PumpEvents(_THIS)
             }
 
             if (myevent.keypad.pre_keys & (1 << KEY_BIT_QSAVE)) {
-                set_key(KEY_BIT_QSAVE, 0);
+                set_key_bit(KEY_BIT_QSAVE, 0);
             }
             if (myevent.keypad.pre_keys & (1 << KEY_BIT_QLOAD)) {
-                set_key(KEY_BIT_QLOAD, 0);
+                set_key_bit(KEY_BIT_QLOAD, 0);
             }
             if (myevent.keypad.pre_keys & (1 << KEY_BIT_FF)) {
-                set_key(KEY_BIT_FF, 0);
+                set_key_bit(KEY_BIT_FF, 0);
             }
             if (myevent.keypad.pre_keys & (1 << KEY_BIT_EXIT)) {
-                release_all_keys();
+                release_all_report_keys();
             }
             myevent.keypad.pre_keys = myevent.keypad.cur_keys;
         }
     }
-    SDL_SemPost(myevent.event_sem);
+    SDL_SemPost(myevent.lock);
 }
 
 #if defined(UT)
 TEST_GROUP_RUNNER(sdl2_event_miyoo)
 {
-    RUN_TEST_CASE(sdl2_event_miyoo, hit_hotkey);
+RUN_TEST_CASE(sdl2_event_miyoo, rectify_mouse_position);
+RUN_TEST_CASE(sdl2_event_miyoo, portrait_screen_layout);
+RUN_TEST_CASE(sdl2_event_miyoo, get_mouse_move_interval);
+RUN_TEST_CASE(sdl2_event_miyoo, release_all_report_keys);
+RUN_TEST_CASE(sdl2_event_miyoo, hit_hotkey);
+RUN_TEST_CASE(sdl2_event_miyoo, set_key_bit);
 }
 #endif
 

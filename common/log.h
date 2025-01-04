@@ -27,7 +27,7 @@
     #define LOG_LEVEL_DEBUG     0
 
     #define LOG_FILE_NAME       "miyoo_drastic_log.txt"
-    #define LOG_LEVEL_DEFAULT   LOG_LEVEL_ERR
+    #define LOG_LEVEL_DEFAULT   LOG_LEVEL_DEBUG
 
     #define SND     "[SND]"
     #define DTR     "[DTR]"

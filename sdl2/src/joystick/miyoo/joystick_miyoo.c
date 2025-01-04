@@ -347,7 +347,7 @@ TEST(sdl2_joystick_miyoo, limit_value)
 }
 #endif
 
-static void check_axis_event(void)
+static void update_axis_values(void)
 {
     int i = 0;
 
@@ -369,7 +369,7 @@ static void check_axis_event(void)
 }
 
 #if defined(UT)
-TEST(sdl2_joystick_miyoo, check_axis_event)
+TEST(sdl2_joystick_miyoo, update_axis_values)
 {
     nds.joy.dzone = 0;
     myjoy.last_x = 0;
@@ -379,7 +379,7 @@ TEST(sdl2_joystick_miyoo, check_axis_event)
     myjoy.last_y = 0;
     myjoy.cur_axis[1] = 100;
     myjoy.last_axis[1] = 0;
-    check_axis_event();
+    update_axis_values();
     TEST_ASSERT_EQUAL_INT(100, myjoy.last_x);
     TEST_ASSERT_EQUAL_INT(100, myjoy.last_y);
 
@@ -391,7 +391,7 @@ TEST(sdl2_joystick_miyoo, check_axis_event)
     myjoy.last_y = 0;
     myjoy.cur_axis[1] = 100;
     myjoy.last_axis[1] = 0;
-    check_axis_event();
+    update_axis_values();
     TEST_ASSERT_EQUAL_INT(0, myjoy.last_x);
     TEST_ASSERT_EQUAL_INT(0, myjoy.last_y);
 }
@@ -520,7 +520,7 @@ static int parse_serial_buf(const char *cmd, int len)
     }
     myjoy.cur_axis[ABS_X] = frame_to_axis_x(myjoy.cur_frame.axis0);
     myjoy.cur_axis[ABS_Y] = frame_to_axis_y(myjoy.cur_frame.axis1);
-    check_axis_event();
+    update_axis_values();
     return 0;
 }
 
@@ -661,7 +661,7 @@ int joystick_handler(void *param)
             rcv_buf[len] = 0;
             parse_serial_buf(rcv_buf, len);
         }
-        usleep(10000);
+        usleep(1000);
     }
     return 0;
 }
@@ -1067,7 +1067,7 @@ TEST_GROUP_RUNNER(sdl2_joystick_miyoo)
     RUN_TEST_CASE(sdl2_joystick_miyoo, uart_read);
     RUN_TEST_CASE(sdl2_joystick_miyoo, filter_dead_zone);
     RUN_TEST_CASE(sdl2_joystick_miyoo, limit_value);
-    RUN_TEST_CASE(sdl2_joystick_miyoo, check_axis_event);
+    RUN_TEST_CASE(sdl2_joystick_miyoo, update_axis_values);
     RUN_TEST_CASE(sdl2_joystick_miyoo, frame_to_axis_x);
     RUN_TEST_CASE(sdl2_joystick_miyoo, frame_to_axis_y);
     RUN_TEST_CASE(sdl2_joystick_miyoo, parse_serial_buf);

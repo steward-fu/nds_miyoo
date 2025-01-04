@@ -48,9 +48,9 @@ TEST_TEAR_DOWN(common_log)
 }
 #endif
 
-int set_debug_level(int newlevel)
+int set_debug_level(int level)
 {
-    debug_level = newlevel;
+    debug_level = level;
     info(COM"set debug level as %d\n", debug_level);
 
     return debug_level;

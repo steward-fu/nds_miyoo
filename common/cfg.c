@@ -288,6 +288,8 @@ int init_config_settings(void)
         reset_config_settings();
         update_config_settings();
     }
+
+    set_debug_level(cfg.debug_level);
     return 0;
 }
 
@@ -350,6 +352,8 @@ int reset_config_settings(void)
     cfg.joystick.remap_right.left = DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT;
     cfg.joystick.remap_right.right = DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT;
 
+    cfg.debug_level = DEF_CFG_DEBUG_LEVEL;
+
     if (get_system_volume() < 0) {
         return -1;
     }
@@ -411,6 +415,8 @@ TEST(common_cfg, reset_config_settings)
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_DOWN, cfg.joystick.remap_right.down);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_LEFT, cfg.joystick.remap_right.left);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOYSTICK_REMAP_RIGHT_RIGHT, cfg.joystick.remap_right.right);
+
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DEBUG_LEVEL, cfg.debug_level);
 }
 #endif
 
@@ -459,6 +465,48 @@ TEST(common_cfg, get_cfg_autosave_slot)
 }
 #endif
 
+int get_cfg_pen_speed_x(void)
+{
+    return cfg.pen.speed.x;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_cfg_pen_speed_x)
+{
+    cfg.pen.speed.x = 100;
+    TEST_ASSERT_EQUAL_INT(100, get_cfg_pen_speed_x());
+}
+#endif
+
+int get_cfg_pen_speed_y(void)
+{
+    return cfg.pen.speed.y;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_cfg_pen_speed_y)
+{
+    cfg.pen.speed.y = 100;
+    TEST_ASSERT_EQUAL_INT(100, get_cfg_pen_speed_y());
+}
+#endif
+
+hotkey_t get_cfg_keypad_hotkey(void)
+{
+    return cfg.keypad.hotkey;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_cfg_keypad_hotkey)
+{
+    cfg.keypad.hotkey = HOTKEY_MENU;
+    TEST_ASSERT_EQUAL_INT(HOTKEY_MENU, get_cfg_keypad_hotkey());
+
+    cfg.keypad.hotkey = HOTKEY_SELECT;
+    TEST_ASSERT_EQUAL_INT(HOTKEY_SELECT, get_cfg_keypad_hotkey());
+}
+#endif
+
 #if defined(UT)
 TEST_GROUP_RUNNER(common_cfg)
 {
@@ -471,6 +519,9 @@ TEST_GROUP_RUNNER(common_cfg)
     RUN_TEST_CASE(common_cfg, get_cfg_half_volume);
     RUN_TEST_CASE(common_cfg, get_cfg_autosave_enable);
     RUN_TEST_CASE(common_cfg, get_cfg_autosave_slot);
+    RUN_TEST_CASE(common_cfg, get_cfg_pen_speed_x);
+    RUN_TEST_CASE(common_cfg, get_cfg_pen_speed_y);
+    RUN_TEST_CASE(common_cfg, get_cfg_keypad_hotkey);
 }
 #endif
 

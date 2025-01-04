@@ -59,6 +59,7 @@
 #include "event_miyoo.h"
 
 #include "log.h"
+#include "cfg.h"
 #include "pen.h"
 #include "drastic.h"
 
@@ -218,6 +219,7 @@ TEST_GROUP(sdl2_video_miyoo);
 
 TEST_SETUP(sdl2_video_miyoo)
 {
+    reset_config_settings();
 }
 
 TEST_TEAR_DOWN(sdl2_video_miyoo)
@@ -1234,8 +1236,8 @@ static int process_screen(void)
     static int cur_touchpad = 0;
     static int cur_theme_sel = 0;
     static int cur_pixel_filter = 0;
-    static int pre_dis_mode = NDS_LAYOUT_8;
-    static int pre_hres_mode = NDS_LAYOUT_17;
+    static int pre_dis_mode = NDS_SCREEN_LAYOUT_8;
+    static int pre_hres_mode = NDS_SCREEN_LAYOUT_17;
     static char show_info_buf[MAX_PATH << 1] = {0};
     static int bat_chk_cnt = BAT_CHK_CNT;
     static int col_fg = 0xe0e000;
@@ -1422,7 +1424,7 @@ static int process_screen(void)
         }
 
         switch (nds.dis_mode) {
-        case NDS_LAYOUT_0:
+        case NDS_SCREEN_LAYOUT_0:
             if (screen1) {
                 drt.x = 0;
                 drt.y = 0;
@@ -1436,7 +1438,7 @@ static int process_screen(void)
                 need_update = 0;
             }
             break;
-        case NDS_LAYOUT_1:
+        case NDS_SCREEN_LAYOUT_1:
             if (screen1) {
                 drt.x = 0;
                 drt.y = 0;
@@ -1450,7 +1452,7 @@ static int process_screen(void)
                 need_update = 0;
             }
             break;
-        case NDS_LAYOUT_2:
+        case NDS_SCREEN_LAYOUT_2:
             if (screen1) {
                 drt.w = NDS_W * 2;
                 drt.h = NDS_H * 2;
@@ -1464,7 +1466,7 @@ static int process_screen(void)
                 need_update = 0;
             }
             break;
-        case NDS_LAYOUT_3:
+        case NDS_SCREEN_LAYOUT_3:
             if (screen1) {
                 drt.x = 0;
                 drt.y = 0;
@@ -1478,7 +1480,7 @@ static int process_screen(void)
                 need_update = 0;
             }
             break;
-        case NDS_LAYOUT_4:
+        case NDS_SCREEN_LAYOUT_4:
             drt.w = NDS_W;
             drt.h = NDS_H;
             drt.x = (FB_W - drt.w) / 2;
@@ -1489,7 +1491,7 @@ static int process_screen(void)
                 drt.y = screen0 ? 88 : 88 + drt.h;
             }
             break;
-        case NDS_LAYOUT_5:
+        case NDS_SCREEN_LAYOUT_5:
             if (nds.enable_752x560 == 0) {
                 drt.w = 320;
                 drt.h = 240;
@@ -1501,7 +1503,7 @@ static int process_screen(void)
             drt.x = (FB_W - drt.w) / 2;
             drt.y = screen0 ? 0 : drt.h;
             break;
-        case NDS_LAYOUT_6:
+        case NDS_SCREEN_LAYOUT_6:
             drt.w = NDS_W;
             drt.h = NDS_H;
             if (nds.enable_752x560 == 0) {
@@ -1512,7 +1514,7 @@ static int process_screen(void)
             }
             drt.y = (FB_H - drt.h) / 2;
             break;
-        case NDS_LAYOUT_7:
+        case NDS_SCREEN_LAYOUT_7:
             if (nds.enable_752x560 == 0) {
                 drt.w = 320;
                 drt.h = 240;
@@ -1525,38 +1527,38 @@ static int process_screen(void)
             }
             drt.y = (FB_H - drt.h) / 2;
             break;
-        case NDS_LAYOUT_8:
+        case NDS_SCREEN_LAYOUT_8:
             drt.x = screen1 ? 160 : 0;
             drt.y = screen1 ? 120 : 0;
             drt.w = screen1 ? (FB_W - 160) : 160;
             drt.h = screen1 ? (FB_H - 120) : 120;
             break;
-        case NDS_LAYOUT_9:
+        case NDS_SCREEN_LAYOUT_9:
             drt.x = screen1 ? NDS_W : 0;
             drt.y = screen1 ? NDS_H : 0;
             drt.w = screen1 ? (FB_W - NDS_W) : NDS_W;
             drt.h = screen1 ? (FB_H - NDS_H) : NDS_H;
             break;
-        case NDS_LAYOUT_16:
+        case NDS_SCREEN_LAYOUT_16:
             drt.w = screen1 ? (FB_W - 160) : 160;
             drt.h = screen1 ? (FB_H - 120) : 120;
             drt.x = screen1 ? ((FB_W - drt.w) / 2) : ((FB_W - drt.w) / 2);
             drt.y = screen1 ? 120 : 0;
             break;
-        case NDS_LAYOUT_10:
+        case NDS_SCREEN_LAYOUT_10:
             drt.w = screen0 ? NDS_W : (FB_W - NDS_W);
             drt.h = screen0 ? NDS_H : (FB_H - NDS_H);
             drt.x = screen0 ? ((FB_W - drt.w) / 2) : ((FB_W - drt.w) / 2);
             drt.y = screen0 ? 0 : NDS_H;
             break;
-        case NDS_LAYOUT_11:
+        case NDS_SCREEN_LAYOUT_11:
             drt.w = screen0 ? NDS_W : (FB_W - NDS_W);
             drt.h = screen0 ? NDS_H : (FB_H - NDS_H);
             drt.x = screen0 ? 0 : NDS_W;
             drt.y = screen0 ? ((FB_H - drt.h) / 2) : ((FB_H - drt.h) / 2);
             break;
-        case NDS_LAYOUT_12:
-        case NDS_LAYOUT_13:
+        case NDS_SCREEN_LAYOUT_12:
+        case NDS_SCREEN_LAYOUT_13:
             if (nds.enable_752x560 == 0) {
                 drt.x = screen0 ? 0 : 320;
                 drt.y = 26;
@@ -1569,10 +1571,10 @@ static int process_screen(void)
                 drt.w = 501;
                 drt.h = 376;
             }
-            rotate = (nds.dis_mode == NDS_LAYOUT_12) ? E_MI_GFX_ROTATE_90 : E_MI_GFX_ROTATE_270;
+            rotate = (nds.dis_mode == NDS_SCREEN_LAYOUT_12) ? E_MI_GFX_ROTATE_90 : E_MI_GFX_ROTATE_270;
             break;
-        case NDS_LAYOUT_14:
-        case NDS_LAYOUT_15:
+        case NDS_SCREEN_LAYOUT_14:
+        case NDS_SCREEN_LAYOUT_15:
             if (nds.enable_752x560 == 0) {
                 drt.x = screen0 ? 0 : 320;
                 drt.y = 0;
@@ -1585,15 +1587,15 @@ static int process_screen(void)
                 drt.w = 560;
                 drt.h = 376;
             }
-            rotate = (nds.dis_mode == NDS_LAYOUT_14) ? E_MI_GFX_ROTATE_90 : E_MI_GFX_ROTATE_270;
+            rotate = (nds.dis_mode == NDS_SCREEN_LAYOUT_14) ? E_MI_GFX_ROTATE_90 : E_MI_GFX_ROTATE_270;
             break;
-        case NDS_LAYOUT_17:
+        case NDS_SCREEN_LAYOUT_17:
             drt.w = NDS_Wx2;
             drt.h = NDS_Hx2;
             drt.x = (FB_W - drt.w) / 2;
             drt.y = (FB_H - drt.h) / 2;
             break;
-        case NDS_LAYOUT_18:
+        case NDS_SCREEN_LAYOUT_18:
             drt.x = 0;
             drt.y = 0;
             drt.w = FB_W;
@@ -1628,7 +1630,7 @@ static int process_screen(void)
         }
 
 #if defined(A30)
-        if ((idx == 0) && (nds.alpha.border > 0) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+        if ((idx == 0) && (nds.alpha.border > 0) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
             int c0 = 0;
             uint32_t *p0 = NULL;
             uint32_t *p1 = NULL;
@@ -1676,7 +1678,7 @@ static int process_screen(void)
 
 #if defined(MINI) || defined(A30)
             switch (nds.dis_mode) {
-            case NDS_LAYOUT_0:
+            case NDS_SCREEN_LAYOUT_0:
                 drt.x = 0;
                 drt.y = 0;
                 drt.w = 160;
@@ -1705,7 +1707,7 @@ static int process_screen(void)
                 GFX_Copy(-1, nds.screen.pixels[0], srt, drt, nds.screen.pitch[0], 1, rotate);
 #endif
                 break;
-            case NDS_LAYOUT_1:
+            case NDS_SCREEN_LAYOUT_1:
                 drt.x = 0;
                 drt.y = 0;
                 drt.w = NDS_W;
@@ -2103,299 +2105,299 @@ static void lang_enum(void)
 
 static int read_config(void)
 {
-    struct json_object *jval = NULL;
-    struct json_object *jfile = NULL;
-
-    jfile = json_object_from_file(nds.cfg.path);
-    if (jfile == NULL) {
-        printf(PREFIX"Failed to read settings from json file (%s)\n", nds.cfg.path);
-        return -1;
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_PEN_SEL, &jval);
-    if (jval) {
-        nds.pen.sel = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_PEN_POS, &jval);
-    if (jval) {
-        nds.pen.pos = json_object_get_int(jval) == 0 ? 0 : 1;
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_THEME_SEL, &jval);
-    if (jval) {
-        nds.theme.sel = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_DIS_MODE, &jval);
-    if (jval) {
-        nds.dis_mode = json_object_get_int(jval);
-    }
-    
-    json_object_object_get_ex(jfile, JSON_NDS_ALT_MODE, &jval);
-    if (jval) {
-        nds.alt_mode = json_object_get_int(jval);
-    }
-    
-    json_object_object_get_ex(jfile, JSON_NDS_PEN_XV, &jval);
-    if (jval) {
-        nds.pen.xv = json_object_get_int(jval);
-    }
-    
-    json_object_object_get_ex(jfile, JSON_NDS_PEN_YV, &jval);
-    if (jval) {
-        nds.pen.yv = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_ALPHA_VALUE, &jval);
-    if (jval) {
-        nds.alpha.val = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_ALPHA_POSITION, &jval);
-    if (jval) {
-        nds.alpha.pos = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_ALPHA_BORDER, &jval);
-    if (jval) {
-        nds.alpha.border = json_object_get_int(jval);
-        nds.alpha.border%= NDS_BORDER_MAX;
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_MAX_CPU, &jval);
-    if (jval) {
-        nds.maxcpu = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_MIN_CPU, &jval);
-    if (jval) {
-        nds.mincpu = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_MAX_CORE, &jval);
-    if (jval) {
-        nds.maxcore = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_MIN_CORE, &jval);
-    if (jval) {
-        nds.mincore = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_OVERLAY, &jval);
-    if (jval) {
-        nds.overlay.sel = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_SWAP_L1L2, &jval);
-    if (jval) {
-        nds.swap_l1l2 = json_object_get_int(jval) ? 1 : 0;
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_SWAP_R1R2, &jval);
-    if (jval) {
-        nds.swap_r1r2 = json_object_get_int(jval) ? 1 : 0;
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_KEYS_ROTATE, &jval);
-    if (jval) {
-        nds.keys_rotate = json_object_get_int(jval) % 3;
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_CHK_BAT, &jval);
-    if (jval) {
-        nds.chk_bat = json_object_get_int(jval) ? 1: 0;
-    }
-
-#if defined(A30)
-    json_object_object_get_ex(jfile, JSON_NDS_JOY_MODE, &jval);
-    if (jval) {
-        nds.joy.mode = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_JOY_DZONE, &jval);
-    if (jval) {
-        nds.joy.dzone = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY0, &jval);
-    if (jval) {
-        nds.joy.cuskey[0] = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY1, &jval);
-    if (jval) {
-        nds.joy.cuskey[1] = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY2, &jval);
-    if (jval) {
-        nds.joy.cuskey[2] = json_object_get_int(jval);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY3, &jval);
-    if (jval) {
-        nds.joy.cuskey[3] = json_object_get_int(jval);
-    }
-#endif
-
-    nds.menu.c0 = 0xffffff;
-    json_object_object_get_ex(jfile, JSON_NDS_MENU_C0, &jval);
-    if (jval) {
-        const char *p = json_object_get_string(jval);
-        nds.menu.c0 = strtol(p, NULL, 16);
-    }
-
-    nds.menu.c1 = 0x000000;
-    json_object_object_get_ex(jfile, JSON_NDS_MENU_C1, &jval);
-    if (jval) {
-        const char *p = json_object_get_string(jval);
-        nds.menu.c1 = strtol(p, NULL, 16);
-    }
-
-    nds.menu.c2 = 0x289a35;
-    json_object_object_get_ex(jfile, JSON_NDS_MENU_C2, &jval);
-    if (jval) {
-        const char *p = json_object_get_string(jval);
-        nds.menu.c2 = strtol(p, NULL, 16);
-    }
-
-    nds.auto_state = 1;
-    json_object_object_get_ex(jfile, JSON_NDS_AUTO_STATE, &jval);
-    if (jval) {
-        nds.auto_state = json_object_get_int(jval) ? 1 : 0;
-    }
-
-    nds.auto_slot = 1;
-    json_object_object_get_ex(jfile, JSON_NDS_AUTO_SLOT, &jval);
-    if (jval) {
-        nds.auto_slot = json_object_get_int(jval);
-    }
-
-    lang_enum();
-    json_object_object_get_ex(jfile, JSON_NDS_LANG, &jval);
-    if (jval) {
-        const char *lang = json_object_get_string(jval);
-
-        strcpy(nds.lang.trans[DEF_LANG_SLOT], lang);
-        lang_load(lang);
-    }
-
-    json_object_object_get_ex(jfile, JSON_NDS_HOTKEY, &jval);
-    if (jval) {
-        nds.hotkey = json_object_get_int(jval);
-    }
-
-    nds.menu.show_cursor = 0;
-    json_object_object_get_ex(jfile, JSON_NDS_MENU_CURSOR, &jval);
-    if (jval) {
-        nds.menu.show_cursor = json_object_get_int(jval);
-    }
-
-    nds.fast_forward = 6;
-    json_object_object_get_ex(jfile, JSON_NDS_FAST_FORWARD, &jval);
-    if (jval) {
-        nds.fast_forward = json_object_get_int(jval);
-    }
-
-#if defined(MINI) || defined(A30)
-    json_object_object_get_ex(jfile, JSON_NDS_STATES, &jval);
-    if (jval) {
-        struct stat st = {0};
-        const char *path = json_object_get_string(jval);
-
-        if ((path != NULL) && (path[0] != 0)) {
-            strcpy(nds.states.path, path);
-
-            if (stat(nds.states.path, &st) == -1) {
-                mkdir(nds.states.path, 0755);
-                printf(PREFIX"Create states folder in \'%s\'\n", nds.states.path);
-            }
-        }
-    }
-#endif
-
-    if (nds.dis_mode > NDS_LAYOUT_LAST) {
-        nds.dis_mode = NDS_LAYOUT_8;
-        nds.alt_mode = NDS_LAYOUT_2;
-    }
-
-    nds.menu.sel = 0;
-    json_object_object_get_ex(jfile, JSON_NDS_MENU_BG, &jval);
-    if (jval) {
-        nds.menu.sel = json_object_get_int(jval);
-        if (nds.menu.sel >= nds.menu.max) {
-            nds.menu.sel = 0;
-        }
-    }
-    reload_menu();
-
-    reload_pen();
-#if defined(MINI) || defined(A30)
-    reload_overlay();
-#endif
-    json_object_put(jfile);
-
-#if defined(A30)
-    nds.joy.max_x = 200;
-    nds.joy.zero_x = 135;
-    nds.joy.min_x = 75;
-    nds.joy.max_y = 200;
-    nds.joy.zero_y = 135;
-    nds.joy.min_y = 75;
-#endif
+//    struct json_object *jval = NULL;
+//    struct json_object *jfile = NULL;
+//
+//    jfile = json_object_from_file(nds.cfg.path);
+//    if (jfile == NULL) {
+//        printf(PREFIX"Failed to read settings from json file (%s)\n", nds.cfg.path);
+//        return -1;
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_PEN_SEL, &jval);
+//    if (jval) {
+//        nds.pen.sel = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_PEN_POS, &jval);
+//    if (jval) {
+//        nds.pen.pos = json_object_get_int(jval) == 0 ? 0 : 1;
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_THEME_SEL, &jval);
+//    if (jval) {
+//        nds.theme.sel = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_DIS_MODE, &jval);
+//    if (jval) {
+//        nds.dis_mode = json_object_get_int(jval);
+//    }
+//    
+//    json_object_object_get_ex(jfile, JSON_NDS_ALT_MODE, &jval);
+//    if (jval) {
+//        nds.alt_mode = json_object_get_int(jval);
+//    }
+//    
+//    json_object_object_get_ex(jfile, JSON_NDS_PEN_XV, &jval);
+//    if (jval) {
+//        nds.pen.xv = json_object_get_int(jval);
+//    }
+//    
+//    json_object_object_get_ex(jfile, JSON_NDS_PEN_YV, &jval);
+//    if (jval) {
+//        nds.pen.yv = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_ALPHA_VALUE, &jval);
+//    if (jval) {
+//        nds.alpha.val = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_ALPHA_POSITION, &jval);
+//    if (jval) {
+//        nds.alpha.pos = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_ALPHA_BORDER, &jval);
+//    if (jval) {
+//        nds.alpha.border = json_object_get_int(jval);
+//        nds.alpha.border%= NDS_BORDER_MAX;
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_MAX_CPU, &jval);
+//    if (jval) {
+//        nds.maxcpu = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_MIN_CPU, &jval);
+//    if (jval) {
+//        nds.mincpu = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_MAX_CORE, &jval);
+//    if (jval) {
+//        nds.maxcore = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_MIN_CORE, &jval);
+//    if (jval) {
+//        nds.mincore = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_OVERLAY, &jval);
+//    if (jval) {
+//        nds.overlay.sel = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_SWAP_L1L2, &jval);
+//    if (jval) {
+//        nds.swap_l1l2 = json_object_get_int(jval) ? 1 : 0;
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_SWAP_R1R2, &jval);
+//    if (jval) {
+//        nds.swap_r1r2 = json_object_get_int(jval) ? 1 : 0;
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_KEYS_ROTATE, &jval);
+//    if (jval) {
+//        nds.keys_rotate = json_object_get_int(jval) % 3;
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_CHK_BAT, &jval);
+//    if (jval) {
+//        nds.chk_bat = json_object_get_int(jval) ? 1: 0;
+//    }
+//
+//#if defined(A30)
+//    json_object_object_get_ex(jfile, JSON_NDS_JOY_MODE, &jval);
+//    if (jval) {
+//        nds.joy.mode = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_JOY_DZONE, &jval);
+//    if (jval) {
+//        nds.joy.dzone = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY0, &jval);
+//    if (jval) {
+//        nds.joy.cuskey[0] = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY1, &jval);
+//    if (jval) {
+//        nds.joy.cuskey[1] = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY2, &jval);
+//    if (jval) {
+//        nds.joy.cuskey[2] = json_object_get_int(jval);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_JOY_CUSKEY3, &jval);
+//    if (jval) {
+//        nds.joy.cuskey[3] = json_object_get_int(jval);
+//    }
+//#endif
+//
+//    nds.menu.c0 = 0xffffff;
+//    json_object_object_get_ex(jfile, JSON_NDS_MENU_C0, &jval);
+//    if (jval) {
+//        const char *p = json_object_get_string(jval);
+//        nds.menu.c0 = strtol(p, NULL, 16);
+//    }
+//
+//    nds.menu.c1 = 0x000000;
+//    json_object_object_get_ex(jfile, JSON_NDS_MENU_C1, &jval);
+//    if (jval) {
+//        const char *p = json_object_get_string(jval);
+//        nds.menu.c1 = strtol(p, NULL, 16);
+//    }
+//
+//    nds.menu.c2 = 0x289a35;
+//    json_object_object_get_ex(jfile, JSON_NDS_MENU_C2, &jval);
+//    if (jval) {
+//        const char *p = json_object_get_string(jval);
+//        nds.menu.c2 = strtol(p, NULL, 16);
+//    }
+//
+//    nds.auto_state = 1;
+//    json_object_object_get_ex(jfile, JSON_NDS_AUTO_STATE, &jval);
+//    if (jval) {
+//        nds.auto_state = json_object_get_int(jval) ? 1 : 0;
+//    }
+//
+//    nds.auto_slot = 1;
+//    json_object_object_get_ex(jfile, JSON_NDS_AUTO_SLOT, &jval);
+//    if (jval) {
+//        nds.auto_slot = json_object_get_int(jval);
+//    }
+//
+//    lang_enum();
+//    json_object_object_get_ex(jfile, JSON_NDS_LANG, &jval);
+//    if (jval) {
+//        const char *lang = json_object_get_string(jval);
+//
+//        strcpy(nds.lang.trans[DEF_LANG_SLOT], lang);
+//        lang_load(lang);
+//    }
+//
+//    json_object_object_get_ex(jfile, JSON_NDS_HOTKEY, &jval);
+//    if (jval) {
+//        nds.hotkey = json_object_get_int(jval);
+//    }
+//
+//    nds.menu.show_cursor = 0;
+//    json_object_object_get_ex(jfile, JSON_NDS_MENU_CURSOR, &jval);
+//    if (jval) {
+//        nds.menu.show_cursor = json_object_get_int(jval);
+//    }
+//
+//    nds.fast_forward = 6;
+//    json_object_object_get_ex(jfile, JSON_NDS_FAST_FORWARD, &jval);
+//    if (jval) {
+//        nds.fast_forward = json_object_get_int(jval);
+//    }
+//
+//#if defined(MINI) || defined(A30)
+//    json_object_object_get_ex(jfile, JSON_NDS_STATES, &jval);
+//    if (jval) {
+//        struct stat st = {0};
+//        const char *path = json_object_get_string(jval);
+//
+//        if ((path != NULL) && (path[0] != 0)) {
+//            strcpy(nds.states.path, path);
+//
+//            if (stat(nds.states.path, &st) == -1) {
+//                mkdir(nds.states.path, 0755);
+//                printf(PREFIX"Create states folder in \'%s\'\n", nds.states.path);
+//            }
+//        }
+//    }
+//#endif
+//
+//    if (nds.dis_mode > NDS_SCREEN_LAYOUT_LAST) {
+//        nds.dis_mode = NDS_SCREEN_LAYOUT_8;
+//        nds.alt_mode = NDS_SCREEN_LAYOUT_2;
+//    }
+//
+//    nds.menu.sel = 0;
+//    json_object_object_get_ex(jfile, JSON_NDS_MENU_BG, &jval);
+//    if (jval) {
+//        nds.menu.sel = json_object_get_int(jval);
+//        if (nds.menu.sel >= nds.menu.max) {
+//            nds.menu.sel = 0;
+//        }
+//    }
+//    reload_menu();
+//
+//    reload_pen();
+//#if defined(MINI) || defined(A30)
+//    reload_overlay();
+//#endif
+//    json_object_put(jfile);
+//
+//#if defined(A30)
+//    nds.joy.max_x = 200;
+//    nds.joy.zero_x = 135;
+//    nds.joy.min_x = 75;
+//    nds.joy.max_y = 200;
+//    nds.joy.zero_y = 135;
+//    nds.joy.min_y = 75;
+//#endif
     return 0;
 }
 
 static int write_config(void)
 {
-    struct json_object *jfile = NULL;
-
-    jfile = json_object_from_file(nds.cfg.path);
-    if (jfile == NULL) {
-        printf(PREFIX"Failed to write settings to json file (%s)\n", nds.cfg.path);
-        return -1;
-    }
-
-    if (nds.dis_mode > NDS_LAYOUT_LAST) {
-        nds.dis_mode = NDS_LAYOUT_8;
-        nds.alt_mode = NDS_LAYOUT_2;
-    }
-
-    json_object_object_add(jfile, JSON_NDS_PEN_SEL, json_object_new_int(nds.pen.sel));
-    json_object_object_add(jfile, JSON_NDS_THEME_SEL, json_object_new_int(nds.theme.sel));
-    json_object_object_add(jfile, JSON_NDS_DIS_MODE, json_object_new_int(nds.dis_mode));
-    json_object_object_add(jfile, JSON_NDS_ALPHA_VALUE, json_object_new_int(nds.alpha.val));
-    json_object_object_add(jfile, JSON_NDS_ALPHA_POSITION, json_object_new_int(nds.alpha.pos));
-    json_object_object_add(jfile, JSON_NDS_ALPHA_BORDER, json_object_new_int(nds.alpha.border));
-    json_object_object_add(jfile, JSON_NDS_OVERLAY, json_object_new_int(nds.overlay.sel));
-    json_object_object_add(jfile, JSON_NDS_ALT_MODE, json_object_new_int(nds.alt_mode));
-    json_object_object_add(jfile, JSON_NDS_KEYS_ROTATE, json_object_new_int(nds.keys_rotate));
-    json_object_object_add(jfile, JSON_NDS_LANG, json_object_new_string(nds.lang.trans[DEF_LANG_SLOT]));
-    json_object_object_add(jfile, JSON_NDS_HOTKEY, json_object_new_int(nds.hotkey));
-    json_object_object_add(jfile, JSON_NDS_SWAP_L1L2, json_object_new_int(nds.swap_l1l2));
-    json_object_object_add(jfile, JSON_NDS_SWAP_R1R2, json_object_new_int(nds.swap_r1r2));
-    json_object_object_add(jfile, JSON_NDS_PEN_XV, json_object_new_int(nds.pen.xv));
-    json_object_object_add(jfile, JSON_NDS_PEN_YV, json_object_new_int(nds.pen.yv));
-    json_object_object_add(jfile, JSON_NDS_MENU_BG, json_object_new_int(nds.menu.sel));
-    json_object_object_add(jfile, JSON_NDS_MENU_CURSOR, json_object_new_int(nds.menu.show_cursor));
-    json_object_object_add(jfile, JSON_NDS_FAST_FORWARD, json_object_new_int(nds.fast_forward));
-    json_object_object_add(jfile, JSON_NDS_CHK_BAT, json_object_new_int(nds.chk_bat));
-
-#if defined(A30)
-    json_object_object_add(jfile, JSON_NDS_JOY_MODE, json_object_new_int(nds.joy.mode));
-    json_object_object_add(jfile, JSON_NDS_JOY_DZONE, json_object_new_int(nds.joy.dzone));
-    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY0, json_object_new_int(nds.joy.cuskey[0]));
-    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY1, json_object_new_int(nds.joy.cuskey[1]));
-    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY2, json_object_new_int(nds.joy.cuskey[2]));
-    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY3, json_object_new_int(nds.joy.cuskey[3]));
-#endif
-    json_object_object_add(jfile, JSON_NDS_CHK_BAT, json_object_new_int(nds.chk_bat));
-
-    json_object_to_file_ext(nds.cfg.path, jfile, JSON_C_TO_STRING_PRETTY);
-    json_object_put(jfile);
-    printf(PREFIX"Wrote changed settings back !\n");
+//    struct json_object *jfile = NULL;
+//
+//    jfile = json_object_from_file(nds.cfg.path);
+//    if (jfile == NULL) {
+//        printf(PREFIX"Failed to write settings to json file (%s)\n", nds.cfg.path);
+//        return -1;
+//    }
+//
+//    if (nds.dis_mode > NDS_SCREEN_LAYOUT_LAST) {
+//        nds.dis_mode = NDS_SCREEN_LAYOUT_8;
+//        nds.alt_mode = NDS_SCREEN_LAYOUT_2;
+//    }
+//
+//    json_object_object_add(jfile, JSON_NDS_PEN_SEL, json_object_new_int(nds.pen.sel));
+//    json_object_object_add(jfile, JSON_NDS_THEME_SEL, json_object_new_int(nds.theme.sel));
+//    json_object_object_add(jfile, JSON_NDS_DIS_MODE, json_object_new_int(nds.dis_mode));
+//    json_object_object_add(jfile, JSON_NDS_ALPHA_VALUE, json_object_new_int(nds.alpha.val));
+//    json_object_object_add(jfile, JSON_NDS_ALPHA_POSITION, json_object_new_int(nds.alpha.pos));
+//    json_object_object_add(jfile, JSON_NDS_ALPHA_BORDER, json_object_new_int(nds.alpha.border));
+//    json_object_object_add(jfile, JSON_NDS_OVERLAY, json_object_new_int(nds.overlay.sel));
+//    json_object_object_add(jfile, JSON_NDS_ALT_MODE, json_object_new_int(nds.alt_mode));
+//    json_object_object_add(jfile, JSON_NDS_KEYS_ROTATE, json_object_new_int(nds.keys_rotate));
+//    json_object_object_add(jfile, JSON_NDS_LANG, json_object_new_string(nds.lang.trans[DEF_LANG_SLOT]));
+//    json_object_object_add(jfile, JSON_NDS_HOTKEY, json_object_new_int(nds.hotkey));
+//    json_object_object_add(jfile, JSON_NDS_SWAP_L1L2, json_object_new_int(nds.swap_l1l2));
+//    json_object_object_add(jfile, JSON_NDS_SWAP_R1R2, json_object_new_int(nds.swap_r1r2));
+//    json_object_object_add(jfile, JSON_NDS_PEN_XV, json_object_new_int(nds.pen.xv));
+//    json_object_object_add(jfile, JSON_NDS_PEN_YV, json_object_new_int(nds.pen.yv));
+//    json_object_object_add(jfile, JSON_NDS_MENU_BG, json_object_new_int(nds.menu.sel));
+//    json_object_object_add(jfile, JSON_NDS_MENU_CURSOR, json_object_new_int(nds.menu.show_cursor));
+//    json_object_object_add(jfile, JSON_NDS_FAST_FORWARD, json_object_new_int(nds.fast_forward));
+//    json_object_object_add(jfile, JSON_NDS_CHK_BAT, json_object_new_int(nds.chk_bat));
+//
+//#if defined(A30)
+//    json_object_object_add(jfile, JSON_NDS_JOY_MODE, json_object_new_int(nds.joy.mode));
+//    json_object_object_add(jfile, JSON_NDS_JOY_DZONE, json_object_new_int(nds.joy.dzone));
+//    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY0, json_object_new_int(nds.joy.cuskey[0]));
+//    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY1, json_object_new_int(nds.joy.cuskey[1]));
+//    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY2, json_object_new_int(nds.joy.cuskey[2]));
+//    json_object_object_add(jfile, JSON_NDS_JOY_CUSKEY3, json_object_new_int(nds.joy.cuskey[3]));
+//#endif
+//    json_object_object_add(jfile, JSON_NDS_CHK_BAT, json_object_new_int(nds.chk_bat));
+//
+//    json_object_to_file_ext(nds.cfg.path, jfile, JSON_C_TO_STRING_PRETTY);
+//    json_object_put(jfile);
+//    printf(PREFIX"Wrote changed settings back !\n");
     return 0;
 }
 
@@ -3194,7 +3196,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
 #if defined(A30)
     int tex = (id >= 0) ? id : TEX_TMP;
 
-    if ((id != -1) && ((nds.dis_mode == NDS_LAYOUT_13) || (nds.dis_mode == NDS_LAYOUT_15))) {
+    if ((id != -1) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_13) || (nds.dis_mode == NDS_SCREEN_LAYOUT_15))) {
         vVertices[5] = ((((float)dstrect.x) / 640.0) - 0.5) * 2.0;
         vVertices[6] = ((((float)dstrect.y) / 480.0) - 0.5) * -2.0;
 
@@ -3207,7 +3209,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
         vVertices[0] = vVertices[15];
         vVertices[1] = vVertices[6];
     }
-    else if ((id != -1) && ((nds.dis_mode == NDS_LAYOUT_12) || (nds.dis_mode == NDS_LAYOUT_14))) {
+    else if ((id != -1) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_12) || (nds.dis_mode == NDS_SCREEN_LAYOUT_14))) {
         vVertices[15] = ((((float)dstrect.x) / 640.0) - 0.5) * 2.0;
         vVertices[16] = ((((float)dstrect.y) / 480.0) - 0.5) * -2.0;
 
@@ -3248,7 +3250,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcrect.w, srcrect.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     }
 
-    if (((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1)) && (tex == TEX_SCR0)) {
+    if (((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1)) && (tex == TEX_SCR0)) {
         glUniform1f(vid.alphaLoc, 1.0 - ((float)nds.alpha.val / 10.0));
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
@@ -3259,7 +3261,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
     glVertexAttribPointer(vid.texLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &vVertices[3]);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
 
-    if (((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1)) && (tex == TEX_SCR0)) {
+    if (((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1)) && (tex == TEX_SCR0)) {
         glUniform1f(vid.alphaLoc, 0.0);
         glDisable(GL_BLEND);
     }
@@ -3309,11 +3311,11 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
             };
 
             switch (nds.dis_mode) {
-            case NDS_LAYOUT_0:
+            case NDS_SCREEN_LAYOUT_0:
                 sw = 170;
                 sh = 128;
                 break;
-            case NDS_LAYOUT_1:
+            case NDS_SCREEN_LAYOUT_1:
                 sw = srcrect.w;
                 sh = srcrect.h;
                 break;
@@ -3322,7 +3324,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
             ay = 0;
             for (y=0; y<sh; y++) {
                 switch (nds.dis_mode) {
-                case NDS_LAYOUT_0:
+                case NDS_SCREEN_LAYOUT_0:
                     if (y && ((y % 2) == 0)) {
                         ay+= 1;
                     }
@@ -3337,7 +3339,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
                     }
                     else {
                         switch (nds.dis_mode) {
-                        case NDS_LAYOUT_0:
+                        case NDS_SCREEN_LAYOUT_0:
                             if (x && ((x % 2) == 0)) {
                                 ax+= 1;
                             }
@@ -3391,7 +3393,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
         }
 
         switch (nds.dis_mode) {
-        case NDS_LAYOUT_0:
+        case NDS_SCREEN_LAYOUT_0:
             dstrect.w = 170;
             dstrect.h = 128;
             if (nds.alpha.val > 0) {
@@ -3400,7 +3402,7 @@ int GFX_Copy(int id, const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int
                 pitch = srcrect.w * 4;
             }
             break;
-        case NDS_LAYOUT_1:
+        case NDS_SCREEN_LAYOUT_1:
             dstrect.w = NDS_W;
             dstrect.h = NDS_H;
             if (nds.alpha.val > 0) {
@@ -4224,49 +4226,49 @@ int reload_bg(void)
 
                 if (get_dir_path(nds.theme.path, nds.theme.sel, buf) == 0) {
                     switch (nds.dis_mode) {
-                    case NDS_LAYOUT_0:
-                    case NDS_LAYOUT_1:
+                    case NDS_SCREEN_LAYOUT_0:
+                    case NDS_SCREEN_LAYOUT_1:
                         return 0;
-                    case NDS_LAYOUT_2:
+                    case NDS_SCREEN_LAYOUT_2:
                         strcat(buf, "/bg_s0.png");
                         break;
-                    case NDS_LAYOUT_3:
+                    case NDS_SCREEN_LAYOUT_3:
                         return 0;
-                    case NDS_LAYOUT_4:
+                    case NDS_SCREEN_LAYOUT_4:
                         strcat(buf, "/bg_v0.png");
                         break;
-                    case NDS_LAYOUT_5:
+                    case NDS_SCREEN_LAYOUT_5:
                         strcat(buf, "/bg_v1.png");
                         break;
-                    case NDS_LAYOUT_6:
+                    case NDS_SCREEN_LAYOUT_6:
                         strcat(buf, "/bg_h0.png");
                         break;
-                    case NDS_LAYOUT_7:
+                    case NDS_SCREEN_LAYOUT_7:
                         strcat(buf, "/bg_h1.png");
                         break;
-                    case NDS_LAYOUT_8:
+                    case NDS_SCREEN_LAYOUT_8:
                         strcat(buf, "/bg_vh_s0.png");
                         break;
-                    case NDS_LAYOUT_9:
+                    case NDS_SCREEN_LAYOUT_9:
                         strcat(buf, "/bg_vh_s1.png");
                         break;
-                    case NDS_LAYOUT_16:
+                    case NDS_SCREEN_LAYOUT_16:
                         strcat(buf, "/bg_vh_s2.png");
                         break;
-                    case NDS_LAYOUT_10:
+                    case NDS_SCREEN_LAYOUT_10:
                         strcat(buf, "/bg_vh_c0.png");
                         break;
-                    case NDS_LAYOUT_11:
+                    case NDS_SCREEN_LAYOUT_11:
                         strcat(buf, "/bg_vh_c1.png");
                         break;
-                    case NDS_LAYOUT_12:
-                    case NDS_LAYOUT_13:
+                    case NDS_SCREEN_LAYOUT_12:
+                    case NDS_SCREEN_LAYOUT_13:
                         strcat(buf, "/bg_hh0.png");
                         break;
-                    case NDS_LAYOUT_17:
+                    case NDS_SCREEN_LAYOUT_17:
                         strcat(buf, "/bg_hres0.png");
                         break;
-                    case NDS_LAYOUT_18:
+                    case NDS_SCREEN_LAYOUT_18:
                         return 0;
                     }
                     
@@ -4387,9 +4389,7 @@ static SDL_VideoDevice *CreateDevice(int devindex)
     device->free = MiyooDeleteDevice;
     device->PumpEvents = PumpEvents;
 
-    unlink(LOG_FILE_NAME);
     init_config_settings();
-    load_config_settings();
     return device;
 }
 
@@ -4906,7 +4906,7 @@ int handle_menu(int key)
             break;
 #endif
         case MENU_HOTKEY:
-            nds.hotkey = HOTKEY_BIND_MENU;
+            //nds.hotkey = HOTKEY_BIND_MENU;
             break;
         case MENU_SWAP_L1L2:
             nds.swap_l1l2 = 0;
@@ -4926,25 +4926,25 @@ int handle_menu(int key)
                 }
             }
             else {
-                nds.dis_mode = NDS_LAYOUT_17;
+                nds.dis_mode = NDS_SCREEN_LAYOUT_17;
             }
             break;
         case MENU_DIS_ALPHA:
-            if (((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if (((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 if (nds.alpha.val > 0) {
                     nds.alpha.val-= 1;
                 }
             }
             break;
         case MENU_DIS_BORDER:
-            if ((nds.alpha.val > 0) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if ((nds.alpha.val > 0) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 if (nds.alpha.border > 0) {
                     nds.alpha.border-= 1;
                 }
             }
             break;
         case MENU_DIS_POSITION:
-            if (((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if (((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 if (nds.alpha.pos > 0) {
                     nds.alpha.pos-= 1;
                 }
@@ -4961,14 +4961,14 @@ int handle_menu(int key)
             }
             break;
         case MENU_PEN_XV:
-            if (nds.pen.xv > PEN_XV_MIN) {
-                nds.pen.xv-= PEN_XV_DEC;
-            }
+//            if (nds.pen.xv > PEN_XV_MIN) {
+//                nds.pen.xv-= PEN_XV_DEC;
+//            }
             break;
         case MENU_PEN_YV:
-            if (nds.pen.yv > PEN_YV_MIN) {
-                nds.pen.yv-= PEN_YV_DEC;
-            }
+//            if (nds.pen.yv > PEN_YV_MIN) {
+//                nds.pen.yv-= PEN_YV_DEC;
+//            }
             break;
         case MENU_CURSOR:
             nds.menu.show_cursor = 0;
@@ -5051,7 +5051,7 @@ int handle_menu(int key)
             break;
 #endif
         case MENU_HOTKEY:
-            nds.hotkey = HOTKEY_BIND_SELECT;
+            //nds.hotkey = HOTKEY_BIND_SELECT;
             break;
         case MENU_SWAP_L1L2:
             nds.swap_l1l2 = 1;
@@ -5066,37 +5066,37 @@ int handle_menu(int key)
             break;
         case MENU_DIS:
             if (nds.hres_mode == 0) {
-                if (nds.dis_mode < NDS_LAYOUT_LAST) {
+                if (nds.dis_mode < NDS_SCREEN_LAYOUT_LAST) {
                     nds.dis_mode+= 1;
                 }
             }
             else {
-                nds.dis_mode = NDS_LAYOUT_18;
+                nds.dis_mode = NDS_SCREEN_LAYOUT_18;
             }
             break;
         case MENU_DIS_ALPHA:
-            if (((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if (((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 if (nds.alpha.val < NDS_ALPHA_MAX) {
                     nds.alpha.val+= 1;
                 }
             }
             break;
         case MENU_DIS_BORDER:
-            if ((nds.alpha.val > 0) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if ((nds.alpha.val > 0) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 if (nds.alpha.border < NDS_BORDER_MAX) {
                     nds.alpha.border+= 1;
                 }
             }
             break;
         case MENU_DIS_POSITION:
-            if (((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if (((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 if (nds.alpha.pos < 3) {
                     nds.alpha.pos+= 1;
                 }
             }
             break;
         case MENU_ALT:
-            if ((nds.hres_mode == 0) && (nds.alt_mode < NDS_LAYOUT_LAST)) {
+            if ((nds.hres_mode == 0) && (nds.alt_mode < NDS_SCREEN_LAYOUT_LAST)) {
                 nds.alt_mode+= 1;
             }
             break;
@@ -5106,14 +5106,14 @@ int handle_menu(int key)
             }
             break;
         case MENU_PEN_XV:
-            if (nds.pen.xv < PEN_XV_MAX) {
-                nds.pen.xv+= PEN_XV_INC;
-            }
+//            if (nds.pen.xv < PEN_XV_MAX) {
+//                nds.pen.xv+= PEN_XV_INC;
+//            }
             break;
         case MENU_PEN_YV:
-            if (nds.pen.yv < PEN_YV_MAX) {
-                nds.pen.yv+= PEN_YV_INC;
-            }
+//            if (nds.pen.yv < PEN_YV_MAX) {
+//                nds.pen.yv+= PEN_YV_INC;
+//            }
             break;
         case MENU_CURSOR:
             nds.menu.show_cursor = 1;
@@ -5242,11 +5242,11 @@ int handle_menu(int key)
         switch (cc) {
         case MENU_DIS_ALPHA:
             sx = 20;
-            if ((cur_sel == MENU_DIS_ALPHA) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if ((cur_sel == MENU_DIS_ALPHA) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 col1 = val_col;
             }
             else {
-                if ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1)) {
+                if ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1)) {
                     col1 = unsel_col;
                 }
                 else {
@@ -5256,11 +5256,11 @@ int handle_menu(int key)
             break;
         case MENU_DIS_BORDER:
             sx = 20;
-            if ((cur_sel == MENU_DIS_BORDER) && (nds.alpha.val > 0) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if ((cur_sel == MENU_DIS_BORDER) && (nds.alpha.val > 0) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 col1 = val_col;
             }
             else {
-                if ((nds.alpha.val > 0) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+                if ((nds.alpha.val > 0) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                     col1 = unsel_col;
                 }
                 else {
@@ -5270,11 +5270,11 @@ int handle_menu(int key)
             break;
         case MENU_DIS_POSITION:
             sx = 20;
-            if ((cur_sel == MENU_DIS_POSITION) && ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1))) {
+            if ((cur_sel == MENU_DIS_POSITION) && ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1))) {
                 col1 = val_col;
             }
             else {
-                if ((nds.dis_mode == NDS_LAYOUT_0) || (nds.dis_mode == NDS_LAYOUT_1)) {
+                if ((nds.dis_mode == NDS_SCREEN_LAYOUT_0) || (nds.dis_mode == NDS_SCREEN_LAYOUT_1)) {
                     col1 = unsel_col;
                 }
                 else {
@@ -5368,7 +5368,7 @@ int handle_menu(int key)
             break;
 #endif
         case MENU_HOTKEY:
-            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[nds.hotkey]));
+            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[get_cfg_keypad_hotkey()]));
             break;
         case MENU_SWAP_L1L2:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.swap_l1l2 ? "Yes" : "No"));
@@ -5391,10 +5391,10 @@ int handle_menu(int key)
             }
             else {
                 if (nds.enable_752x560) {
-                    snprintf(buf, sizeof(buf), "[%d]   %s", nds.dis_mode, nds.dis_mode == NDS_LAYOUT_17 ? "512*384" : "752*560");
+                    snprintf(buf, sizeof(buf), "[%d]   %s", nds.dis_mode, nds.dis_mode == NDS_SCREEN_LAYOUT_17 ? "512*384" : "752*560");
                 }
                 else {
-                    snprintf(buf, sizeof(buf), "[%d]   %s", nds.dis_mode, nds.dis_mode == NDS_LAYOUT_17 ? "512*384" : "640*480");
+                    snprintf(buf, sizeof(buf), "[%d]   %s", nds.dis_mode, nds.dis_mode == NDS_SCREEN_LAYOUT_17 ? "512*384" : "640*480");
                 }
             }
             break;
@@ -5429,16 +5429,16 @@ int handle_menu(int key)
             break;
         case MENU_PEN_XV:
 #if defined(A30)
-            snprintf(buf, sizeof(buf), "%d (80000)", nds.pen.xv);
+            snprintf(buf, sizeof(buf), "%d (80000)", get_cfg_pen_speed_x());
 #else
-            snprintf(buf, sizeof(buf), "%d (30000)", nds.pen.xv);
+            snprintf(buf, sizeof(buf), "%d (30000)", get_cfg_pen_speed_x());
 #endif
             break;
         case MENU_PEN_YV:
 #if defined(A30)
-            snprintf(buf, sizeof(buf), "%d (85000)", nds.pen.yv);
+            snprintf(buf, sizeof(buf), "%d (85000)", get_cfg_pen_speed_y());
 #else
-            snprintf(buf, sizeof(buf), "%d (35000)", nds.pen.yv);
+            snprintf(buf, sizeof(buf), "%d (35000)", get_cfg_pen_speed_y());
 #endif
             break;
         case MENU_CURSOR:
@@ -5486,7 +5486,7 @@ int handle_menu(int key)
     }
     else if(dis_mode >= 0) {
         switch (dis_mode) {
-        case NDS_LAYOUT_0:
+        case NDS_SCREEN_LAYOUT_0:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5515,7 +5515,7 @@ int handle_menu(int key)
             }
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, (30 * nds.alpha.val)));
             break;
-        case NDS_LAYOUT_1:
+        case NDS_SCREEN_LAYOUT_1:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5544,7 +5544,7 @@ int handle_menu(int key)
             }
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, (30 * nds.alpha.val)));
             break;
-        case NDS_LAYOUT_2:
+        case NDS_SCREEN_LAYOUT_2:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5557,14 +5557,14 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x80, 0x00, 0x00));
             break;
-        case NDS_LAYOUT_3:
+        case NDS_SCREEN_LAYOUT_3:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
             rt.h = 96;
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x80, 0x00, 0x00));
             break;
-        case NDS_LAYOUT_4:
+        case NDS_SCREEN_LAYOUT_4:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5583,7 +5583,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - (rt.h * 2)) / 2) + rt.h;
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_5:
+        case NDS_SCREEN_LAYOUT_5:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5602,7 +5602,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - (rt.h * 2)) / 2) + rt.h;
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_6:
+        case NDS_SCREEN_LAYOUT_6:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5621,7 +5621,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_7:
+        case NDS_SCREEN_LAYOUT_7:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5640,7 +5640,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_8:
+        case NDS_SCREEN_LAYOUT_8:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5659,7 +5659,7 @@ int handle_menu(int key)
             rt.y = sy + (96 - rt.h);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_9:
+        case NDS_SCREEN_LAYOUT_9:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5678,7 +5678,7 @@ int handle_menu(int key)
             rt.y = sy + (96 - rt.h);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_16:
+        case NDS_SCREEN_LAYOUT_16:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5697,7 +5697,7 @@ int handle_menu(int key)
             rt.y = sy + (96 - rt.h);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_10:
+        case NDS_SCREEN_LAYOUT_10:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5716,7 +5716,7 @@ int handle_menu(int key)
             rt.y = sy + (96 - rt.h);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_11:
+        case NDS_SCREEN_LAYOUT_11:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5735,7 +5735,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_12:
+        case NDS_SCREEN_LAYOUT_12:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5754,7 +5754,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_13:
+        case NDS_SCREEN_LAYOUT_13:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5773,7 +5773,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x80, 0x00, 0x00));
             break;
-        case NDS_LAYOUT_14:
+        case NDS_SCREEN_LAYOUT_14:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5792,7 +5792,7 @@ int handle_menu(int key)
             rt.y = sy;
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x00, 0x00, 0x80));
             break;
-        case NDS_LAYOUT_15:
+        case NDS_SCREEN_LAYOUT_15:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5811,7 +5811,7 @@ int handle_menu(int key)
             rt.y = sy;
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x80, 0x00, 0x00));
             break;
-        case NDS_LAYOUT_17:
+        case NDS_SCREEN_LAYOUT_17:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;
@@ -5824,7 +5824,7 @@ int handle_menu(int key)
             rt.y = sy + ((96 - rt.h) / 2);
             SDL_FillRect(cvt, &rt, SDL_MapRGB(cvt->format, 0x80, 0x00, 0x00));
             break;
-        case NDS_LAYOUT_18:
+        case NDS_SCREEN_LAYOUT_18:
             rt.x = sx;
             rt.y = sy;
             rt.w = 128;

@@ -117,7 +117,7 @@
 #define BAT_CUR_CMD             "cat /sys/class/power_supply/battery/voltage_now"
 #endif
 
-#if defined(MINI) || defined(UT)
+#if defined(MINI)
 #define USE_MASK                0
 #define DEF_FB_W                640
 #define DEF_FB_H                480
@@ -159,26 +159,26 @@
 #define PEN_CP                      4
 #define FONT_PATH                   "resources/font/font.ttf"
 
-#define NDS_LAYOUT_0          0 // NDS_DIS_MODE_VH_T0
-#define NDS_LAYOUT_1          1 // NDS_DIS_MODE_VH_T1
-#define NDS_LAYOUT_2          2 // NDS_DIS_MODE_S0
-#define NDS_LAYOUT_3          3 // NDS_DIS_MODE_S1
-#define NDS_LAYOUT_4          4 // NDS_DIS_MODE_V0
-#define NDS_LAYOUT_5          5 // NDS_DIS_MODE_V1
-#define NDS_LAYOUT_6          6 // NDS_DIS_MODE_H0
-#define NDS_LAYOUT_7          7 // NDS_DIS_MODE_H1
-#define NDS_LAYOUT_8          8 // NDS_DIS_MODE_VH_S0
-#define NDS_LAYOUT_9          9 // NDS_DIS_MODE_VH_S1
-#define NDS_LAYOUT_10         10 // NDS_DIS_MODE_VH_C0
-#define NDS_LAYOUT_11         11 // NDS_DIS_MODE_VH_C1
-#define NDS_LAYOUT_12         12 // NDS_DIS_MODE_HH0
-#define NDS_LAYOUT_13         13 // NDS_DIS_MODE_HH1
-#define NDS_LAYOUT_14         14 // NDS_DIS_MODE_HH2
-#define NDS_LAYOUT_15         15 // NDS_DIS_MODE_HH3
-#define NDS_LAYOUT_16         16 // NDS_DIS_MODE_VH_S2
-#define NDS_LAYOUT_LAST       16
-#define NDS_LAYOUT_17         17 // NDS_DIS_MODE_HRES0
-#define NDS_LAYOUT_18         18 // NDS_DIS_MODE_HRES1
+#define NDS_SCREEN_LAYOUT_0          0 // NDS_DIS_MODE_VH_T0
+#define NDS_SCREEN_LAYOUT_1          1 // NDS_DIS_MODE_VH_T1
+#define NDS_SCREEN_LAYOUT_2          2 // NDS_DIS_MODE_S0
+#define NDS_SCREEN_LAYOUT_3          3 // NDS_DIS_MODE_S1
+#define NDS_SCREEN_LAYOUT_4          4 // NDS_DIS_MODE_V0
+#define NDS_SCREEN_LAYOUT_5          5 // NDS_DIS_MODE_V1
+#define NDS_SCREEN_LAYOUT_6          6 // NDS_DIS_MODE_H0
+#define NDS_SCREEN_LAYOUT_7          7 // NDS_DIS_MODE_H1
+#define NDS_SCREEN_LAYOUT_8          8 // NDS_DIS_MODE_VH_S0
+#define NDS_SCREEN_LAYOUT_9          9 // NDS_DIS_MODE_VH_S1
+#define NDS_SCREEN_LAYOUT_10         10 // NDS_DIS_MODE_VH_C0
+#define NDS_SCREEN_LAYOUT_11         11 // NDS_DIS_MODE_VH_C1
+#define NDS_SCREEN_LAYOUT_12         12 // NDS_DIS_MODE_HH0
+#define NDS_SCREEN_LAYOUT_13         13 // NDS_DIS_MODE_HH1
+#define NDS_SCREEN_LAYOUT_14         14 // NDS_DIS_MODE_HH2
+#define NDS_SCREEN_LAYOUT_15         15 // NDS_DIS_MODE_HH3
+#define NDS_SCREEN_LAYOUT_16         16 // NDS_DIS_MODE_VH_S2
+#define NDS_SCREEN_LAYOUT_LAST       16
+#define NDS_SCREEN_LAYOUT_17         17 // NDS_DIS_MODE_HRES0
+#define NDS_SCREEN_LAYOUT_18         18 // NDS_DIS_MODE_HRES1
 
 #define NDS_ALPHA_MAX               7
 #define NDS_BORDER_MAX              7
@@ -187,42 +187,42 @@
 #define NDS_STATE_QLOAD             2
 #define NDS_STATE_FF                4
 
-#define JSON_NDS_PEN_XV             "xv"
-#define JSON_NDS_PEN_YV             "yv"
-#define JSON_NDS_PEN_SEL            "pen"
-#define JSON_NDS_PEN_POS            "touchpad"
-#define JSON_NDS_THEME_SEL          "theme"
-#define JSON_NDS_DIS_MODE           "mode"
-#define JSON_NDS_ALPHA_VALUE        "alpha"
-#define JSON_NDS_ALPHA_POSITION     "position"
-#define JSON_NDS_ALPHA_BORDER       "border"
-#define JSON_NDS_MAX_CORE           "maxcore"
-#define JSON_NDS_MIN_CORE           "mincore"
-#define JSON_NDS_MAX_CPU            "maxcpu"
-#define JSON_NDS_MIN_CPU            "mincpu"
-#define JSON_NDS_OVERLAY            "overlay"
-#define JSON_NDS_ALT_MODE           "alt"
-#define JSON_NDS_SWAP_L1L2          "swap_l1l2"
-#define JSON_NDS_SWAP_R1R2          "swap_r1r2"
-#define JSON_NDS_LANG               "lang"
-#define JSON_NDS_KEYS_ROTATE        "keys_rotate"
-#define JSON_NDS_MENU_C0            "menu_c0"
-#define JSON_NDS_MENU_C1            "menu_c1"
-#define JSON_NDS_MENU_C2            "menu_c2"
-#define JSON_NDS_AUTO_STATE         "auto_state"
-#define JSON_NDS_AUTO_SLOT          "auto_slot"
-#define JSON_NDS_HOTKEY             "hotkey"
-#define JSON_NDS_STATES             "states"
-#define JSON_NDS_MENU_BG            "menu_bg"
-#define JSON_NDS_MENU_CURSOR        "menu_cursor"
-#define JSON_NDS_FAST_FORWARD       "fast_forward"
-#define JSON_NDS_JOY_MODE           "joy_mode"
-#define JSON_NDS_JOY_DZONE          "joy_dzone"
-#define JSON_NDS_JOY_CUSKEY0        "joy_cuskey0"
-#define JSON_NDS_JOY_CUSKEY1        "joy_cuskey1"
-#define JSON_NDS_JOY_CUSKEY2        "joy_cuskey2"
-#define JSON_NDS_JOY_CUSKEY3        "joy_cuskey3"
-#define JSON_NDS_CHK_BAT            "chk_bat"
+//#define JSON_NDS_PEN_XV             "xv"
+//#define JSON_NDS_PEN_YV             "yv"
+//#define JSON_NDS_PEN_SEL            "pen"
+//#define JSON_NDS_PEN_POS            "touchpad"
+//#define JSON_NDS_THEME_SEL          "theme"
+//#define JSON_NDS_DIS_MODE           "mode"
+//#define JSON_NDS_ALPHA_VALUE        "alpha"
+//#define JSON_NDS_ALPHA_POSITION     "position"
+//#define JSON_NDS_ALPHA_BORDER       "border"
+//#define JSON_NDS_MAX_CORE           "maxcore"
+//#define JSON_NDS_MIN_CORE           "mincore"
+//#define JSON_NDS_MAX_CPU            "maxcpu"
+//#define JSON_NDS_MIN_CPU            "mincpu"
+//#define JSON_NDS_OVERLAY            "overlay"
+//#define JSON_NDS_ALT_MODE           "alt"
+//#define JSON_NDS_SWAP_L1L2          "swap_l1l2"
+//#define JSON_NDS_SWAP_R1R2          "swap_r1r2"
+//#define JSON_NDS_LANG               "lang"
+//#define JSON_NDS_KEYS_ROTATE        "keys_rotate"
+//#define JSON_NDS_MENU_C0            "menu_c0"
+//#define JSON_NDS_MENU_C1            "menu_c1"
+//#define JSON_NDS_MENU_C2            "menu_c2"
+//#define JSON_NDS_AUTO_STATE         "auto_state"
+//#define JSON_NDS_AUTO_SLOT          "auto_slot"
+//#define JSON_NDS_HOTKEY             "hotkey"
+//#define JSON_NDS_STATES             "states"
+//#define JSON_NDS_MENU_BG            "menu_bg"
+//#define JSON_NDS_MENU_CURSOR        "menu_cursor"
+//#define JSON_NDS_FAST_FORWARD       "fast_forward"
+//#define JSON_NDS_JOY_MODE           "joy_mode"
+//#define JSON_NDS_JOY_DZONE          "joy_dzone"
+//#define JSON_NDS_JOY_CUSKEY0        "joy_cuskey0"
+//#define JSON_NDS_JOY_CUSKEY1        "joy_cuskey1"
+//#define JSON_NDS_JOY_CUSKEY2        "joy_cuskey2"
+//#define JSON_NDS_JOY_CUSKEY3        "joy_cuskey3"
+//#define JSON_NDS_CHK_BAT            "chk_bat"
 
 #define DEF_LANG_SLOT               0
 #define DEF_LANG_LANG               "english"
@@ -239,8 +239,8 @@
 #define NDS_DRASTIC_MENU_CHEAT          6
 #define NDS_DRASTIC_MENU_ROM            7
 
-#define HOTKEY_BIND_MENU                0
-#define HOTKEY_BIND_SELECT              1
+//#define HOTKEY_BIND_MENU                0
+//#define HOTKEY_BIND_SELECT              1
 
 #define PEN_XV_MIN                      5000
 #define PEN_XV_DEC                      1000
@@ -339,7 +339,7 @@ typedef struct _NDS {
     int mincpu;
     int maxcpu;
     int volume;
-    int hotkey;
+    //int hotkey;
     int chk_bat;
     int dis_mode;
     int alt_mode;
@@ -432,14 +432,13 @@ typedef struct _NDS {
     } theme;
 
     struct _PEN {
-        int xv;
-        int yv;
+//        int xv;
+//        int yv;
         int sel;
         int max;
         int pos;
         int type;
         SDL_Surface *img;
-        clock_t pre_ticks;
         char path[MAX_PATH];
     } pen;
 

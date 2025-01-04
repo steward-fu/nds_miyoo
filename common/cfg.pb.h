@@ -15,6 +15,12 @@ typedef enum __keypad__hotkey {
     _keypad__hotkey_select = 1
 } _keypad__hotkey;
 
+typedef enum __joystick__mode {
+    _joystick__mode_keypad = 0,
+    _joystick__mode_pen = 1,
+    _joystick__mode_remap = 2
+} _joystick__mode;
+
 /* Struct definitions */
 typedef struct __display__small {
     int32_t alpha;
@@ -88,7 +94,7 @@ typedef struct __joystick__remap {
 } _joystick__remap;
 
 typedef struct __joystick {
-    int32_t mode;
+    _joystick__mode mode;
     int32_t dead_zone;
     bool has_remap_left;
     _joystick__remap remap_left;
@@ -102,6 +108,7 @@ typedef struct _settings {
     char font_path[255];
     char state_folder[255];
     char border_image[255];
+    int32_t debug_level;
     int32_t system_volume;
     int32_t fast_forward;
     bool half_volume;
@@ -132,6 +139,10 @@ extern "C" {
 #define __keypad__hotkey_MAX _keypad__hotkey_select
 #define __keypad__hotkey_ARRAYSIZE ((_keypad__hotkey)(_keypad__hotkey_select+1))
 
+#define __joystick__mode_MIN _joystick__mode_keypad
+#define __joystick__mode_MAX _joystick__mode_remap
+#define __joystick__mode_ARRAYSIZE ((_joystick__mode)(_joystick__mode_remap+1))
+
 
 
 
@@ -144,6 +155,7 @@ extern "C" {
 #define _keypad_hotkey_ENUMTYPE _keypad__hotkey
 
 
+#define _joystick_mode_ENUMTYPE _joystick__mode
 
 
 
@@ -160,9 +172,9 @@ extern "C" {
 #define _autosave_init_default                   {0, 0}
 #define _keypad_init_default                     {0, __keypad__hotkey_MIN, false, _keypad__swap_init_default}
 #define _keypad__swap_init_default               {0, 0}
-#define _joystick_init_default                   {0, 0, false, _joystick__remap_init_default, false, _joystick__remap_init_default}
+#define _joystick_init_default                   {__joystick__mode_MIN, 0, false, _joystick__remap_init_default, false, _joystick__remap_init_default}
 #define _joystick__remap_init_default            {0, 0, 0, 0}
-#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, false, _display_init_default, false, _cpu_init_default, false, _pen_init_default, false, _menu_init_default, false, _autosave_init_default, false, _keypad_init_default, false, _joystick_init_default}
+#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, 0, false, _display_init_default, false, _cpu_init_default, false, _pen_init_default, false, _menu_init_default, false, _autosave_init_default, false, _keypad_init_default, false, _joystick_init_default}
 #define _display_init_zero                       {0, 0, false, _display__small_init_zero}
 #define _display__small_init_zero                {0, 0, 0}
 #define _cpu_init_zero                           {false, _cpu__freq_init_zero, false, _cpu__core_init_zero}
@@ -174,9 +186,9 @@ extern "C" {
 #define _autosave_init_zero                      {0, 0}
 #define _keypad_init_zero                        {0, __keypad__hotkey_MIN, false, _keypad__swap_init_zero}
 #define _keypad__swap_init_zero                  {0, 0}
-#define _joystick_init_zero                      {0, 0, false, _joystick__remap_init_zero, false, _joystick__remap_init_zero}
+#define _joystick_init_zero                      {__joystick__mode_MIN, 0, false, _joystick__remap_init_zero, false, _joystick__remap_init_zero}
 #define _joystick__remap_init_zero               {0, 0, 0, 0}
-#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, false, _display_init_zero, false, _cpu_init_zero, false, _pen_init_zero, false, _menu_init_zero, false, _autosave_init_zero, false, _keypad_init_zero, false, _joystick_init_zero}
+#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, 0, false, _display_init_zero, false, _cpu_init_zero, false, _pen_init_zero, false, _menu_init_zero, false, _autosave_init_zero, false, _keypad_init_zero, false, _joystick_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define _display__small_alpha_tag                1
@@ -218,17 +230,18 @@ extern "C" {
 #define settings_font_path_tag                   3
 #define settings_state_folder_tag                4
 #define settings_border_image_tag                5
-#define settings_system_volume_tag               6
-#define settings_fast_forward_tag                7
-#define settings_half_volume_tag                 8
-#define settings_low_battery_close_tag           9
-#define settings_display_tag                     10
-#define settings_cpu_tag                         11
-#define settings_pen_tag                         12
-#define settings_menu_tag                        13
-#define settings_autosave_tag                    14
-#define settings_keypad_tag                      15
-#define settings_joystick_tag                    16
+#define settings_debug_level_tag                 6
+#define settings_system_volume_tag               7
+#define settings_fast_forward_tag                8
+#define settings_half_volume_tag                 9
+#define settings_low_battery_close_tag           10
+#define settings_display_tag                     11
+#define settings_cpu_tag                         12
+#define settings_pen_tag                         13
+#define settings_menu_tag                        14
+#define settings_autosave_tag                    15
+#define settings_keypad_tag                      16
+#define settings_joystick_tag                    17
 
 /* Struct field encoding specification for nanopb */
 #define _display_FIELDLIST(X, a) \
@@ -307,7 +320,7 @@ X(a, STATIC,   SINGULAR, BOOL,     r1_r2,             2)
 #define _keypad__swap_DEFAULT NULL
 
 #define _joystick_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    mode,              1) \
+X(a, STATIC,   SINGULAR, UENUM,    mode,              1) \
 X(a, STATIC,   SINGULAR, INT32,    dead_zone,         2) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  remap_left,        3) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  remap_right,       4)
@@ -330,17 +343,18 @@ X(a, STATIC,   SINGULAR, STRING,   language,          2) \
 X(a, STATIC,   SINGULAR, STRING,   font_path,         3) \
 X(a, STATIC,   SINGULAR, STRING,   state_folder,      4) \
 X(a, STATIC,   SINGULAR, STRING,   border_image,      5) \
-X(a, STATIC,   SINGULAR, INT32,    system_volume,     6) \
-X(a, STATIC,   SINGULAR, INT32,    fast_forward,      7) \
-X(a, STATIC,   SINGULAR, BOOL,     half_volume,       8) \
-X(a, STATIC,   SINGULAR, BOOL,     low_battery_close,   9) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  display,          10) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              11) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              12) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             13) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         14) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  keypad,           15) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  joystick,         16)
+X(a, STATIC,   SINGULAR, INT32,    debug_level,       6) \
+X(a, STATIC,   SINGULAR, INT32,    system_volume,     7) \
+X(a, STATIC,   SINGULAR, INT32,    fast_forward,      8) \
+X(a, STATIC,   SINGULAR, BOOL,     half_volume,       9) \
+X(a, STATIC,   SINGULAR, BOOL,     low_battery_close,  10) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  display,          11) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              12) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              13) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             14) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         15) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  keypad,           16) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  joystick,         17)
 #define settings_CALLBACK NULL
 #define settings_DEFAULT NULL
 #define settings_display_MSGTYPE _display
@@ -391,13 +405,13 @@ extern const pb_msgdesc_t settings_msg;
 #define _display__small_size                     33
 #define _display_size                            57
 #define _joystick__remap_size                    44
-#define _joystick_size                           114
+#define _joystick_size                           105
 #define _keypad__swap_size                       4
 #define _keypad_size                             19
 #define _menu_size                               259
 #define _pen__speed_size                         22
 #define _pen_size                                283
-#define settings_size                            2121
+#define settings_size                            2124
 
 #ifdef __cplusplus
 } /* extern "C" */

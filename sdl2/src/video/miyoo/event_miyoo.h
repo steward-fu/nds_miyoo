@@ -70,31 +70,35 @@
 #define DEV_KEY_CODE_VOLDOWN    114
 #endif
 
-#define KEY_BIT_UP            0
-#define KEY_BIT_DOWN          1
-#define KEY_BIT_LEFT          2
-#define KEY_BIT_RIGHT         3
-#define KEY_BIT_A             4
-#define KEY_BIT_B             5
-#define KEY_BIT_X             6
-#define KEY_BIT_Y             7
-#define KEY_BIT_L1            8
-#define KEY_BIT_R1            9
-#define KEY_BIT_L2            10
-#define KEY_BIT_R2            11
-#define KEY_BIT_SELECT        12
-#define KEY_BIT_START         13
-#define KEY_BIT_MENU          14
-#define KEY_BIT_QSAVE         15
-#define KEY_BIT_QLOAD         16
-#define KEY_BIT_FF            17
-#define KEY_BIT_EXIT          18
-#define KEY_BIT_MENU_ONION    19
-#define KEY_BIT_POWER         20
-#define KEY_BIT_VOLUP         21
-#define KEY_BIT_VOLDOWN       22
+#define KEY_BIT_UP              0
+#define KEY_BIT_DOWN            1
+#define KEY_BIT_LEFT            2
+#define KEY_BIT_RIGHT           3
+#define KEY_BIT_A               4
+#define KEY_BIT_B               5
+#define KEY_BIT_X               6
+#define KEY_BIT_Y               7
+#define KEY_BIT_L1              8
+#define KEY_BIT_R1              9
+#define KEY_BIT_L2              10
+#define KEY_BIT_R2              11
+#define KEY_BIT_SELECT          12
+#define KEY_BIT_START           13
+#define KEY_BIT_MENU            14
+#define KEY_BIT_QSAVE           15
+#define KEY_BIT_QLOAD           16
+#define KEY_BIT_FF              17
+#define KEY_BIT_EXIT            18
+#define KEY_BIT_MENU_ONION      19
+#define KEY_BIT_LAST            KEY_BIT_MENU_ONION // ignore POWER, VOL-, VOL+ keys
+#define KEY_BIT_POWER           20
+#define KEY_BIT_VOLUP           21
+#define KEY_BIT_VOLDOWN         22
 
-#define KEY_BIT_LAST     19 // ignore POWER, VOL-, VOL+ keys
+typedef enum _move_dir {
+    LEFT_RIGHT = 0,
+    UP_DOWN
+} move_dir_t;
 
 typedef enum _dev_mode {
     KEYPAD_MODE = 0,
@@ -112,17 +116,17 @@ typedef struct _miyoo_event_t {
         int y;
         int max_x;
         int max_y;
+        int lower_speed;
+        clock_t pre_ticks;
     } mouse;
 
     int dev_fd;
     dev_mode_t dev_mode;
 
     int running;
+    SDL_sem *lock;
     SDL_Thread *thread;
 
-    SDL_sem *event_sem;
-
-    int lower_speed;
 #if defined(MINI) || defined(UT)
     int stock_os;
 #endif
