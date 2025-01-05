@@ -126,7 +126,6 @@ TEST(sdl2_event_miyoo, portrait_screen_layout)
     TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_13));
     TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_14));
     TEST_ASSERT_EQUAL_INT(1, portrait_screen_layout(NDS_SCREEN_LAYOUT_15));
-
     TEST_ASSERT_EQUAL_INT(0, portrait_screen_layout(NDS_SCREEN_LAYOUT_10));
 }
 #endif
@@ -135,8 +134,8 @@ static int get_pen_move_interval(move_dir_t type)
 {
     float move = 0.0;
     uint32_t div = 0;
-    uint32_t yv = get_cfg_pen_speed_y();
-    uint32_t xv = get_cfg_pen_speed_x();
+    uint32_t yv = cfg.pen.speed.y;
+    uint32_t xv = cfg.pen.speed.x;
 
     if (myevent.pen.lower_speed) {
         yv <<= 1;
@@ -178,7 +177,8 @@ static uint32_t release_all_report_keys(void)
 
     for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
         if (myevent.key.cur_bits & 1) {
-            SDL_SendKeyboardKey(SDL_RELEASED, SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
+            SDL_SendKeyboardKey(SDL_RELEASED,
+                SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
         }
         myevent.key.cur_bits >>= 1;
     }
@@ -199,7 +199,8 @@ TEST(sdl2_event_miyoo, release_all_report_keys)
 static int hit_hotkey(uint32_t bit)
 {
     uint32_t mask = 0;
-    uint32_t hotkey_bit = (cfg.key.hotkey == KEY_HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+    uint32_t hotkey_bit = (cfg.key.hotkey == _key__hotkey_select) ?
+        KEY_BIT_SELECT : KEY_BIT_MENU;
 
     mask = (1 << bit) | (1 << hotkey_bit);
     return (myevent.key.cur_bits ^ mask) ? 0 : 1;
@@ -208,7 +209,8 @@ static int hit_hotkey(uint32_t bit)
 #if defined(UT)
 TEST(sdl2_event_miyoo, hit_hotkey)
 {
-    uint32_t hotkey_bit = (cfg.key.hotkey == KEY_HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+    uint32_t hotkey_bit = (cfg.key.hotkey == _key__hotkey_select) ?
+        KEY_BIT_SELECT : KEY_BIT_MENU;
 
     myevent.key.cur_bits = 0;
     TEST_ASSERT_EQUAL_INT(0, hit_hotkey(KEY_BIT_A));
@@ -226,7 +228,8 @@ TEST(sdl2_event_miyoo, hit_hotkey)
 
 static uint32_t set_key_bit(uint32_t bit, int val)
 {
-    uint32_t hotkey_bit = (cfg.key.hotkey == KEY_HOTKEY_SELECT) ? KEY_BIT_SELECT : KEY_BIT_MENU;
+    uint32_t hotkey_bit = (cfg.key.hotkey == _key__hotkey_select) ?
+        KEY_BIT_SELECT : KEY_BIT_MENU;
 
     if (val > 0) {
         if (hotkey_bit == bit) {
@@ -245,12 +248,18 @@ static uint32_t set_key_bit(uint32_t bit, int val)
 TEST(sdl2_event_miyoo, set_key_bit)
 {
     myevent.key.cur_bits = 0;
-    TEST_ASSERT_EQUAL_INT(0, set_key_bit(KEY_BIT_SELECT, 0));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_B), set_key_bit(KEY_BIT_B, 1));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU), set_key_bit(KEY_BIT_MENU, 1));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A), set_key_bit(KEY_BIT_A, 1));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A), set_key_bit(KEY_BIT_SELECT, 0));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_A), set_key_bit(KEY_BIT_MENU, 0));
+    TEST_ASSERT_EQUAL_INT(0,
+        set_key_bit(KEY_BIT_SELECT, 0));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_B),
+        set_key_bit(KEY_BIT_B, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU),
+        set_key_bit(KEY_BIT_MENU, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A),
+        set_key_bit(KEY_BIT_A, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A),
+        set_key_bit(KEY_BIT_SELECT, 0));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_A),
+        set_key_bit(KEY_BIT_MENU, 0));
 }
 #endif
 
@@ -267,7 +276,7 @@ static int update_joystick(void)
 
     int r = 0;
 
-    if (cfg.joy.left.mode == JOY_MODE_KEY) {
+    if (cfg.joy.left.mode == _joy__lr__mode_key) {
         static int pre_up = 0;
         static int pre_down = 0;
         static int pre_left = 0;
@@ -338,7 +347,7 @@ static int update_joystick(void)
             }
         }
     }
-    else if (cfg.joy.left.mode == JOY_MODE_PEN) {
+    else if (cfg.joy.left.mode == _joy__lr__mode_pen) {
         static int pre_up = 0;
         static int pre_down = 0;
         static int pre_left = 0;
@@ -412,7 +421,9 @@ static int update_joystick(void)
                 const int xv = cfg.joy.left.x.step;
                 const int yv = cfg.joy.left.y.step;
 
-                if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
+                if (portrait_screen_layout(nds.dis_mode) &&
+                    (nds.keys_rotate == 0))
+                {
                     if (pre_down) {
                         myevent.pen.x -= xv;
                     }
@@ -444,12 +455,13 @@ static int update_joystick(void)
 
                 x = (myevent.pen.x * 160) / myevent.pen.max_x;
                 y = (myevent.pen.y * 120) / myevent.pen.max_y;
-                SDL_SendMouseMotion(vid.window, 0, 0, x + 80, y + (nds.pen.pos ? 120 : 0));
+                SDL_SendMouseMotion(vid.window, 0, 0,
+                    x + 80, y + (nds.pen.pos ? 120 : 0));
             }
             cfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
         }
     }
-    else if (cfg.joy.left.mode == JOY_MODE_KEY) {
+    else if (cfg.joy.left.mode == _joy__lr__mode_cust) {
         static int pre_up = 0;
         static int pre_down = 0;
         static int pre_left = 0;
@@ -546,8 +558,8 @@ static int handle_hotkey(void)
                 break;
             }
         }
-#if defined(A30)
-        if (get_cfg_joy_mode() == MYJOY_MODE_STYLUS) {
+#if defined(A30) || defined(UT)
+        if (cfg.joy.left.mode == _joy__lr__mode_pen) {
             nds.pen.pos = 1;
         }
 #endif
@@ -567,8 +579,8 @@ static int handle_hotkey(void)
                 break;
             }
         }
-#if defined(A30)
-        if (get_cfg_joy_mode() == MYJOY_MODE_STYLUS) {
+#if defined(A30) || defined(UT)
+        if (cfg.joy.left.mode == _joy__lr__mode_pen) {
             nds.pen.pos = 0;
         }
 #endif
@@ -666,7 +678,7 @@ static int handle_hotkey(void)
         set_key_bit(KEY_BIT_START, 0);
     }
 
-    if (cfg.key.hotkey == KEY_HOTKEY_MENU) {
+    if (cfg.key.hotkey == _key__hotkey_menu) {
         if (hotkey_mask && hit_hotkey(KEY_BIT_SELECT)) {
             set_key_bit(KEY_BIT_MENU_ONION, 1);
             set_key_bit(KEY_BIT_SELECT, 0);
@@ -699,11 +711,12 @@ static int handle_hotkey(void)
         set_key_bit(KEY_BIT_L2, 0);
     }
     else if (myevent.key.cur_bits & (1 << KEY_BIT_L2)) {
-#if defined(A30)
-        if (get_cfg_joy_mode() != MYJOY_MODE_STYLUS) {
+#if defined(A30) || defined(UT)
+        if (cfg.joy.left.mode != _joy__lr__mode_pen) {
 #endif
             if ((nds.menu.enable == 0) && (nds.menu.drastic.enable == 0)) {
-                myevent.dev.mode = (myevent.dev.mode == DEV_MODE_KEY) ? DEV_MODE_PEN : DEV_MODE_KEY;
+                myevent.dev.mode = (myevent.dev.mode == DEV_MODE_KEY) ?
+                    DEV_MODE_PEN : DEV_MODE_KEY;
                 set_key_bit(KEY_BIT_L2, 0);
 
                 if (myevent.dev.mode == DEV_MODE_PEN) {
@@ -711,7 +724,7 @@ static int handle_hotkey(void)
                 }
                 myevent.pen.lower_speed = 0;
             }
-#if defined(A30)
+#if defined(A30) || defined(UT)
         }
 #endif
     }
@@ -746,7 +759,10 @@ static int input_handler(void *data)
     while (myevent.running) {
         SDL_SemWait(myevent.lock);
 
-        if ((nds.menu.enable == 0) && (nds.menu.drastic.enable == 0) && nds.keys_rotate) {
+        if ((nds.menu.enable == 0) &&
+            (nds.menu.drastic.enable == 0) &&
+            nds.keys_rotate)
+        {
             if (nds.keys_rotate == 1) {
                 up = DEV_KEY_CODE_LEFT;
                 down = DEV_KEY_CODE_RIGHT;
@@ -806,39 +822,76 @@ static int input_handler(void *data)
             if (read(myevent.dev.fd, &ev, sizeof(struct input_event))) {
                 if ((ev.type == EV_KEY) && (ev.value != 2)) {
                     r = 1;
-                    debug(SDL"%s: code:%d, value:%d in %s\n", INPUT_DEV, ev.code, ev.value, __func__);
-                    if (ev.code == l1)      { set_key_bit(KEY_BIT_L1,    ev.value); }
-                    if (ev.code == r1)      { set_key_bit(KEY_BIT_R1,    ev.value); }
-                    if (ev.code == up)      { set_key_bit(KEY_BIT_UP,    ev.value); }
-                    if (ev.code == down)    { set_key_bit(KEY_BIT_DOWN,  ev.value); }
-                    if (ev.code == left)    { set_key_bit(KEY_BIT_LEFT,  ev.value); }
-                    if (ev.code == right)   { set_key_bit(KEY_BIT_RIGHT, ev.value); }
-                    if (ev.code == a)       { set_key_bit(KEY_BIT_A,     ev.value); }
-                    if (ev.code == b)       { set_key_bit(KEY_BIT_B,     ev.value); }
-                    if (ev.code == x)       { set_key_bit(KEY_BIT_X,     ev.value); }
-                    if (ev.code == y)       { set_key_bit(KEY_BIT_Y,     ev.value); }
-#if defined(A30)
+                    debug(SDL"%s: code:%d, value:%d in %s\n",
+                        INPUT_DEV, ev.code, ev.value, __func__);
+                    if (ev.code == l1) {
+                        set_key_bit(KEY_BIT_L1, ev.value);
+                    }
+                    if (ev.code == r1) {
+                        set_key_bit(KEY_BIT_R1, ev.value);
+                    }
+                    if (ev.code == up) {
+                        set_key_bit(KEY_BIT_UP, ev.value);
+                    }
+                    if (ev.code == down) {
+                        set_key_bit(KEY_BIT_DOWN, ev.value);
+                    }
+                    if (ev.code == left) {
+                        set_key_bit(KEY_BIT_LEFT, ev.value);
+                    }
+                    if (ev.code == right) {
+                        set_key_bit(KEY_BIT_RIGHT, ev.value);
+                    }
+                    if (ev.code == a) {
+                        set_key_bit(KEY_BIT_A, ev.value);
+                    }
+                    if (ev.code == b) {
+                        set_key_bit(KEY_BIT_B, ev.value);
+                    }
+                    if (ev.code == x) {
+                        set_key_bit(KEY_BIT_X, ev.value);
+                    }
+                    if (ev.code == y) {
+                        set_key_bit(KEY_BIT_Y, ev.value);
+                    }
+#if defined(A30) || defined(UT)
                     if (ev.code == r2) {
-                        if (get_cfg_joy_mode() == MYJOY_MODE_STYLUS) {
-                            nds.joy.show_cnt = MYJOY_SHOW_CNT;
-                            SDL_SendMouseButton(vid.window, 0, ev.value ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
+                        if (cfg.joy.left.mode == _joy__lr__mode_pen) {
+                            cfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
+                            SDL_SendMouseButton(vid.window, 0,
+                                ev.value ? SDL_PRESSED : SDL_RELEASED,
+                                SDL_BUTTON_LEFT);
                         }
                         set_key_bit(KEY_BIT_L2, ev.value);
                     }
-                    if (ev.code == l2)      { set_key_bit(KEY_BIT_R2,    ev.value); }
+                    if (ev.code == l2) {
+                        set_key_bit(KEY_BIT_R2, ev.value);
+                    }
 #endif
 
 #if defined(MINI) || defined(UT)
-                    if (ev.code == r2)      { set_key_bit(KEY_BIT_L2,    ev.value); }
-                    if (ev.code == l2)      { set_key_bit(KEY_BIT_R2,    ev.value); }
+                    if (ev.code == r2) {
+                        set_key_bit(KEY_BIT_L2, ev.value);
+                    }
+                    if (ev.code == l2) {
+                        set_key_bit(KEY_BIT_R2, ev.value);
+                    }
 #endif
 
                     switch (ev.code) {
-                    case DEV_KEY_CODE_START:  set_key_bit(KEY_BIT_START, ev.value);  break;
-                    case DEV_KEY_CODE_SELECT: set_key_bit(KEY_BIT_SELECT, ev.value); break;
-                    case DEV_KEY_CODE_MENU:   set_key_bit(KEY_BIT_MENU, ev.value);   break;
+                    case DEV_KEY_CODE_START:
+                        set_key_bit(KEY_BIT_START, ev.value);
+                        break;
+                    case DEV_KEY_CODE_SELECT:
+                        set_key_bit(KEY_BIT_SELECT, ev.value);
+                        break;
+                    case DEV_KEY_CODE_MENU:
+                        set_key_bit(KEY_BIT_MENU, ev.value);
+                        break;
 #if defined(MINI) || defined(UT)
-                    case DEV_KEY_CODE_POWER:  set_key_bit(KEY_BIT_POWER, ev.value);  break;
+                    case DEV_KEY_CODE_POWER:
+                        set_key_bit(KEY_BIT_POWER, ev.value);
+                        break;
                     case DEV_KEY_CODE_VOLUP:
                         set_key_bit(KEY_BIT_VOLUP, ev.value);
                         if (myevent.stock_os) {
@@ -947,7 +1000,8 @@ void EventInit(void)
     myevent.key.report_key[KEY_BIT_EXIT] = SDLK_3;
     myevent.key.report_key[KEY_BIT_MENU_ONION] = SDLK_HOME;
 
-    myevent.thread = SDL_CreateThreadInternal(input_handler, "Miyoo Input Thread", 4096, NULL);
+    myevent.thread = SDL_CreateThreadInternal(input_handler,
+        "Miyoo Input Thread", 4096, NULL);
     if(myevent.thread == NULL) {
         err(SDL"failed to create input thread in %s\n", __func__);
         exit(-1);
@@ -981,7 +1035,7 @@ void PumpEvents(_THIS)
         uint32_t bit = 0;
         uint32_t changed = myevent.key.pre_bits ^ myevent.key.cur_bits;
 
-        for (cc=0; cc<=KEY_BIT_LAST; cc++) {
+        for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
             bit = 1 << cc;
             if (changed & bit) {
                 if ((myevent.key.cur_bits & bit) == 0) {
@@ -998,28 +1052,32 @@ void PumpEvents(_THIS)
                 uint32_t bit = 0;
                 uint32_t changed = myevent.key.pre_bits ^ myevent.key.cur_bits;
 
-                for (cc=0; cc<=KEY_BIT_LAST; cc++) {
+                for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
                     bit = 1 << cc;
 
-                    if ((cfg.key.hotkey == KEY_HOTKEY_MENU) && (cc == KEY_BIT_MENU)) {
+                    if ((cfg.key.hotkey == _key__hotkey_menu) &&
+                        (cc == KEY_BIT_MENU))
+                    {
                         continue;
                     }
 
                     if (changed & bit) {
-                        SDL_SendKeyboardKey((myevent.key.cur_bits & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
+                        SDL_SendKeyboardKey((myevent.key.cur_bits & bit) ?
+                            SDL_PRESSED : SDL_RELEASED,
+                            SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
                     }
                 }
 
                 if (myevent.key.pre_bits & (1 << KEY_BIT_QSAVE)) {
-                    nds.state|= NDS_STATE_QSAVE;
+                    nds.state |= NDS_STATE_QSAVE;
                     set_key_bit(KEY_BIT_QSAVE, 0);
                 }
                 if (myevent.key.pre_bits & (1 << KEY_BIT_QLOAD)) {
-                    nds.state|= NDS_STATE_QLOAD;
+                    nds.state |= NDS_STATE_QLOAD;
                     set_key_bit(KEY_BIT_QLOAD, 0);
                 }
                 if (myevent.key.pre_bits & (1 << KEY_BIT_FF)) {
-                    nds.state|= NDS_STATE_FF;
+                    nds.state |= NDS_STATE_FF;
                     set_key_bit(KEY_BIT_FF, 0);
                 }
                 if (myevent.key.pre_bits & (1 << KEY_BIT_MENU_ONION)) {
@@ -1040,19 +1098,30 @@ void PumpEvents(_THIS)
                 uint32_t changed = myevent.key.pre_bits ^ myevent.key.cur_bits;
 
                 if (changed & (1 << KEY_BIT_A)) {
-                    SDL_SendMouseButton(vid.window, 0, (myevent.key.cur_bits & (1 << KEY_BIT_A)) ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
+                    SDL_SendMouseButton(vid.window, 0, (myevent.key.cur_bits &
+                        (1 << KEY_BIT_A)) ? SDL_PRESSED :
+                        SDL_RELEASED, SDL_BUTTON_LEFT);
                 }
 
-                for (cc=0; cc<=KEY_BIT_LAST; cc++) {
+                for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
                     bit = 1 << cc;
-                    if ((cc == KEY_BIT_FF) || (cc == KEY_BIT_QSAVE) || (cc == KEY_BIT_QLOAD) || (cc == KEY_BIT_EXIT) || (cc == KEY_BIT_R2)) {
+                    if ((cc == KEY_BIT_FF) ||
+                        (cc == KEY_BIT_QSAVE) ||
+                        (cc == KEY_BIT_QLOAD) ||
+                        (cc == KEY_BIT_EXIT) ||
+                        (cc == KEY_BIT_R2))
+                    {
                         if (changed & bit) {
-                            SDL_SendKeyboardKey((myevent.key.cur_bits & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
+                            SDL_SendKeyboardKey((myevent.key.cur_bits & bit) ?
+                                SDL_PRESSED : SDL_RELEASED,
+                                SDL_GetScancodeFromKey(
+                                    myevent.key.report_key[cc]));
                         }
                     }
                     if (cc == KEY_BIT_R1) {
                         if (changed & bit) {
-                            myevent.pen.lower_speed = (myevent.key.cur_bits & bit);
+                            myevent.pen.lower_speed =
+                                (myevent.key.cur_bits & bit);
                         }
                     }
                 }
@@ -1102,7 +1171,8 @@ void PumpEvents(_THIS)
 
                 x = (myevent.pen.x * 160) / myevent.pen.max_x;
                 y = (myevent.pen.y * 120) / myevent.pen.max_y;
-                SDL_SendMouseMotion(vid.window, 0, 0, x + 80, y + (nds.pen.pos ? 120 : 0));
+                SDL_SendMouseMotion(vid.window, 0, 0,
+                    x + 80, y + (nds.pen.pos ? 120 : 0));
             }
 
             if (myevent.key.pre_bits & (1 << KEY_BIT_QSAVE)) {

@@ -1,4 +1,6 @@
 /*
+   NDS Emulator (DraStic) for Miyoo Handheld
+
    Copyright (C) 2006 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 

@@ -5370,7 +5370,7 @@ int handle_menu(int key)
             break;
 #endif
         case MENU_HOTKEY:
-            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[get_cfg_key_hotkey()]));
+            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[cfg.key.hotkey]));
             break;
         case MENU_SWAP_L1L2:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.swap_l1l2 ? "Yes" : "No"));

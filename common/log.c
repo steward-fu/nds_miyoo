@@ -102,13 +102,23 @@ int write_log_to_file(int level, const char *msg, const char *fmt, ...)
 #if defined(UT)
 TEST(common_log, write_log_to_file)
 {
-    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_ERR, set_debug_level(LOG_LEVEL_ERR));
-    TEST_ASSERT_EQUAL_INT(0, write_log_to_file(LOG_LEVEL_ERR, INFO, COM"run test with error level\n"));
-    TEST_ASSERT_EQUAL_INT(-1, write_log_to_file(LOG_LEVEL_DEBUG, INFO, COM"run test with debug level\n"));
+    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_ERR,
+        set_debug_level(LOG_LEVEL_ERR));
+    TEST_ASSERT_EQUAL_INT(0,
+        write_log_to_file(LOG_LEVEL_ERR, INFO,
+            COM"run test with error level\n"));
+    TEST_ASSERT_EQUAL_INT(-1,
+        write_log_to_file(LOG_LEVEL_DEBUG, INFO,
+            COM"run test with debug level\n"));
 
-    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_DEBUG, set_debug_level(LOG_LEVEL_DEBUG));
-    TEST_ASSERT_EQUAL_INT(0, write_log_to_file(LOG_LEVEL_ERR, INFO, COM"run test with error level\n"));
-    TEST_ASSERT_EQUAL_INT(0, write_log_to_file(LOG_LEVEL_DEBUG, INFO, COM"run test with debug level\n"));
+    TEST_ASSERT_EQUAL_INT(LOG_LEVEL_DEBUG,
+        set_debug_level(LOG_LEVEL_DEBUG));
+    TEST_ASSERT_EQUAL_INT(0,
+        write_log_to_file(LOG_LEVEL_ERR, INFO,
+            COM"run test with error level\n"));
+    TEST_ASSERT_EQUAL_INT(0,
+        write_log_to_file(LOG_LEVEL_DEBUG, INFO,
+            COM"run test with debug level\n"));
 }
 #endif
 

@@ -69,7 +69,8 @@ int invoke_drastic_save_state(int slot)
         _func0(d1, 1);
 
         if (drastic_save_load_state_hook == 0) {
-            nds_save_state_index _func1 = (nds_save_state_index)FUN_SAVE_STATE_INDEX;
+            nds_save_state_index _func1 =
+                (nds_save_state_index)FUN_SAVE_STATE_INDEX;
 
             _func1((void *)VAR_SYSTEM, slot, d0, d1);
         }
@@ -118,7 +119,8 @@ int invoke_drastic_load_state(int slot)
     else {
         nds_load_state _func = (nds_load_state)FUN_LOAD_STATE;
 
-        sprintf(buf, "%s/%s_%d.dss", drastic_save_load_state_path, VAR_SYSTEM_GAMECARD_NAME, slot);
+        sprintf(buf, "%s/%s_%d.dss", drastic_save_load_state_path,
+            VAR_SYSTEM_GAMECARD_NAME, slot);
         _func((void *)VAR_SYSTEM, buf, 0, 0, 0);
     }
 #endif

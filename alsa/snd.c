@@ -51,12 +51,15 @@
 #include "snd.h"
 #include "hook.h"
 #include "drastic.h"
+#include "cfg.pb.h"
 
 #if defined(MINI)
 #include "mi_ao.h"
 #include "mi_sys.h"
 #include "mi_common_datatype.h"
 #endif
+
+extern settings cfg;
 
 static queue_t queue = {0};
 static pthread_t thread = 0;
@@ -264,7 +267,7 @@ TEST(alsa_snd, set_volume_raw)
 static int set_volume(int volume)
 {
     int volume_raw = 0;
-    int div = get_cfg_half_volume() ? 2 : 1;
+    int div = cfg.half_volume ? 2 : 1;
 
     if (volume > MAX_VOLUME) {
         volume = MAX_VOLUME;
@@ -295,7 +298,7 @@ TEST(alsa_snd, set_volume)
 
 int volume_inc(void)
 {
-    int vol = get_system_volume();
+    int vol = cfg.system_volume;
 
     if (vol < MAX_VOLUME) {
         vol += 1;
@@ -323,7 +326,7 @@ TEST(alsa_snd, volume_inc)
 
 int volume_dec(void)
 {
-    int vol = get_system_volume();
+    int vol = cfg.system_volume;
 
     if (vol > 0) {
         vol -= 1;
@@ -358,7 +361,7 @@ TEST(alsa_snd, volume_dec)
 static int open_dsp(void)
 {
     int arg = 0;
-    int vol = get_system_volume();
+    int vol = cfg.system_volume;
 
     if (dsp_fd > 0) {
         close(dsp_fd);
@@ -1034,8 +1037,8 @@ int snd_pcm_close(snd_pcm_t *pcm)
 {
     void *ret = NULL;
 
-    if (get_cfg_autosave_enable() > 0) {
-        invoke_drastic_save_state(get_cfg_autosave_slot());
+    if (cfg.autosave.enable > 0) {
+        invoke_drastic_save_state(cfg.autosave.slot);
     }
 
     pcm_ready = 0;

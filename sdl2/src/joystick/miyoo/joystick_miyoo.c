@@ -66,12 +66,12 @@ TEST_SETUP(sdl2_joystick_miyoo)
     FILE *f = fopen(A30_JOYSTICK_CFG, "w+");
 
     if (f) {
-        fprintf(f, "x_min=%d\n", UT_X_MIN);
-        fprintf(f, "x_max=%d\n", UT_X_MAX);
-        fprintf(f, "x_zero=%d\n", UT_X_ZERO);
-        fprintf(f, "y_min=%d\n", UT_Y_MIN);
-        fprintf(f, "y_max=%d\n", UT_Y_MAX);
-        fprintf(f, "y_zero=%d\n", UT_Y_ZERO);
+        fprintf(f, "x_min=%d\n", DEF_CFG_JOY_MIN);
+        fprintf(f, "x_max=%d\n", DEF_CFG_JOY_MAX);
+        fprintf(f, "x_zero=%d\n", DEF_CFG_JOY_ZERO);
+        fprintf(f, "y_min=%d\n", DEF_CFG_JOY_MIN);
+        fprintf(f, "y_max=%d\n", DEF_CFG_JOY_MAX);
+        fprintf(f, "y_zero=%d\n", DEF_CFG_JOY_ZERO);
         fclose(f);
     }
 }
@@ -323,10 +323,10 @@ static int filter_dead_zone(int idx, int newAxis, int oldAxis)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, filter_dead_zone)
 {
-    nds.joy.left.x.dead = 10;
+    cfg.joy.left.x.dead = 10;
     TEST_ASSERT_EQUAL_INT(0, filter_dead_zone(0, 100, 0));
 
-    nds.joy.left.y.dead = 100;
+    cfg.joy.left.y.dead = 100;
     TEST_ASSERT_EQUAL_INT(1, filter_dead_zone(1, 10, 0));
 }
 #endif

@@ -188,7 +188,7 @@ TEST(common_cfg, update_config_settings)
     cfg.autosave.slot = 55;
     cfg.key.swap.l1_l2 = true;
     cfg.joy.left.remap.up = 66;
-    cfg.joy.right.remap.left = 66;
+    cfg.joy.right.remap.left = 77;
 
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
     TEST_ASSERT_EQUAL_INT(0, load_config_settings());
@@ -242,6 +242,72 @@ int init_config_settings(void)
     set_debug_level(cfg.debug_level);
     return 0;
 }
+
+int get_system_volume(void)
+{
+    struct json_object *jval = NULL;
+    struct json_object *jfile = NULL;
+
+    jfile = json_object_from_file(JSON_SYS_PATH);
+    if (jfile ==  NULL) {
+        err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
+        return -1;
+    }
+
+    if (json_object_object_get_ex(jfile, JSON_SYS_VOLUME, &jval)) {
+        cfg.system_volume = json_object_get_int(jval);
+        info(COM"read system volume(%d) in %s\n", cfg.system_volume, __func__);
+    }
+    else {
+        err(COM"failed to read system volume in %s\n", __func__);
+    }
+    json_object_put(jfile);
+    return cfg.system_volume;
+}
+
+#if defined(UT)
+TEST(common_cfg, get_system_volume)
+{
+    set_system_volume(1);
+    TEST_ASSERT_EQUAL_INT(1, get_system_volume());
+    TEST_ASSERT_EQUAL_INT(1, cfg.system_volume);
+}
+#endif
+
+int set_system_volume(int vol)
+{
+    struct json_object *jval = NULL;
+    struct json_object *jfile = NULL;
+
+    if ((vol < 0) || (vol > MAX_VOLUME)) {
+        err(COM"invalid parameter(vol:%d) in %s\n", vol, __func__);
+        return -1;
+    }
+
+    jfile = json_object_from_file(JSON_SYS_PATH);
+    if (jfile ==  NULL) {
+        err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
+        return -1;
+    }
+
+    json_object_object_add(jfile, JSON_SYS_VOLUME, json_object_new_int(vol));
+    info(COM"wrote new system volume(%d) in %s\n", vol, __func__);
+
+    json_object_to_file_ext(JSON_SYS_PATH, jfile, JSON_C_TO_STRING_PRETTY);
+    json_object_put(jfile);
+    cfg.system_volume = vol;
+    return vol;
+}
+
+#if defined(UT)
+TEST(common_cfg, set_system_volume)
+{
+    TEST_ASSERT_EQUAL_INT(-1, set_system_volume(-1));
+    TEST_ASSERT_EQUAL_INT(0, set_system_volume(0));
+    TEST_ASSERT_EQUAL_INT(1, set_system_volume(1));
+    TEST_ASSERT_EQUAL_INT(-1, set_system_volume(MAX_VOLUME + 1));
+}
+#endif
 
 #if defined(UT)
 TEST(common_cfg, init_config_settings)
@@ -322,7 +388,7 @@ int reset_config_settings(void)
     cfg.joy.right.mode = DEF_CFG_JOY_MODE;
     cfg.joy.right.remap.up = DEF_CFG_JOY_REMAP_UP;
     cfg.joy.right.remap.down = DEF_CFG_JOY_REMAP_DOWN;
-    cfg.joy.right.remap.right = DEF_CFG_JOY_REMAP_LEFT;
+    cfg.joy.right.remap.left = DEF_CFG_JOY_REMAP_LEFT;
     cfg.joy.right.remap.right = DEF_CFG_JOY_REMAP_RIGHT;
 
     if (get_system_volume() < 0) {
@@ -336,9 +402,10 @@ TEST(common_cfg, reset_config_settings)
 {
     TEST_ASSERT_EQUAL_INT(0, reset_config_settings());
     TEST_ASSERT_EQUAL_INT(0, update_config_settings());
-    TEST_ASSERT_EQUAL_INT(0, load_config_settings());
 
     memset(&cfg, 0, sizeof(cfg));
+    TEST_ASSERT_EQUAL_INT(0, load_config_settings());
+
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_VERSION, cfg.version);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_LANGUAGE, cfg.language);
     TEST_ASSERT_EQUAL_STRING(DEF_CFG_FONT_PATH, cfg.font_path);
@@ -409,7 +476,7 @@ TEST(common_cfg, reset_config_settings)
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_MODE, cfg.joy.right.mode);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_UP, cfg.joy.right.remap.up);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_DOWN, cfg.joy.right.remap.down);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_LEFT, cfg.joy.right.remap.right);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_LEFT, cfg.joy.right.remap.left);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_JOY_REMAP_RIGHT, cfg.joy.right.remap.right);
 }
 #endif
@@ -419,6 +486,8 @@ TEST_GROUP_RUNNER(common_cfg)
 {
     RUN_TEST_CASE(common_cfg, load_config_settings);
     RUN_TEST_CASE(common_cfg, update_config_settings);
+    RUN_TEST_CASE(common_cfg, get_system_volume);
+    RUN_TEST_CASE(common_cfg, set_system_volume);
     RUN_TEST_CASE(common_cfg, init_config_settings);
     RUN_TEST_CASE(common_cfg, reset_config_settings);
 }

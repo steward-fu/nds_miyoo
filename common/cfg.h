@@ -88,6 +88,8 @@ int init_config_settings(void);
 int load_config_settings(void);
 int reset_config_settings(void);
 int update_config_settings(void);
+int get_system_volume(void);
+int set_system_volume(int vol);
 
 #endif
 

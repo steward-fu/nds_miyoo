@@ -32,8 +32,8 @@ message _pen {
         int32 count             = 1;
         _mode mode              = 2;
         enum _mode {
-            MODE_AUTO           = 0;
-            MODE_ALWAYS         = 1;
+            auto                = 0;
+            always              = 1;
         }
     }
 
@@ -62,8 +62,8 @@ message _key {
 
     _hotkey hotkey              = 2;
     enum _hotkey {
-        HOTKEY_MENU             = 0;
-        HOTKEY_SELECT           = 1;
+        menu                    = 0;
+        select                  = 1;
     }
 
     _swap swap                  = 3;
@@ -89,9 +89,9 @@ message _joy {
 
         _mode mode              = 3;
         enum _mode {
-            MODE_KEY            = 0;
-            MODE_PEN            = 1;
-            MODE_REMAP          = 2;
+            key                 = 0;
+            pen                 = 1;
+            cust                = 2;
         }
 
         _remap remap            = 4;

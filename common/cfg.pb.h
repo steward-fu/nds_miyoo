@@ -11,19 +11,19 @@
 
 /* Enum definitions */
 typedef enum __pen__show__mode {
-    _pen__show__mode_MODE_AUTO = 0,
-    _pen__show__mode_MODE_ALWAYS = 1
+    _pen__show__mode_auto = 0,
+    _pen__show__mode_always = 1
 } _pen__show__mode;
 
 typedef enum __key__hotkey {
-    _key__hotkey_HOTKEY_MENU = 0,
-    _key__hotkey_HOTKEY_SELECT = 1
+    _key__hotkey_menu = 0,
+    _key__hotkey_select = 1
 } _key__hotkey;
 
 typedef enum __joy__lr__mode {
-    _joy__lr__mode_MODE_KEY = 0,
-    _joy__lr__mode_MODE_PEN = 1,
-    _joy__lr__mode_MODE_REMAP = 2
+    _joy__lr__mode_key = 0,
+    _joy__lr__mode_pen = 1,
+    _joy__lr__mode_cust = 2
 } _joy__lr__mode;
 
 /* Struct definitions */
@@ -163,17 +163,17 @@ extern "C" {
 #endif
 
 /* Helper constants for enums */
-#define __pen__show__mode_MIN _pen__show__mode_MODE_AUTO
-#define __pen__show__mode_MAX _pen__show__mode_MODE_ALWAYS
-#define __pen__show__mode_ARRAYSIZE ((_pen__show__mode)(_pen__show__mode_MODE_ALWAYS+1))
+#define __pen__show__mode_MIN _pen__show__mode_auto
+#define __pen__show__mode_MAX _pen__show__mode_always
+#define __pen__show__mode_ARRAYSIZE ((_pen__show__mode)(_pen__show__mode_always+1))
 
-#define __key__hotkey_MIN _key__hotkey_HOTKEY_MENU
-#define __key__hotkey_MAX _key__hotkey_HOTKEY_SELECT
-#define __key__hotkey_ARRAYSIZE ((_key__hotkey)(_key__hotkey_HOTKEY_SELECT+1))
+#define __key__hotkey_MIN _key__hotkey_menu
+#define __key__hotkey_MAX _key__hotkey_select
+#define __key__hotkey_ARRAYSIZE ((_key__hotkey)(_key__hotkey_select+1))
 
-#define __joy__lr__mode_MIN _joy__lr__mode_MODE_KEY
-#define __joy__lr__mode_MAX _joy__lr__mode_MODE_REMAP
-#define __joy__lr__mode_ARRAYSIZE ((_joy__lr__mode)(_joy__lr__mode_MODE_REMAP+1))
+#define __joy__lr__mode_MIN _joy__lr__mode_key
+#define __joy__lr__mode_MAX _joy__lr__mode_cust
+#define __joy__lr__mode_ARRAYSIZE ((_joy__lr__mode)(_joy__lr__mode_cust+1))
 
 
 
