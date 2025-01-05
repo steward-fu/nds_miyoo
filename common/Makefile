@@ -7,6 +7,10 @@ SRC      = log.c \
            file.c \
            cfg.pb.c
 
+ifeq (ut,$(MOD))
+    LDFLAGS += -lprotobuf-nanopb
+endif
+
 ifneq (ut,$(MOD))
     SRC += memcpy.S
 endif

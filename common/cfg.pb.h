@@ -130,12 +130,13 @@ typedef struct __joy {
     _joy__lr right;
 } _joy;
 
-typedef struct _settings {
+typedef struct _miyoo_settings {
     char version[255];
     char language[255];
     char font_path[255];
     char state_folder[255];
     char border_image[255];
+    char home_folder[255];
     int32_t debug_level;
     int32_t system_volume;
     int32_t fast_forward;
@@ -155,7 +156,7 @@ typedef struct _settings {
     _key key;
     bool has_joy;
     _joy joy;
-} settings;
+} miyoo_settings;
 
 
 #ifdef __cplusplus
@@ -213,7 +214,7 @@ extern "C" {
 #define _joy__lr_init_default                    {false, _joy__lr__xy_init_default, false, _joy__lr__xy_init_default, __joy__lr__mode_MIN, false, _joy__lr__remap_init_default}
 #define _joy__lr__xy_init_default                {0, 0, 0, 0, 0}
 #define _joy__lr__remap_init_default             {0, 0, 0, 0}
-#define settings_init_default                    {"", "", "", "", "", 0, 0, 0, 0, 0, false, _cpu_init_default, false, _menu_init_default, false, _display_init_default, false, _autosave_init_default, false, _pen_init_default, false, _key_init_default, false, _joy_init_default}
+#define miyoo_settings_init_default              {"", "", "", "", "", "", 0, 0, 0, 0, 0, false, _cpu_init_default, false, _menu_init_default, false, _display_init_default, false, _autosave_init_default, false, _pen_init_default, false, _key_init_default, false, _joy_init_default}
 #define _display_init_zero                       {0, 0, false, _display__small_init_zero}
 #define _display__small_init_zero                {0, 0, 0}
 #define _cpu_init_zero                           {false, _cpu__freq_init_zero, false, _cpu__core_init_zero}
@@ -230,7 +231,7 @@ extern "C" {
 #define _joy__lr_init_zero                       {false, _joy__lr__xy_init_zero, false, _joy__lr__xy_init_zero, __joy__lr__mode_MIN, false, _joy__lr__remap_init_zero}
 #define _joy__lr__xy_init_zero                   {0, 0, 0, 0, 0}
 #define _joy__lr__remap_init_zero                {0, 0, 0, 0}
-#define settings_init_zero                       {"", "", "", "", "", 0, 0, 0, 0, 0, false, _cpu_init_zero, false, _menu_init_zero, false, _display_init_zero, false, _autosave_init_zero, false, _pen_init_zero, false, _key_init_zero, false, _joy_init_zero}
+#define miyoo_settings_init_zero                 {"", "", "", "", "", "", 0, 0, 0, 0, 0, false, _cpu_init_zero, false, _menu_init_zero, false, _display_init_zero, false, _autosave_init_zero, false, _pen_init_zero, false, _key_init_zero, false, _joy_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define _display__small_alpha_tag                1
@@ -277,23 +278,24 @@ extern "C" {
 #define _joy__lr_remap_tag                       4
 #define _joy_left_tag                            1
 #define _joy_right_tag                           2
-#define settings_version_tag                     1
-#define settings_language_tag                    2
-#define settings_font_path_tag                   3
-#define settings_state_folder_tag                4
-#define settings_border_image_tag                5
-#define settings_debug_level_tag                 6
-#define settings_system_volume_tag               7
-#define settings_fast_forward_tag                8
-#define settings_half_volume_tag                 9
-#define settings_low_battery_close_tag           10
-#define settings_cpu_tag                         11
-#define settings_menu_tag                        12
-#define settings_display_tag                     13
-#define settings_autosave_tag                    14
-#define settings_pen_tag                         15
-#define settings_key_tag                         16
-#define settings_joy_tag                         17
+#define miyoo_settings_version_tag               1
+#define miyoo_settings_language_tag              2
+#define miyoo_settings_font_path_tag             3
+#define miyoo_settings_state_folder_tag          4
+#define miyoo_settings_border_image_tag          5
+#define miyoo_settings_home_folder_tag           6
+#define miyoo_settings_debug_level_tag           7
+#define miyoo_settings_system_volume_tag         8
+#define miyoo_settings_fast_forward_tag          9
+#define miyoo_settings_half_volume_tag           10
+#define miyoo_settings_low_battery_close_tag     11
+#define miyoo_settings_cpu_tag                   12
+#define miyoo_settings_menu_tag                  13
+#define miyoo_settings_display_tag               14
+#define miyoo_settings_autosave_tag              15
+#define miyoo_settings_pen_tag                   16
+#define miyoo_settings_key_tag                   17
+#define miyoo_settings_joy_tag                   18
 
 /* Struct field encoding specification for nanopb */
 #define _display_FIELDLIST(X, a) \
@@ -415,33 +417,34 @@ X(a, STATIC,   SINGULAR, INT32,    right,             4)
 #define _joy__lr__remap_CALLBACK NULL
 #define _joy__lr__remap_DEFAULT NULL
 
-#define settings_FIELDLIST(X, a) \
+#define miyoo_settings_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, STRING,   version,           1) \
 X(a, STATIC,   SINGULAR, STRING,   language,          2) \
 X(a, STATIC,   SINGULAR, STRING,   font_path,         3) \
 X(a, STATIC,   SINGULAR, STRING,   state_folder,      4) \
 X(a, STATIC,   SINGULAR, STRING,   border_image,      5) \
-X(a, STATIC,   SINGULAR, INT32,    debug_level,       6) \
-X(a, STATIC,   SINGULAR, INT32,    system_volume,     7) \
-X(a, STATIC,   SINGULAR, INT32,    fast_forward,      8) \
-X(a, STATIC,   SINGULAR, BOOL,     half_volume,       9) \
-X(a, STATIC,   SINGULAR, BOOL,     low_battery_close,  10) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              11) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             12) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  display,          13) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         14) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              15) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  key,              16) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  joy,              17)
-#define settings_CALLBACK NULL
-#define settings_DEFAULT NULL
-#define settings_cpu_MSGTYPE _cpu
-#define settings_menu_MSGTYPE _menu
-#define settings_display_MSGTYPE _display
-#define settings_autosave_MSGTYPE _autosave
-#define settings_pen_MSGTYPE _pen
-#define settings_key_MSGTYPE _key
-#define settings_joy_MSGTYPE _joy
+X(a, STATIC,   SINGULAR, STRING,   home_folder,       6) \
+X(a, STATIC,   SINGULAR, INT32,    debug_level,       7) \
+X(a, STATIC,   SINGULAR, INT32,    system_volume,     8) \
+X(a, STATIC,   SINGULAR, INT32,    fast_forward,      9) \
+X(a, STATIC,   SINGULAR, BOOL,     half_volume,      10) \
+X(a, STATIC,   SINGULAR, BOOL,     low_battery_close,  11) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  cpu,              12) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  menu,             13) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  display,          14) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  autosave,         15) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  pen,              16) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  key,              17) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  joy,              18)
+#define miyoo_settings_CALLBACK NULL
+#define miyoo_settings_DEFAULT NULL
+#define miyoo_settings_cpu_MSGTYPE _cpu
+#define miyoo_settings_menu_MSGTYPE _menu
+#define miyoo_settings_display_MSGTYPE _display
+#define miyoo_settings_autosave_MSGTYPE _autosave
+#define miyoo_settings_pen_MSGTYPE _pen
+#define miyoo_settings_key_MSGTYPE _key
+#define miyoo_settings_joy_MSGTYPE _joy
 
 extern const pb_msgdesc_t _display_msg;
 extern const pb_msgdesc_t _display__small_msg;
@@ -459,7 +462,7 @@ extern const pb_msgdesc_t _joy_msg;
 extern const pb_msgdesc_t _joy__lr_msg;
 extern const pb_msgdesc_t _joy__lr__xy_msg;
 extern const pb_msgdesc_t _joy__lr__remap_msg;
-extern const pb_msgdesc_t settings_msg;
+extern const pb_msgdesc_t miyoo_settings_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define _display_fields &_display_msg
@@ -478,10 +481,10 @@ extern const pb_msgdesc_t settings_msg;
 #define _joy__lr_fields &_joy__lr_msg
 #define _joy__lr__xy_fields &_joy__lr__xy_msg
 #define _joy__lr__remap_fields &_joy__lr__remap_msg
-#define settings_fields &settings_msg
+#define miyoo_settings_fields &miyoo_settings_msg
 
 /* Maximum encoded size of messages (where known) */
-#define CFG_PB_H_MAX_SIZE                        settings_size
+#define CFG_PB_H_MAX_SIZE                        miyoo_settings_size
 #define _autosave_size                           13
 #define _cpu__core_size                          22
 #define _cpu__freq_size                          22
@@ -498,7 +501,7 @@ extern const pb_msgdesc_t settings_msg;
 #define _pen__show_size                          13
 #define _pen__speed_size                         22
 #define _pen_size                                307
-#define settings_size                            2374
+#define miyoo_settings_size                      2632
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -82,7 +82,7 @@
 #define DEF_CFG_JOY_REMAP_DOWN                  1
 #define DEF_CFG_JOY_REMAP_LEFT                  2
 #define DEF_CFG_JOY_REMAP_RIGHT                 3
-#define DEF_CFG_DEBUG_LEVEL                     LOG_LEVEL_ERR
+#define DEF_CFG_DEBUG_LEVEL                     LOG_LEVEL_DEBUG
 
 int init_config_settings(void);
 int load_config_settings(void);

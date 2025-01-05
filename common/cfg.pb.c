@@ -54,7 +54,7 @@ PB_BIND(_joy__lr__xy, _joy__lr__xy, AUTO)
 PB_BIND(_joy__lr__remap, _joy__lr__remap, AUTO)
 
 
-PB_BIND(settings, settings, 2)
+PB_BIND(miyoo_settings, miyoo_settings, 2)
 
 
 

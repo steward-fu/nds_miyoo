@@ -86,19 +86,17 @@
         uintptr_t render_polygon_setup_perspective_steps;
     } fun_t;
 
-    typedef struct _hook_table {
+    typedef struct _miyoo_hook {
         fun_t fun;
         var_t var;
-    } hook_table_t;
+    } miyoo_hook;
 
     int init_detour_hook(void);
-    int restore_detour_hook(void);
-    int add_adpcm_decode_hook(void *cb);
-    int add_save_load_state_handler(const char *path);
     int set_page_size(size_t ps);
-    uint32_t* get_adpcm_step_table(void);
-    uint32_t* get_adpcm_index_step_table(void);
+    int restore_detour_hook(void);
     int unlock_protected_area(uintptr_t addr);
+    int add_save_load_state_handler(const char *path);
+    int add_hook_point(uintptr_t func, void *cb);
 
 #endif
 

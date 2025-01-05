@@ -104,27 +104,28 @@ message _joy {
     }
 }
 
-message settings {
+message miyoo_settings {
     string version              = 1;
     string language             = 2;
     string font_path            = 3;
     string state_folder         = 4;
     string border_image         = 5;
+    string home_folder          = 6;
 
-    int32 debug_level           = 6;
-    int32 system_volume         = 7;
-    int32 fast_forward          = 8;
+    int32 debug_level           = 7;
+    int32 system_volume         = 8;
+    int32 fast_forward          = 9;
 
-    bool half_volume            = 9;
-    bool low_battery_close      = 10;
+    bool half_volume            = 10;
+    bool low_battery_close      = 11;
 
-    _cpu cpu                    = 11;
-    _menu menu                  = 12;
-    _display display            = 13;
-    _autosave autosave          = 14;
+    _cpu cpu                    = 12;
+    _menu menu                  = 13;
+    _display display            = 14;
+    _autosave autosave          = 15;
 
-    _pen pen                    = 15;
-    _key key                    = 16;
-    _joy joy                    = 17;
+    _pen pen                    = 16;
+    _key key                    = 17;
+    _joy joy                    = 18;
 }
 

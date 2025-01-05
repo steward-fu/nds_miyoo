@@ -40,19 +40,22 @@
 #include "log.h"
 #include "cfg.h"
 #include "file.h"
+#include "cfg.pb.h"
+
 #include "nds_firmware.h"
 #include "nds_bios_arm7.h"
 #include "nds_bios_arm9.h"
 #include "drastic_bios_arm7.h"
 #include "drastic_bios_arm9.h"
 
-extern char home_path[MAX_PATH];
+extern miyoo_settings mycfg;
 
 #if defined(UT)
 TEST_GROUP(common_file);
 
 TEST_SETUP(common_file)
 {
+    init_config_settings();
 }
 
 TEST_TEAR_DOWN(common_file)
@@ -67,6 +70,11 @@ static int write_file(const char *fpath, const void *buf, int len)
     if (!fpath || !buf) {
         err(COM"invalid parameters(0x%x, 0x%x) in %s\n", fpath, buf, __func__);
         return -1;
+    }
+
+    if (access(fpath, F_OK) == 0) {
+        warn(COM"file exists(%s), skip writing in %s\n", fpath, __func__);
+        return 0;
     }
 
     fd = open(fpath, O_CREAT | O_WRONLY, 0644);
@@ -100,33 +108,54 @@ int create_bios_files(void)
     char buf[MAX_PATH] = { 0 };
 
     snprintf(buf, sizeof(buf),
-        "%s%s/drastic_bios_arm7.bin", home_path, BIOS_PATH);
+        "%s%s/drastic_bios_arm7.bin", mycfg.home_folder, BIOS_PATH);
     if (write_file(buf, drastic_bios_arm7, sizeof(drastic_bios_arm7)) < 0)  {
         return -1;
     }
     debug(COM"wrote \"%s\" in %s\n", buf, __func__);
 
     snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm9.bin",
-        home_path, BIOS_PATH);
+        mycfg.home_folder, BIOS_PATH);
     if (write_file(buf, drastic_bios_arm9, sizeof(drastic_bios_arm9)) < 0) {
         return -1;
     }
     debug(COM"wrote \"%s\" in %s\n", buf, __func__);
 
 #if BIOS_FULL
-    snprintf(buf, sizeof(buf), "%s%s/nds_bios_arm7.bin", home_path, BIOS_PATH);
+    snprintf(
+        buf,
+        sizeof(buf),
+        "%s%s/nds_bios_arm7.bin",
+        mycfg.home_folder,
+        BIOS_PATH
+    );
+
     if (write_file(buf, nds_bios_arm7, sizeof(nds_bios_arm7)) < 0) {
         return -1;
     }
     debug(COM"wrote \"%s\" in %s\n", buf, __func__);
 
-    snprintf(buf, sizeof(buf), "%s%s/nds_bios_arm9.bin", home_path, BIOS_PATH);
+    snprintf(
+        buf,
+        sizeof(buf),
+        "%s%s/nds_bios_arm9.bin",
+        mycfg.home_folder,
+        BIOS_PATH
+    );
+
     if (write_file(buf, nds_bios_arm9, sizeof(nds_bios_arm9)) < 0) {
         return -1;
     }
     debug(COM"wrote \"%s\" in %s\n", buf, __func__);
 
-    snprintf(buf, sizeof(buf), "%s%s/nds_firmware.bin", home_path, BIOS_PATH);
+    snprintf(
+        buf,
+        sizeof(buf),
+        "%s%s/nds_firmware.bin",
+        mycfg.home_folder,
+        BIOS_PATH
+    );
+
     if (write_file(buf, nds_firmware, sizeof(nds_firmware)) < 0) {
         return -1;
     }
@@ -144,21 +173,42 @@ TEST(common_file, create_bios_files)
     TEST_ASSERT_EQUAL_INT(0, create_bios_files());
 
     snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm7.bin",
-        home_path, BIOS_PATH);
+        mycfg.home_folder, BIOS_PATH);
+
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 
     snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm9.bin",
-        home_path, BIOS_PATH);
+        mycfg.home_folder, BIOS_PATH);
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 
 #if BIOS_FULL
-    snprintf(buf, sizeof(buf), "%s%s/nds_bios_arm7.bin", home_path, BIOS_PATH);
+    snprintf(
+        buf,
+        sizeof(buf),
+        "%s%s/nds_bios_arm7.bin",
+        mycfg.home_folder,
+        BIOS_PATH
+    );
+
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 
-    snprintf(buf, sizeof(buf), "%s%s/nds_bios_arm9.bin", home_path, BIOS_PATH);
+    snprintf(
+        buf,
+        sizeof(buf),
+        "%s%s/nds_bios_arm9.bin",
+        mycfg.home_folder,
+        BIOS_PATH
+    );
+
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 
-    snprintf(buf, sizeof(buf), "%s%s/nds_firmware.bin", home_path, BIOS_PATH);
+    snprintf(
+        buf,
+        sizeof(buf),
+        "%s%s/nds_firmware.bin",
+        mycfg.home_folder,
+        BIOS_PATH
+    );
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 #endif
 }

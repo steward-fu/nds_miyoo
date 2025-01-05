@@ -54,9 +54,12 @@
 #include "unity_fixture.h"
 #endif
 
+#if defined(A30) || defined(UT)
+miyoo_joystick myjoy = { 0 };
+#endif
+
 extern NDS nds;
-extern settings cfg;
-miyoo_joystick_t myjoy = { 0 };
+extern miyoo_settings mycfg;
 
 #if defined(UT)
 TEST_GROUP(sdl2_joystick_miyoo);
@@ -312,7 +315,7 @@ TEST(sdl2_joystick_miyoo, uart_read)
 
 static int filter_dead_zone(int idx, int newAxis, int oldAxis)
 {
-    int dead = (idx == 0) ? cfg.joy.left.x.dead : cfg.joy.left.y.dead;
+    int dead = (idx == 0) ? mycfg.joy.left.x.dead : mycfg.joy.left.y.dead;
 
     if (abs(newAxis - oldAxis) < dead) {
         return 1;
@@ -323,10 +326,10 @@ static int filter_dead_zone(int idx, int newAxis, int oldAxis)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, filter_dead_zone)
 {
-    cfg.joy.left.x.dead = 10;
+    mycfg.joy.left.x.dead = 10;
     TEST_ASSERT_EQUAL_INT(0, filter_dead_zone(0, 100, 0));
 
-    cfg.joy.left.y.dead = 100;
+    mycfg.joy.left.y.dead = 100;
     TEST_ASSERT_EQUAL_INT(1, filter_dead_zone(1, 10, 0));
 }
 #endif
@@ -375,12 +378,12 @@ static void update_axis_values(void)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, update_axis_values)
 {
-    cfg.joy.left.x.dead = 0;
+    mycfg.joy.left.x.dead = 0;
     myjoy.last_x = 0;
     myjoy.cur_axis[0] = 100;
     myjoy.last_axis[0] = 0;
 
-    cfg.joy.left.y.dead = 0;
+    mycfg.joy.left.y.dead = 0;
     myjoy.last_y = 0;
     myjoy.cur_axis[1] = 100;
     myjoy.last_axis[1] = 0;
@@ -388,12 +391,12 @@ TEST(sdl2_joystick_miyoo, update_axis_values)
     TEST_ASSERT_EQUAL_INT(100, myjoy.last_x);
     TEST_ASSERT_EQUAL_INT(100, myjoy.last_y);
 
-    cfg.joy.left.x.dead = 110;
+    mycfg.joy.left.x.dead = 110;
     myjoy.last_x = 0;
     myjoy.cur_axis[0] = 100;
     myjoy.last_axis[0] = 0;
 
-    cfg.joy.left.y.dead = 110;
+    mycfg.joy.left.y.dead = 110;
     myjoy.last_y = 0;
     myjoy.cur_axis[1] = 100;
     myjoy.last_axis[1] = 0;
@@ -408,21 +411,21 @@ static int frame_to_axis_x(uint8_t x)
     int div = 0;
     int value = 0;
 
-    div = cfg.joy.left.x.max - cfg.joy.left.x.zero;
-    if ((x > cfg.joy.left.x.zero) && (div > 0)) {
-        value = ((x - cfg.joy.left.x.zero) * 126) / div;
+    div = mycfg.joy.left.x.max - mycfg.joy.left.x.zero;
+    if ((x > mycfg.joy.left.x.zero) && (div > 0)) {
+        value = ((x - mycfg.joy.left.x.zero) * 126) / div;
     }
 
-    div = cfg.joy.left.x.zero - cfg.joy.left.x.min;
-    if ((x < cfg.joy.left.x.zero) && (div > 0)) {
-        value = ((x - cfg.joy.left.x.zero) * 126) / div;
+    div = mycfg.joy.left.x.zero - mycfg.joy.left.x.min;
+    if ((x < mycfg.joy.left.x.zero) && (div > 0)) {
+        value = ((x - mycfg.joy.left.x.zero) * 126) / div;
     }
 
-    if (value > 0 && value < cfg.joy.left.x.dead) {
+    if (value > 0 && value < mycfg.joy.left.x.dead) {
         return 0;
     }
 
-    if (value < 0 && value > -(cfg.joy.left.x.dead)) {
+    if (value < 0 && value > -(mycfg.joy.left.x.dead)) {
         return 0;
     }
     return value;
@@ -431,19 +434,19 @@ static int frame_to_axis_x(uint8_t x)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, frame_to_axis_x)
 {
-    cfg.joy.left.x.max = 0;
-    cfg.joy.left.x.zero = 0;
-    cfg.joy.left.x.dead = 0;
+    mycfg.joy.left.x.max = 0;
+    mycfg.joy.left.x.zero = 0;
+    mycfg.joy.left.x.dead = 0;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_x(0));
 
-    cfg.joy.left.x.max = 1;
-    cfg.joy.left.x.zero = 0;
-    cfg.joy.left.x.dead = 0;
+    mycfg.joy.left.x.max = 1;
+    mycfg.joy.left.x.zero = 0;
+    mycfg.joy.left.x.dead = 0;
     TEST_ASSERT_EQUAL_INT(32130, frame_to_axis_x(255));
 
-    cfg.joy.left.x.max = 1;
-    cfg.joy.left.x.zero = 0;
-    cfg.joy.left.x.dead = 32131;
+    mycfg.joy.left.x.max = 1;
+    mycfg.joy.left.x.zero = 0;
+    mycfg.joy.left.x.dead = 32131;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_x(255));
 }
 #endif
@@ -453,21 +456,21 @@ static int frame_to_axis_y(uint8_t y)
     int div = 0;
     int value = 0;
 
-    div = cfg.joy.left.y.max - cfg.joy.left.y.zero;
-    if ((y > cfg.joy.left.y.zero) && (div > 0)) {
-        value = ((y - cfg.joy.left.y.zero) * 126) / div;
+    div = mycfg.joy.left.y.max - mycfg.joy.left.y.zero;
+    if ((y > mycfg.joy.left.y.zero) && (div > 0)) {
+        value = ((y - mycfg.joy.left.y.zero) * 126) / div;
     }
 
-    div = cfg.joy.left.y.zero - cfg.joy.left.y.min;
-    if ((y < cfg.joy.left.y.zero) && (div > 0)) {
-        value = ((y - cfg.joy.left.y.zero) * 126) / div;
+    div = mycfg.joy.left.y.zero - mycfg.joy.left.y.min;
+    if ((y < mycfg.joy.left.y.zero) && (div > 0)) {
+        value = ((y - mycfg.joy.left.y.zero) * 126) / div;
     }
 
-    if ((value > 0) && (value < cfg.joy.left.y.dead)) {
+    if ((value > 0) && (value < mycfg.joy.left.y.dead)) {
         return 0;
     }
 
-    if ((value < 0) && (value > -(cfg.joy.left.y.dead))) {
+    if ((value < 0) && (value > -(mycfg.joy.left.y.dead))) {
         return 0;
     }
 
@@ -477,19 +480,19 @@ static int frame_to_axis_y(uint8_t y)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, frame_to_axis_y)
 {
-    cfg.joy.left.y.max = 0;
-    cfg.joy.left.y.zero = 0;
-    cfg.joy.left.y.dead = 0;
+    mycfg.joy.left.y.max = 0;
+    mycfg.joy.left.y.zero = 0;
+    mycfg.joy.left.y.dead = 0;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_y(0));
 
-    cfg.joy.left.y.max = 1;
-    cfg.joy.left.y.zero = 0;
-    cfg.joy.left.y.dead = 0;
+    mycfg.joy.left.y.max = 1;
+    mycfg.joy.left.y.zero = 0;
+    mycfg.joy.left.y.dead = 0;
     TEST_ASSERT_EQUAL_INT(32130, frame_to_axis_y(255));
 
-    cfg.joy.left.y.max = 1;
-    cfg.joy.left.y.zero = 0;
-    cfg.joy.left.y.dead = 32131;
+    mycfg.joy.left.y.max = 1;
+    mycfg.joy.left.y.zero = 0;
+    mycfg.joy.left.y.dead = 32131;
     TEST_ASSERT_EQUAL_INT(0, frame_to_axis_y(255));
 }
 #endif

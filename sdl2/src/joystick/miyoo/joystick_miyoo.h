@@ -66,7 +66,7 @@ typedef struct miyoo_joystick {
     int y_max;
     int y_zero;
 #endif
-} miyoo_joystick_t;
+} miyoo_joystick;
 
 #endif
 

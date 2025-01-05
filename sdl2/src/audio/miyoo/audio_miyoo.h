@@ -24,6 +24,12 @@
 #include "../SDL_sysaudio.h"
 #include "../../SDL_internal.h"
 
+#if defined(MINI)
+#include "mi_sys.h"
+#include "mi_common_datatype.h"
+#include "mi_ao.h"
+#endif
+
 #define _THIS SDL_AudioDevice *this
 
 struct SDL_PrivateAudioData {
@@ -31,6 +37,17 @@ struct SDL_PrivateAudioData {
     int audio_fd;
     uint8_t *mixbuf;
 };
+
+#if defined(MINI)
+typedef struct _miyoo_audio {
+    struct {
+        MI_AO_CHN channel;
+        MI_AUDIO_DEV dev;
+        MI_AUDIO_Attr_t set_attr;
+        MI_AUDIO_Attr_t get_attr;
+    } mi;
+} miyoo_audio;
+#endif
 
 #endif
 

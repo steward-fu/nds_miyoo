@@ -24,5 +24,7 @@
 #define BIOS_FULL   0
 #define BIOS_PATH   "/system"
 
+int create_bios_files(void);
+
 #endif
 

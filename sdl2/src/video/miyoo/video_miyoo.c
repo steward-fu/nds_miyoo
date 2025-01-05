@@ -68,8 +68,8 @@ NDS nds = {0};
 GFX gfx = {0};
 MiyooVideoInfo vid = {0};
 
-extern settings cfg;
-extern miyoo_event_t myevent;
+extern miyoo_event myevent;
+extern miyoo_settings mycfg;
 
 int FB_W = 0;
 int FB_H = 0;
@@ -1615,7 +1615,11 @@ static int process_screen(void)
         }
 
 #if defined(A30)
-        if (show_pen && ((myevent.dev.mode == DEV_MODE_PEN) || (nds.joy.show_cnt && (nds.joy.mode == MYJOY_MODE_STYLUS)))) {
+        if (show_pen &&
+            ((myevent.dev.mode == DEV_MODE_PEN) ||
+            (mycfg.pen.show.count &&
+            (mycfg.joy.left.mode == JOY_MODE_PEN))))
+        {
 #else
         if (show_pen && (myevent.dev.mode == DEV_MODE_PEN)) {
 #endif
@@ -5297,7 +5301,7 @@ int handle_menu(int key)
         case MENU_JOY_CUSKEY1:
         case MENU_JOY_CUSKEY2:
         case MENU_JOY_CUSKEY3:
-            if (nds.joy.mode == MYJOY_MODE_CUSKEY) {
+            if (mycfg.joy.left.mode == _joy__lr__mode_cust) {
                 col1 = (cur_sel == cc) ? val_col : unsel_col;
             }
             else {
@@ -5370,7 +5374,7 @@ int handle_menu(int key)
             break;
 #endif
         case MENU_HOTKEY:
-            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[cfg.key.hotkey]));
+            snprintf(buf, sizeof(buf), "%s", to_lang(HOTKEY[mycfg.key.hotkey]));
             break;
         case MENU_SWAP_L1L2:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.swap_l1l2 ? "Yes" : "No"));
@@ -5431,43 +5435,43 @@ int handle_menu(int key)
             break;
         case MENU_PEN_XV:
 #if defined(A30)
-            snprintf(buf, sizeof(buf), "%d (80000)", cfg.pen.speed.x);
+            snprintf(buf, sizeof(buf), "%d (80000)", mycfg.pen.speed.x);
 #else
-            snprintf(buf, sizeof(buf), "%d (30000)", cfg.pen.speed.x);
+            snprintf(buf, sizeof(buf), "%d (30000)", mycfg.pen.speed.x);
 #endif
             break;
         case MENU_PEN_YV:
 #if defined(A30)
-            snprintf(buf, sizeof(buf), "%d (85000)", cfg.pen.speed.y);
+            snprintf(buf, sizeof(buf), "%d (85000)", mycfg.pen.speed.y);
 #else
-            snprintf(buf, sizeof(buf), "%d (35000)", cfg.pen.speed.y);
+            snprintf(buf, sizeof(buf), "%d (35000)", mycfg.pen.speed.y);
 #endif
             break;
         case MENU_CURSOR:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.menu.show_cursor ? "Show" : "Hide"));
             break;
         case MENU_FAST_FORWARD:
-            snprintf(buf, sizeof(buf), "%d (6)", cfg.fast_forward);
+            snprintf(buf, sizeof(buf), "%d (6)", mycfg.fast_forward);
             break;
 #if defined(A30)
-        case MENU_JOY_MODE:
-            snprintf(buf, sizeof(buf), "%s", to_lang(JOY_MODE[nds.joy.mode]));
-            break;
-        case MENU_JOY_CUSKEY0:
-            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[0]]));
-            break;
-        case MENU_JOY_CUSKEY1:
-            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[1]]));
-            break;
-        case MENU_JOY_CUSKEY2:
-            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[2]]));
-            break;
-        case MENU_JOY_CUSKEY3:
-            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[3]]));
-            break;
-        case MENU_JOY_DZONE:
-            snprintf(buf, sizeof(buf), "%d (65)", nds.joy.dzone);
-            break;
+//        case MENU_JOY_MODE:
+//            snprintf(buf, sizeof(buf), "%s", to_lang(JOY_MODE[nds.joy.mode]));
+//            break;
+//        case MENU_JOY_CUSKEY0:
+//            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[0]]));
+//            break;
+//        case MENU_JOY_CUSKEY1:
+//            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[1]]));
+//            break;
+//        case MENU_JOY_CUSKEY2:
+//            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[2]]));
+//            break;
+//        case MENU_JOY_CUSKEY3:
+//            snprintf(buf, sizeof(buf), "Miyoo %s", to_lang(JOY_CUSKEY[nds.joy.cuskey[3]]));
+//            break;
+//        case MENU_JOY_DZONE:
+//            snprintf(buf, sizeof(buf), "%d (65)", nds.joy.dzone);
+//            break;
 #endif
         case MENU_CHK_BAT:
             snprintf(buf, sizeof(buf), "%s", to_lang(nds.chk_bat ? "Yes" : "No"));

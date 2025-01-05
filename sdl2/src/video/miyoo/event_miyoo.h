@@ -133,7 +133,7 @@ typedef struct _miyoo_event_t {
     int running;
     SDL_sem *lock;
     SDL_Thread *thread;
-} miyoo_event_t;
+} miyoo_event;
 
 void EventInit(void);
 void EventDeinit(void);

@@ -88,16 +88,19 @@
         uint16_t *snapshot_top,
         uint16_t *snapshot_bottom,
         uint32_t snapshot_only);
+
     typedef int32_t (*nds_save_state_index)(
         void *system,
         uint32_t index,
         uint16_t *snapshot_top,
         uint16_t *snapshot_bottom);
+
     typedef int32_t (*nds_load_state)(
         void *system, const char *path,
         uint16_t *snapshot_top,
         uint16_t *snapshot_bottom,
         uint32_t snapshot_only);
+
     typedef int32_t (*nds_save_state)(
         void *system,
         const char *dir,

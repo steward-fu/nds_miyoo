@@ -42,16 +42,7 @@
 #endif
 
 #if defined(MINI)
-#include "mi_sys.h"
-#include "mi_common_datatype.h"
-#include "mi_ao.h"
-#endif
-
-#if defined(MINI)
-static MI_AO_CHN AoChn = 0;
-static MI_AUDIO_DEV AoDevId = 0;
-static MI_AUDIO_Attr_t stSetAttr = { 0 };
-static MI_AUDIO_Attr_t stGetAttr = { 0 };
+miyoo_audio myaudio = { 0 };
 #endif
 
 #if defined(UT)
@@ -85,8 +76,8 @@ static void CloseDevice(_THIS)
         }
 
 #if defined(MINI)
-        MI_AO_DisableChn(AoDevId, AoChn);
-        MI_AO_Disable(AoDevId);
+        MI_AO_DisableChn(myaudio.mi.dev, myaudio.mi.channel);
+        MI_AO_Disable(myaudio.mi.dev);
 #endif
     } while (0);
 }
@@ -105,15 +96,25 @@ static int OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     MI_S32 miret = 0;
     MI_S32 s32SetVolumeDb = 0;
     MI_S32 s32GetVolumeDb = 0;
-    MI_SYS_ChnPort_t stAoChn0OutputPort0;
+    MI_SYS_ChnPort_t stmi_channel0OutputPort0;
 #endif
 
     if (!this || !handle || !devname) {
-        err(SDL"invalid parameter(0x%x, 0x%x, 0x%x, 0x%x) in %s\n", this, handle, devname, iscapture, __func__);
+        err(
+            SDL"invalid parameter(0x%x, 0x%x, 0x%x, 0x%x) in %s\n",
+            this,
+            handle,
+            devname,
+            iscapture,
+            __func__
+        );
+
         return -1;
     }
 
-    this->hidden = (struct SDL_PrivateAudioData *)SDL_malloc((sizeof * this->hidden));
+    this->hidden = 
+        (struct SDL_PrivateAudioData *)SDL_malloc((sizeof * this->hidden));
+
     if(this->hidden == NULL) {
         err(SDL"failed to allocate memory for audio data in %s\n", __func__);
         return SDL_OutOfMemory();
@@ -128,47 +129,60 @@ static int OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     }
 
 #if defined(MINI)
-    stSetAttr.eBitwidth = E_MI_AUDIO_BIT_WIDTH_16;
-    stSetAttr.eWorkmode = E_MI_AUDIO_MODE_I2S_MASTER;
-    stSetAttr.u32FrmNum = 6;
-    stSetAttr.u32PtNumPerFrm = this->spec.samples;
-    stSetAttr.u32ChnCnt = this->spec.channels;
-    stSetAttr.eSoundmode = this->spec.channels == 2 ? E_MI_AUDIO_SOUND_MODE_STEREO : E_MI_AUDIO_SOUND_MODE_MONO;
-    stSetAttr.eSamplerate = (MI_AUDIO_SampleRate_e)this->spec.freq;
-    info(SDL"audio freq:%d, sample:%d, channels:%d in %s\n", this->spec.freq, this->spec.samples, this->spec.channels, __func__);
+    myaudio.mi.set_attr.eBitwidth = E_MI_AUDIO_BIT_WIDTH_16;
+    myaudio.mi.set_attr.eWorkmode = E_MI_AUDIO_MODE_I2S_MASTER;
+    myaudio.mi.set_attr.u32FrmNum = 6;
+    myaudio.mi.set_attr.u32PtNumPerFrm = this->spec.samples;
+    myaudio.mi.set_attr.u32ChnCnt = this->spec.channels;
+    myaudio.mi.set_attr.eSoundmode =
+        this->spec.channels == 2 ?
+        E_MI_AUDIO_SOUND_MODE_STEREO : E_MI_AUDIO_SOUND_MODE_MONO;
 
-    miret = MI_AO_SetPubAttr(AoDevId, &stSetAttr);
+    myaudio.mi.set_attr.eSamplerate = (MI_AUDIO_SampleRate_e)this->spec.freq;
+    info(
+        SDL"audio freq:%d, sample:%d, channels:%d in %s\n",
+        this->spec.freq,
+        this->spec.samples,
+        this->spec.channels,
+        __func__
+    );
+
+    miret = MI_AO_SetPubAttr(myaudio.mi.dev, &myaudio.mi.set_attr);
     if(MI_SUCCESS != miret) {
         err(SDL"failed to set PubAttr in %s\n", __func__);
         return -1;
     }
-    miret = MI_AO_GetPubAttr(AoDevId, &stGetAttr);
+
+    miret = MI_AO_GetPubAttr(myaudio.mi.dev, &myaudio.mi.get_attr);
     if(MI_SUCCESS != miret) {
         err(SDL"failed to get PubAttr in %s\n", __func__);
         return -1;
     }
-    miret = MI_AO_Enable(AoDevId);
+
+    miret = MI_AO_Enable(myaudio.mi.dev);
     if(MI_SUCCESS != miret) {
         err(SDL"failed to enable AO in %s\n", __func__);
         return -1;
     }
-    miret = MI_AO_EnableChn(AoDevId, AoChn);
+
+    miret = MI_AO_EnableChn(myaudio.mi.dev, myaudio.mi.channel);
     if(miret != MI_SUCCESS) {
         err(SDL"failed to enable channel in %s\n", __func__);
         return -1;
     }
-    miret = MI_AO_SetVolume(AoDevId, s32SetVolumeDb);
+
+    miret = MI_AO_SetVolume(myaudio.mi.dev, s32SetVolumeDb);
     if(MI_SUCCESS != miret) {
         err(SDL"failed to set volume in %s\n", __func__);
         return -1;
     }
 
-    MI_AO_GetVolume(AoDevId, &s32GetVolumeDb);
-    stAoChn0OutputPort0.eModId = E_MI_MODULE_ID_AO;
-    stAoChn0OutputPort0.u32DevId = AoDevId;
-    stAoChn0OutputPort0.u32ChnId = AoChn;
-    stAoChn0OutputPort0.u32PortId = 0;
-    MI_SYS_SetChnOutputPortDepth(&stAoChn0OutputPort0, 12, 13);
+    MI_AO_GetVolume(myaudio.mi.dev, &s32GetVolumeDb);
+    stmi_channel0OutputPort0.eModId = E_MI_MODULE_ID_AO;
+    stmi_channel0OutputPort0.u32DevId = myaudio.mi.dev;
+    stmi_channel0OutputPort0.u32ChnId = myaudio.mi.channel;
+    stmi_channel0OutputPort0.u32PortId = 0;
+    MI_SYS_SetChnOutputPortDepth(&stmi_channel0OutputPort0, 12, 13);
 #endif
 
     return 0;
@@ -200,8 +214,8 @@ static void PlayDevice(_THIS)
 {
     do {
 #if defined(MINI)
-        MI_S32 s32RetSendStatus = 0;
-        MI_AUDIO_Frame_t aoTestFrame = { 0 };
+        MI_S32 ret = 0;
+        MI_AUDIO_Frame_t frm = { 0 };
 #endif
 
         if (!this) {
@@ -210,16 +224,25 @@ static void PlayDevice(_THIS)
         }
 
 #if defined(MINI)
-        aoTestFrame.eBitwidth = stGetAttr.eBitwidth;
-        aoTestFrame.eSoundmode = stGetAttr.eSoundmode;
-        aoTestFrame.u32Len = this->hidden->mixlen;
-        aoTestFrame.apVirAddr[0] = this->hidden->mixbuf;
-        aoTestFrame.apVirAddr[1] = NULL;
+        frm.eBitwidth = myaudio.mi.get_attr.eBitwidth;
+        frm.eSoundmode = myaudio.mi.get_attr.eSoundmode;
+        frm.u32Len = this->hidden->mixlen;
+        frm.apVirAddr[0] = this->hidden->mixbuf;
+        frm.apVirAddr[1] = NULL;
         do {
-            s32RetSendStatus = MI_AO_SendFrame(AoDevId, AoChn, &aoTestFrame, 1);
-            usleep(((stSetAttr.u32PtNumPerFrm * 1000) / stSetAttr.eSamplerate - 10) * 1000);
+            ret = MI_AO_SendFrame(
+                myaudio.mi.dev,
+                myaudio.mi.channel,
+                &frm,
+                1
+            );
+
+            usleep(
+                ((myaudio.mi.set_attr.u32PtNumPerFrm * 1000) /
+                myaudio.mi.set_attr.eSamplerate - 10) * 1000
+            );
         }
-        while (s32RetSendStatus == MI_AO_ERR_NOBUF);
+        while (ret == MI_AO_ERR_NOBUF);
 #endif
     } while (0);
 }
@@ -264,7 +287,12 @@ static int AudioInit(SDL_AudioDriverImpl *impl)
     return 1;
 }
 
-AudioBootStrap MiyooAudio_bootstrap = {"Miyoo", "Miyoo Audio Driver", AudioInit, 0};
+AudioBootStrap MiyooAudio_bootstrap = {
+    "Miyoo",
+    "Miyoo Audio Driver",
+    AudioInit,
+    0
+};
 
 #if defined(UT)
 TEST(sdl2_audio_miyoo, AudioInit)

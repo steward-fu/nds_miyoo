@@ -71,7 +71,6 @@ ifeq ($(MOD),ut)
     CFLAGS  += -I../ut/extras/fixture/src
     CFLAGS  += -fno-omit-frame-pointer
     CFLAGS  += -fsanitize=address,leak,undefined
-    LDFLAGS += -lprotobuf-nanopb
 endif
 
 export CC=${CROSS}gcc
