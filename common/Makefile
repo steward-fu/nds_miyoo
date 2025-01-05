@@ -2,8 +2,10 @@ TARGET   = libcommon.so
 LDFLAGS += -fPIC
 LDFLAGS += -shared
 LDFLAGS += -ljson-c
-LDFLAGS += -lprotobuf-nanopb
-SRC      = log.c file.c cfg.c cfg.pb.c
+SRC      = log.c \
+           cfg.c \
+           file.c \
+           cfg.pb.c
 
 ifneq (ut,$(MOD))
     SRC += memcpy.S

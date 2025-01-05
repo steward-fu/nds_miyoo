@@ -33,9 +33,10 @@
 #include "cfg.h"
 #include "log.h"
 #include "hook.h"
+#include "drastic.h"
 
 static size_t page_size = 4096;
-static hook_table_t hook_table = { 0 };
+hook_table_t hook_table = { 0 };
 
 extern int drastic_save_load_state_hook;
 extern char drastic_save_load_state_path[MAX_PATH];
@@ -52,7 +53,7 @@ TEST_TEAR_DOWN(detour_hook)
 }
 #endif
 
-static int unlock_protected_area(uintptr_t addr)
+int unlock_protected_area(uintptr_t addr)
 {
     if (!addr) {
         err(DTR"invalid parameter(0x%x) in %s\n", addr, __func__);
@@ -253,23 +254,30 @@ int add_save_load_state_handler(const char *state_path)
 
     if (state_path[0]) {
 #if !(UT)
-        if (detour_hook(FUN_LOAD_STATE_INDEX, (intptr_t)dtr_load_state_index) < 0) {
+        if (add_hook_point(hook_table.fun.load_state_index,
+            drastic_load_state_index) < 0)
+        {
             err(DTR"failed to add load_state_index hook in %s\n", __func__);
             return -1;
         }
 
-        if (detour_hook(FUN_SAVE_STATE_INDEX, (intptr_t)dtr_save_state_index) < 0) {
+        if (add_hook_point(hook_table.fun.save_state_index,
+            drastic_save_state_index) < 0)
+        {
             err(DTR"failed to add save_state_index hook in %s\n", __func__);
             return -1;
         }
 
-        if (detour_hook(FUN_INITIALIZE_BACKUP, (intptr_t)dtr_initialize_backup) < 0) {
+        if (add_hook_point(hook_table.fun.initialize_backup,
+            drastic_initialize_backup) < 0)
+        {
             err(DTR"failed to add initialize_backup hook in %s\n", __func__);
             return -1;
         }
 #endif
         drastic_save_load_state_hook = 1;
-        strncpy(drastic_save_load_state_path, state_path, sizeof(drastic_save_load_state_path));
+        strncpy(drastic_save_load_state_path,
+            state_path, sizeof(drastic_save_load_state_path));
         return 0;
     }
     return -1;

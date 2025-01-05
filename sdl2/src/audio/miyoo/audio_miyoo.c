@@ -199,15 +199,17 @@ TEST(sdl2_audio_miyoo, OpenDevice)
 static void PlayDevice(_THIS)
 {
     do {
+#if defined(MINI)
+        MI_S32 s32RetSendStatus = 0;
+        MI_AUDIO_Frame_t aoTestFrame = { 0 };
+#endif
+
         if (!this) {
             err(SDL"invalid parameter(0x%x) in %s\n", this, __func__);
             break;
         }
 
 #if defined(MINI)
-        MI_S32 s32RetSendStatus = 0;
-        MI_AUDIO_Frame_t aoTestFrame = { 0 };
-
         aoTestFrame.eBitwidth = stGetAttr.eBitwidth;
         aoTestFrame.eSoundmode = stGetAttr.eSoundmode;
         aoTestFrame.u32Len = this->hidden->mixlen;

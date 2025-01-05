@@ -87,6 +87,7 @@ static uint8_t *pcm_buf = NULL;
 static int queue_init(queue_t *q, size_t size);
 static int queue_destroy(queue_t *q);
 static int queue_put(queue_t *q, uint8_t *buffer, size_t size);
+void* neon_memcpy(void *dest, const void *src, size_t n);
 
 #if defined(UT)
 TEST_GROUP(alsa_snd);
@@ -308,7 +309,8 @@ int volume_inc(void)
 #endif
 
 #if defined(A30)
-        *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) | (vol_base + (vol << vol_mul));
+        *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) |
+            (vol_base + (vol << vol_mul));
 #endif
         set_system_volume(vol);
     }
@@ -340,7 +342,8 @@ int volume_dec(void)
             *vol_ptr = 0;
         }
         else {
-            *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) | (vol_base + (vol << vol_mul));
+            *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) |
+                (vol_base + (vol << vol_mul));
         }
 #endif
         set_system_volume(vol);
@@ -383,7 +386,8 @@ static int open_dsp(void)
     }
 
     vol_ptr = (uint32_t *)(&mem_ptr[0xc00 + 0x258]);
-    *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) | (vol_base + (vol << vol_mul));
+    *vol_ptr = ((vol_base + (vol << vol_mul)) << 8) |
+        (vol_base + (vol << vol_mul));
 
     arg = 16;
     if (ioctl(dsp_fd, SOUND_PCM_WRITE_BITS, &arg) < 0) {
@@ -523,7 +527,8 @@ static int queue_put(queue_t *q, uint8_t *buffer, size_t size)
     int r = 0, tmp = 0, avai = 0;
 
     if (!q || !buffer || (size < 0)) {
-        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n", q, buffer, size, __func__);
+        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n",
+            q, buffer, size, __func__);
         return -1;
     }
 
@@ -596,7 +601,8 @@ static size_t queue_get(queue_t *q, uint8_t *buffer, size_t max_size)
     int r = 0, tmp = 0, avai = 0, size = max_size;
 
     if (!q || !buffer || (max_size < 0)) {
-        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n", q, buffer, size, __func__);
+        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n",
+            q, buffer, size, __func__);
         return -1;
     }
 
@@ -704,7 +710,8 @@ static void *audio_handler(void *threadid)
         else {
             if (chk_cnt == 0) {
                 char buf[255] = {0};
-                FILE *fd = popen("amixer get \'DACL Mixer AIF1DA0L\' | grep \"Mono: Playback \\[off\\]\" | wc -l", "r");
+                FILE *fd = popen("amixer get \'DACL Mixer AIF1DA0L\'"
+                    " | grep \"Mono: Playback \\[off\\]\" | wc -l", "r");
 
                 if (fd) {
                     fgets(buf, sizeof(buf), fd);
@@ -791,7 +798,10 @@ TEST(alsa_snd, snd_pcm_hw_params_malloc)
 }
 #endif
 
-int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_access_t _access)
+int snd_pcm_hw_params_set_access(
+    snd_pcm_t *pcm,
+    snd_pcm_hw_params_t *params,
+    snd_pcm_access_t _access)
 {
     return 0;
 }
@@ -803,7 +813,10 @@ TEST(alsa_snd, snd_pcm_hw_params_set_access)
 }
 #endif
 
-int snd_pcm_hw_params_set_buffer_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val)
+int snd_pcm_hw_params_set_buffer_size_near(
+    snd_pcm_t *pcm,
+    snd_pcm_hw_params_t *params,
+    snd_pcm_uframes_t *val)
 {
     *val = PCM_SAMPLES * 2 * PCM_CHANNELS;
     return 0;
@@ -814,12 +827,16 @@ TEST(alsa_snd, snd_pcm_hw_params_set_buffer_size_near)
 {
     snd_pcm_uframes_t t = { 0 };
 
-    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_buffer_size_near(NULL, NULL, &t));
+    TEST_ASSERT_EQUAL_INT(0,
+        snd_pcm_hw_params_set_buffer_size_near(NULL, NULL, &t));
     TEST_ASSERT_EQUAL_INT(PCM_SAMPLES * 2 * PCM_CHANNELS, t);
 }
 #endif
 
-int snd_pcm_hw_params_set_channels(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
+int snd_pcm_hw_params_set_channels(
+    snd_pcm_t *pcm,
+    snd_pcm_hw_params_t *params,
+    unsigned int val)
 {
     return 0;
 }
@@ -831,7 +848,10 @@ TEST(alsa_snd, snd_pcm_hw_params_set_channels)
 }
 #endif
 
-int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_format_t val)
+int snd_pcm_hw_params_set_format(
+    snd_pcm_t *pcm,
+    snd_pcm_hw_params_t *params,
+    snd_pcm_format_t val)
 {
     if (val != SND_PCM_FORMAT_S16_LE) {
         return -1;
@@ -843,11 +863,16 @@ int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, sn
 TEST(alsa_snd, snd_pcm_hw_params_set_format)
 {
     TEST_ASSERT_EQUAL_INT(-1, snd_pcm_hw_params_set_format(NULL, NULL, 0));
-    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_format(NULL, NULL, SND_PCM_FORMAT_S16_LE));
+    TEST_ASSERT_EQUAL_INT(0,
+        snd_pcm_hw_params_set_format(NULL, NULL, SND_PCM_FORMAT_S16_LE));
 }
 #endif
 
-int snd_pcm_hw_params_set_period_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val, int *dir)
+int snd_pcm_hw_params_set_period_size_near(
+    snd_pcm_t *pcm,
+    snd_pcm_hw_params_t *params,
+    snd_pcm_uframes_t *val,
+    int *dir)
 {
     *val = PCM_PERIOD;
     return 0;
@@ -863,7 +888,11 @@ TEST(alsa_snd, snd_pcm_hw_params_set_period_size_near)
 }
 #endif
 
-int snd_pcm_hw_params_set_rate_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir)
+int snd_pcm_hw_params_set_rate_near(
+    snd_pcm_t *pcm,
+    snd_pcm_hw_params_t *params,
+    unsigned int *val,
+    int *dir)
 {
     *val = PCM_FREQ;
     return 0;
@@ -874,15 +903,21 @@ TEST(alsa_snd, snd_pcm_hw_params_set_rate_near)
 {
     unsigned int t = 0;
 
-    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_rate_near(NULL, NULL, &t, NULL));
+    TEST_ASSERT_EQUAL_INT(0,
+        snd_pcm_hw_params_set_rate_near(NULL, NULL, &t, NULL));
     TEST_ASSERT_EQUAL_INT(PCM_FREQ, t);
 }
 #endif
 
-int snd_pcm_open(snd_pcm_t **pcm, const char *name, snd_pcm_stream_t stream, int mode)
+int snd_pcm_open(
+    snd_pcm_t **pcm,
+    const char *name,
+    snd_pcm_stream_t stream,
+    int mode)
 {
     if (stream != SND_PCM_STREAM_PLAYBACK) {
-        err(SND"steam format is not equal to SND_PCM_STREAM_PLAYBACK in %s\n", __func__);
+        err(SND"steam format is not equal to SND_PCM_STREAM_PLAYBACK in %s\n",
+            __func__);
         return -1;
     }
 
@@ -894,7 +929,8 @@ int snd_pcm_open(snd_pcm_t **pcm, const char *name, snd_pcm_stream_t stream, int
 TEST(alsa_snd, snd_pcm_open)
 {
     TEST_ASSERT_EQUAL_INT(-1, snd_pcm_open(NULL, NULL, -1, 0));
-    TEST_ASSERT_EQUAL_INT(0, snd_pcm_open(NULL, NULL, SND_PCM_STREAM_PLAYBACK, 0));
+    TEST_ASSERT_EQUAL_INT(0,
+        snd_pcm_open(NULL, NULL, SND_PCM_STREAM_PLAYBACK, 0));
 }
 #endif
 
@@ -910,7 +946,10 @@ TEST(alsa_snd, snd_pcm_prepare)
 }
 #endif
 
-snd_pcm_sframes_t snd_pcm_readi(snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_readi(
+    snd_pcm_t *pcm,
+    void *buffer,
+    snd_pcm_uframes_t size)
 {
     return 0;
 }
@@ -965,10 +1004,11 @@ int snd_pcm_start(snd_pcm_t *pcm)
     stSetAttr.eBitwidth = E_MI_AUDIO_BIT_WIDTH_16;
     stSetAttr.eWorkmode = E_MI_AUDIO_MODE_I2S_MASTER;
     stSetAttr.u32FrmNum = 6;
-    stSetAttr.u32PtNumPerFrm = SAMPLES;
-    stSetAttr.u32ChnCnt = CHANNELS;
-    stSetAttr.eSoundmode = CHANNELS == 2 ? E_MI_AUDIO_SOUND_MODE_STEREO : E_MI_AUDIO_SOUND_MODE_MONO;
-    stSetAttr.eSamplerate = (MI_AUDIO_SampleRate_e)FREQ;
+    stSetAttr.u32PtNumPerFrm = PCM_SAMPLES;
+    stSetAttr.u32ChnCnt = PCM_CHANNELS;
+    stSetAttr.eSoundmode = PCM_CHANNELS == 2 ?
+        E_MI_AUDIO_SOUND_MODE_STEREO : E_MI_AUDIO_SOUND_MODE_MONO;
+    stSetAttr.eSamplerate = (MI_AUDIO_SampleRate_e)PCM_FREQ;
 
     miret = MI_AO_SetPubAttr(AoDevId, &stSetAttr);
     if(MI_SUCCESS != miret) {
@@ -999,14 +1039,15 @@ int snd_pcm_start(snd_pcm_t *pcm)
     stAoChn0OutputPort0.u32ChnId = AoChn;
     stAoChn0OutputPort0.u32PortId = 0;
     MI_SYS_SetChnOutputPortDepth(&stAoChn0OutputPort0, 12, 13);
-    if (set_volume(cur_volume) < 0) {
+    if (set_volume(cfg.system_volume) < 0) {
         return -1;
     }
 #endif
 
 #if defined(A30)
     mem_fd = open("/dev/mem", O_RDWR);
-    mem_ptr = mmap(0, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0x1c22000);
+    mem_ptr = mmap(0, 4096,
+        PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0x1c22000);
     if (open_dsp() < 0) {
         return -1;
     }
@@ -1124,11 +1165,14 @@ TEST(alsa_snd, snd_pcm_sw_params_malloc)
 }
 #endif
 
-snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_writei(
+    snd_pcm_t *pcm,
+    const void *buffer,
+    snd_pcm_uframes_t size)
 {
     if ((size > 1) && (size != pcm_buf_len)) {
 #if !defined(UT)
-        queue_put(&queue, (uint8_t*)buffer, size * 2 * CHANNELS);
+        queue_put(&queue, (uint8_t*)buffer, size * 2 * PCM_CHANNELS);
 #endif
     }
     return size;

@@ -38,6 +38,8 @@
 int drastic_save_load_state_hook = 0;
 char drastic_save_load_state_path[MAX_PATH] = { 0 };
 
+extern hook_table_t hook_table;
+
 #ifdef UT
 TEST_GROUP(detour_drastic);
 
@@ -59,7 +61,7 @@ int invoke_drastic_save_state(int slot)
 
 #if !defined(UT)
     char buf[255] = {0};
-    nds_screen_copy16 _func0 = (nds_screen_copy16)FUN_SCREEN_COPY16;
+    nds_screen_copy16 _func0 = (nds_screen_copy16)hook_table.fun.screen_copy16;
 
     void *d0 = malloc(0x18000);
     void *d1 = malloc(0x18000);
@@ -70,15 +72,16 @@ int invoke_drastic_save_state(int slot)
 
         if (drastic_save_load_state_hook == 0) {
             nds_save_state_index _func1 =
-                (nds_save_state_index)FUN_SAVE_STATE_INDEX;
+                (nds_save_state_index)hook_table.fun.save_state_index;
 
-            _func1((void *)VAR_SYSTEM, slot, d0, d1);
+            _func1((void *)hook_table.var.system.base, slot, d0, d1);
         }
         else {
-            nds_save_state _func1 = (nds_save_state)FUN_SAVE_STATE;
+            nds_save_state _func1 = (nds_save_state)hook_table.fun.save_state;
 
-            sprintf(buf, "%s_%d.dss", VAR_SYSTEM_GAMECARD_NAME, slot);
-            _func1((void *)VAR_SYSTEM, drastic_save_load_state_path, buf, d0, d1);
+            sprintf(buf, "%s_%d.dss", hook_table.var.system.gamecard_name, slot);
+            _func1((void *)hook_table.var.system.base,
+                drastic_save_load_state_path, buf, d0, d1);
         }
     }
     if (d0 != NULL) {
@@ -112,16 +115,17 @@ int invoke_drastic_load_state(int slot)
     char buf[255] = {0};
 
     if (drastic_save_load_state_hook == 0) {
-        nds_load_state_index _func = (nds_load_state_index)FUN_LOAD_STATE_INDEX;
+        nds_load_state_index _func =
+            (nds_load_state_index)hook_table.fun.load_state_index;
 
-        _func((void *)VAR_SYSTEM, slot, 0, 0, 0);
+        _func((void *)hook_table.var.system.base, slot, 0, 0, 0);
     }
     else {
-        nds_load_state _func = (nds_load_state)FUN_LOAD_STATE;
+        nds_load_state _func = (nds_load_state)hook_table.fun.load_state;
 
         sprintf(buf, "%s/%s_%d.dss", drastic_save_load_state_path,
-            VAR_SYSTEM_GAMECARD_NAME, slot);
-        _func((void *)VAR_SYSTEM, buf, 0, 0, 0);
+            hook_table.var.system.gamecard_name, slot);
+        _func((void *)hook_table.var.system.base, buf, 0, 0, 0);
     }
 #endif
 
@@ -140,8 +144,8 @@ TEST(detour_drastic, invoke_drastic_load_state)
 int invoke_drastic_quit(void)
 {
 #if !defined(UT)
-    nds_quit _func = (nds_quit)FUN_QUIT;
-    _func((void*)VAR_SYSTEM);
+    nds_quit _func = (nds_quit)hook_table.fun.quit;
+    _func((void*)hook_table.var.system.base);
 #endif
 
     return 0;
@@ -157,9 +161,9 @@ TEST(detour_drastic, invoke_drastic_quit)
 int set_fast_forward(uint8_t v)
 {
 #if !defined(UT)
-    uint32_t *ff = (uint32_t*)VAR_FAST_FORWARD;
+    uint32_t *ff = (uint32_t*)hook_table.var.fast_forward;
 
-    unlock_protected_area(VAR_FAST_FORWARD);
+    unlock_protected_area((uintptr_t)hook_table.var.fast_forward);
     *ff = 0xe3a03000 | v;
 #endif
 
@@ -173,7 +177,12 @@ TEST(detour_drastic, set_fast_forward)
 }
 #endif
 
-int32_t drastic_load_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only)
+int32_t drastic_load_state_index(
+    void *system,
+    uint32_t index,
+    uint16_t *snapshot_top,
+    uint16_t *snapshot_bottom,
+    uint32_t snapshot_only)
 {
     int32_t r = 0;
 
@@ -185,10 +194,13 @@ int32_t drastic_load_state_index(void *system, uint32_t index, uint16_t *snapsho
 
 #if !defined(UT)
     char buf[320] = {0};
-    nds_load_state _func = (nds_load_state)FUN_LOAD_STATE;
+    nds_load_state _func = (nds_load_state)hook_table.fun.load_state;
 
-    sprintf(buf, "%s/%s_%d.dss", drastic_save_load_state_path, (char*)VAR_SYSTEM_GAMECARD_NAME, index);
-    r = _func((void*)VAR_SYSTEM, buf, snapshot_top, snapshot_bottom, snapshot_only);
+    sprintf(buf, "%s/%s_%d.dss", drastic_save_load_state_path,
+        (char*)hook_table.var.system.gamecard_name, index);
+
+    r = _func((void*)hook_table.var.system.base,
+        buf, snapshot_top, snapshot_bottom, snapshot_only);
 #endif
 
     return r;
@@ -207,7 +219,11 @@ TEST(detour_drastic, drastic_load_state_index)
 }
 #endif
 
-int32_t drastic_save_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom)
+int32_t drastic_save_state_index(
+    void *system,
+    uint32_t index,
+    uint16_t *snapshot_top,
+    uint16_t *snapshot_bottom)
 {
     int32_t r = 0;
 
@@ -219,10 +235,11 @@ int32_t drastic_save_state_index(void *system, uint32_t index, uint16_t *snapsho
 
 #if !defined(UT)
     char buf[320] = {0};
-    nds_save_state _func1 = (nds_save_state)FUN_SAVE_STATE;
+    nds_save_state _func1 = (nds_save_state)hook_table.fun.save_state;
 
-    sprintf(buf, "%s_%d.dss", (char*)VAR_SYSTEM_GAMECARD_NAME, index);
-    r = _func1((void*)VAR_SYSTEM, drastic_save_load_state_path, buf, snapshot_top, snapshot_bottom);
+    sprintf(buf, "%s_%d.dss", (char*)hook_table.var.system.gamecard_name, index);
+    r = _func1((void*)hook_table.var.system.base,
+        drastic_save_load_state_path, buf, snapshot_top, snapshot_bottom);
 #endif
 
     return r;
@@ -241,7 +258,12 @@ TEST(detour_drastic, drastic_save_state_index)
 }
 #endif
 
-void drastic_initialize_backup(backup_struct *backup, backup_type_enum backup_type, uint8_t *data, uint32_t size, char *path)
+void drastic_initialize_backup(
+    backup_struct *backup,
+    backup_type_enum backup_type,
+    uint8_t *data,
+    uint32_t size,
+    char *path)
 {
 #if !defined(UT)
     char *data_file_name = NULL;
@@ -262,7 +284,8 @@ void drastic_initialize_backup(backup_struct *backup, backup_type_enum backup_ty
     if (path != NULL) {
         data_file_name = malloc(255);
         memset(data_file_name, 0, 255);
-        sprintf(data_file_name, "%s/%s.dsv", drastic_save_load_state_path, VAR_SYSTEM_GAMECARD_NAME);
+        sprintf(data_file_name, "%s/%s.dsv",
+            drastic_save_load_state_path, hook_table.var.system.gamecard_name);
     }
     backup->type = backup_type;
     backup->address_mask = size - 1;
@@ -313,7 +336,8 @@ LAB_08092f94:
             uVar2 = ftell(__stream);
             fseek(__stream, __off, 0);
             fclose(__stream);
-            info(DTR"loading backup file %s, %d bytes in %s\n", data_file_name, uVar2, __func__);
+            info(DTR"loading backup file %s, %d bytes in %s\n",
+                data_file_name, uVar2, __func__);
 
             if (size + 0x7a != uVar2) {
                 backup->fix_file_size = size + 0x7a;
@@ -321,16 +345,20 @@ LAB_08092f94:
 
             if (uVar2 < size) {
                 uVar3 = uVar2 - 0x400 & ~((int)(uVar2 - 0x400) >> 0x1f);
-                pvVar4 = memmem(data + uVar3,uVar2 - uVar3, (const void *)VAR_DESMUME_FOOTER_STR, 0x52);
+                pvVar4 = memmem(data + uVar3,uVar2 - uVar3,
+                    (const void *)hook_table.var.desmume_footer_str, 0x52);
                 if (pvVar4 != (void *)0x0) {
                     uVar2 = (int)pvVar4 - (int)data;
-                    info(DTR"found DeSmuME footer at position %d. Truncating in %s\n", uVar2, __func__);
+                    info(DTR"found DeSmuME footer at %d. Truncating in %s\n",
+                        uVar2, __func__);
                 }
                 uVar3 = uVar2 >> 0xe;
-                warn(DTR"backup file less than full size (should be %d, loaded %d) in %s\n", size, uVar2, __func__);
+                warn(DTR"backup file less than full size "
+                    "(should be %d, loaded %d) in %s\n", size, uVar2, __func__);
                 memset(data + uVar2, size - uVar2, 0xff);
                 memset(backup, 0, uVar3 * 4);
-                memset(backup->dirty_page_bitmap + uVar3, 0xff, ((size + 0x3fff >> 0xe) - uVar3) * 4);
+                memset(backup->dirty_page_bitmap + uVar3,
+                    0xff, ((size + 0x3fff >> 0xe) - uVar3) * 4);
             }
             else {
                 memset(backup, 0, size + 0x3fff >> 0xe);

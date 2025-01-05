@@ -99,13 +99,15 @@ int create_bios_files(void)
 {
     char buf[MAX_PATH] = { 0 };
 
-    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm7.bin", home_path, BIOS_PATH);
+    snprintf(buf, sizeof(buf),
+        "%s%s/drastic_bios_arm7.bin", home_path, BIOS_PATH);
     if (write_file(buf, drastic_bios_arm7, sizeof(drastic_bios_arm7)) < 0)  {
         return -1;
     }
     debug(COM"wrote \"%s\" in %s\n", buf, __func__);
 
-    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm9.bin", home_path, BIOS_PATH);
+    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm9.bin",
+        home_path, BIOS_PATH);
     if (write_file(buf, drastic_bios_arm9, sizeof(drastic_bios_arm9)) < 0) {
         return -1;
     }
@@ -141,10 +143,12 @@ TEST(common_file, create_bios_files)
 
     TEST_ASSERT_EQUAL_INT(0, create_bios_files());
 
-    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm7.bin", home_path, BIOS_PATH);
+    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm7.bin",
+        home_path, BIOS_PATH);
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 
-    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm9.bin", home_path, BIOS_PATH);
+    snprintf(buf, sizeof(buf), "%s%s/drastic_bios_arm9.bin",
+        home_path, BIOS_PATH);
     TEST_ASSERT_EQUAL_INT(0, access(buf, F_OK));
 
 #if BIOS_FULL

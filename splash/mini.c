@@ -140,9 +140,18 @@ int main(int argc, char *argv[])
             SDL_Delay(30);
         }
     }
-    SDL_FillRect(screen, &screen->clip_rect, SDL_MapRGB(screen->format, 0, 0, 0));
+    SDL_FillRect(
+        screen,
+        &screen->clip_rect,
+        SDL_MapRGB(screen->format, 0, 0, 0));
+
     SDL_Flip(screen);
-    SDL_FillRect(screen, &screen->clip_rect, SDL_MapRGB(screen->format, 0, 0, 0));
+
+    SDL_FillRect(
+        screen,
+        &screen->clip_rect,
+        SDL_MapRGB(screen->format, 0, 0, 0));
+
     SDL_Flip(screen);
     SDL_Quit();
     return 0;

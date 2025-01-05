@@ -93,9 +93,26 @@ int main(int argc, char *argv[])
 #endif
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
-    window = SDL_CreateWindow("Main", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 480, 640, SDL_WINDOW_SHOWN);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480);
+    window = SDL_CreateWindow(
+        "Main",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        480,
+        640,
+        SDL_WINDOW_SHOWN);
+
+    renderer = SDL_CreateRenderer(
+        window,
+        -1,
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGB888,
+        SDL_TEXTUREACCESS_TARGET,
+        640,
+        480);
+
     screen = SDL_CreateRGBSurface(0, 640, 480, 32, 0, 0, 0, 0);
     SDL_ShowCursor(0);
 

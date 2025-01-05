@@ -3098,8 +3098,8 @@ int draw_pen(void *pixels, int width, int pitch)
         scale = 2;
     }
 
-    x = (myevent.mouse.x * sw) / myevent.mouse.maxx;
-    y = (myevent.mouse.y * sh) / myevent.mouse.maxy;
+    x = (myevent.pen.x * sw) / myevent.pen.max_x;
+    y = (myevent.pen.y * sh) / myevent.pen.max_y;
 
     if (nds.pen.img) {
         w = nds.pen.img->w;
@@ -4510,7 +4510,7 @@ int MiyooVideoInit(_THIS)
 //    detour_hook(FUN_BLIT_SCREEN_MENU, (intptr_t)sdl_blit_screen_menu);
 //    detour_hook(FUN_UPDATE_SCREEN, (intptr_t)sdl_update_screen);
 #ifndef UT
-    detour_hook(FUN_RENDER_POLYGON_SETUP_PERSPECTIVE_STEPS, (intptr_t)render_polygon_setup_perspective_steps);
+//    add_hook_point(hook_table.fun.render_polygon_setup_perspective_steps, (intptr_t)render_polygon_setup_perspective_steps);
 #endif
 
     printf(PREFIX"Installed hooking for libc functions\n");

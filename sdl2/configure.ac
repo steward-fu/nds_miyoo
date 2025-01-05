@@ -2403,10 +2403,28 @@ CheckA30Video()
     if test x$enable_video = xyes; then
         AC_DEFINE(SDL_VIDEO_DRIVER_MIYOO, 1, [ ])
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
-        SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c $srcdir/src/video/miyoo/*.S"
+        SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DA30 -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3 -I../detour -I../common -I../alsa -I../include/sdl2"
-        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lMali -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DA30"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fPIC"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -O3"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -mcpu=cortex-a7"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -mfpu=neon-vfpv4"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../alsa"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../detour"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../common"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../include/sdl2"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../include/nanopb"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L."
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lMali"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -lrt"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -lSDL2_image"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -lSDL2_ttf"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -ljson-c"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -L../detour"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -ldetour"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -L../common"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS  -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi
 }
@@ -2416,10 +2434,30 @@ CheckMiniVideo()
     if test x$enable_video = xyes; then
         AC_DEFINE(SDL_VIDEO_DRIVER_MIYOO, 1, [ ])
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
-        SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c $srcdir/src/video/miyoo/*.S"
+        SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DMINI -fPIC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3 -I../include/mini -I../detour -I../common -I../alsa -I../include/sdl2"
-        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lEGL -lGLESv2 -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DMINI"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fPIC"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -mcpu=cortex-a7"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -mfpu=neon-vfpv4"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -O3"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../include/mini"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../detour"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../common"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../alsa"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../include/sdl2"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../include/nanopb"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L."
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lEGL"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lGLESv2"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lrt"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lSDL2_image"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lSDL2_ttf"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -ljson-c"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L../detour"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -ldetour"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L../common"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi
 }
@@ -2431,9 +2469,28 @@ CheckUtVideo()
         AC_DEFINE(SDL_VIDEO_RENDER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/video/miyoo/*.c"
         have_video=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -DUT -fPIC -I../include/sdl2 -I../detour -I../common -I../alsa"
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../ut/extras/fixture/src -I../ut/src -I../ut/extras/memory/src -fsanitize=address,leak,undefined -fno-omit-frame-pointer"
-        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L. -lEGL -lGLESv2 -lrt -lSDL2_image -lSDL2_ttf -ljson-c -L../detour -ldetour -L../common -lcommon"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -DUT"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fPIC"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../include/sdl2"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../detour"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../common"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../alsa"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../ut/extras/fixture/src"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../ut/src"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../ut/extras/memory/src"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fsanitize=address,leak,undefined"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fno-omit-frame-pointer"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L."
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lEGL"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lGLESv2"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lrt"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lSDL2_image"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lSDL2_ttf"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -ljson-c"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L../detour"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -ldetour"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L../common"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lcommon"
         SUMMARY_video="${SUMMARY_video} miyoo"
     fi
 }
@@ -2445,7 +2502,9 @@ CheckA30Audio()
         SOURCES="$SOURCES $srcdir/src/audio/miyoo/*.c"
         have_audio=yes
         if test x$HOST = xarm-linux; then
-            EXTRA_CFLAGS="$EXTRA_CFLAGS -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3"
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -mcpu=cortex-a7"
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -mfpu=neon-vfpv4"
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -O3"
             EXTRA_LDFLAGS="$EXTRA_LDFLAGS -l:libasound.so.2"
         fi
         SUMMARY_audio="${SUMMARY_audio} miyoo"
@@ -2459,8 +2518,16 @@ CheckMiniAudio()
         SOURCES="$SOURCES $srcdir/src/audio/miyoo/*.c"
         have_audio=yes
         if test x$HOST = xarm-linux; then
-            EXTRA_CFLAGS="$EXTRA_CFLAGS -mcpu=cortex-a7 -mfpu=neon-vfpv4 -O3"
-            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L../library/mini -lmi_ao -lshmvar -lmi_common -lmi_sys -lmi_gfx -l:libasound.so.2"
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -mcpu=cortex-a7"
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -mfpu=neon-vfpv4"
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -O3"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L../library/mini"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lmi_ao"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lshmvar"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lmi_common"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lmi_sys"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lmi_gfx"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -l:libasound.so.2"
         fi
         SUMMARY_audio="${SUMMARY_audio} miyoo"
     fi
@@ -2472,7 +2539,8 @@ CheckUtAudio()
         AC_DEFINE(SDL_AUDIO_DRIVER_MIYOO, 1, [ ])
         SOURCES="$SOURCES $srcdir/src/audio/miyoo/*.c"
         have_audio=yes
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -fsanitize=address,leak,undefined -fno-omit-frame-pointer"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fsanitize=address,leak,undefined"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -fno-omit-frame-pointer"
         EXTRA_LDFLAGS="$EXTRA_LDFLAGS -l:libasound.so.2"
         SUMMARY_audio="${SUMMARY_audio} miyoo"
     fi

@@ -429,8 +429,10 @@ TEST(common_cfg, reset_config_settings)
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_LAYOUT, cfg.display.layout);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_ALT_LAYOUT, cfg.display.alt_layout);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_ALPHA, cfg.display.small.alpha);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_BORDER, cfg.display.small.border);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_POSITION, cfg.display.small.position);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_BORDER,
+        cfg.display.small.border);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_POSITION,
+        cfg.display.small.position);
 
     TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_ENABLE, cfg.autosave.enable);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_SLOT, cfg.autosave.slot);

@@ -98,6 +98,7 @@
     int set_page_size(size_t ps);
     uint32_t* get_adpcm_step_table(void);
     uint32_t* get_adpcm_index_step_table(void);
+    int unlock_protected_area(uintptr_t addr);
 
 #endif
 

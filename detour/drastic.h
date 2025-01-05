@@ -82,19 +82,53 @@
     typedef void* (*nds_realloc)(void *ptr, size_t size);
     typedef void* (*nds_malloc)(size_t size);
 
-    typedef int32_t (*nds_load_state_index)(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only);
-    typedef int32_t (*nds_save_state_index)(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom);
-    typedef int32_t (*nds_load_state)(void *system, const char *path, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only);
-    typedef int32_t (*nds_save_state)(void *system, const char *dir, char *filename, uint16_t *snapshot_top, uint16_t *snapshot_bottom);
+    typedef int32_t (*nds_load_state_index)(
+        void *system,
+        uint32_t index,
+        uint16_t *snapshot_top,
+        uint16_t *snapshot_bottom,
+        uint32_t snapshot_only);
+    typedef int32_t (*nds_save_state_index)(
+        void *system,
+        uint32_t index,
+        uint16_t *snapshot_top,
+        uint16_t *snapshot_bottom);
+    typedef int32_t (*nds_load_state)(
+        void *system, const char *path,
+        uint16_t *snapshot_top,
+        uint16_t *snapshot_bottom,
+        uint32_t snapshot_only);
+    typedef int32_t (*nds_save_state)(
+        void *system,
+        const char *dir,
+        char *filename,
+        uint16_t *snapshot_top,
+        uint16_t *snapshot_bottom);
 
     int set_fast_forward(uint8_t v);
     int invoke_drastic_quit(void);
     int invoke_drastic_save_state(int slot);
     int invoke_drastic_load_state(int slot);
 
-    void drastic_initialize_backup(backup_struct *backup, backup_type_enum backup_type, uint8_t *data, uint32_t size, char *path);
-    int32_t drastic_save_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom);
-    int32_t drastic_load_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only);
+    void drastic_initialize_backup(
+        backup_struct *backup,
+        backup_type_enum backup_type,
+        uint8_t *data,
+        uint32_t size,
+        char *path);
+
+    int32_t drastic_save_state_index(
+        void *system,
+        uint32_t index,
+        uint16_t *snapshot_top,
+        uint16_t *snapshot_bottom);
+
+    int32_t drastic_load_state_index(
+        void *system,
+        uint32_t index,
+        uint16_t *snapshot_top,
+        uint16_t *snapshot_bottom,
+        uint32_t snapshot_only);
 
 #endif
 

@@ -36,12 +36,14 @@ ifeq ($(MOD),mini)
     CFLAGS  += -I../detour
     CFLAGS  += -I../common
     CFLAGS  += -I../include/mini
+    CFLAGS  += -I../include/nanopb
     LDFLAGS += -L../library/mini
     LDFLAGS += -lmi_ao
     LDFLAGS += -lmi_sys
     LDFLAGS += -lmi_gfx
     LDFLAGS += -lmi_common
     LDFLAGS += -Wl,--no-undefined
+    LDFLAGS += libprotobuf-nanopb.a
 endif
 
 ifeq ($(MOD),a30)
@@ -52,7 +54,10 @@ ifeq ($(MOD),a30)
     CFLAGS  += -I../common
     CFLAGS  += -mcpu=cortex-a7
     CFLAGS  += -mfpu=neon-vfpv4
+    CFLAGS  += -I../include/nanopb
+    LDFLAGS += -L../library/mini
     LDFLAGS += -Wl,--no-undefined
+    LDFLAGS += libprotobuf-nanopb.a
 endif
 
 ifeq ($(MOD),ut)
@@ -66,6 +71,7 @@ ifeq ($(MOD),ut)
     CFLAGS  += -I../ut/extras/fixture/src
     CFLAGS  += -fno-omit-frame-pointer
     CFLAGS  += -fsanitize=address,leak,undefined
+    LDFLAGS += -lprotobuf-nanopb
 endif
 
 export CC=${CROSS}gcc

@@ -3,8 +3,4 @@ export PATH=/opt/mini/bin:$(shell echo $$PATH)
 export CROSS=/opt/mini/bin/arm-linux-gnueabihf-
 export HOST=arm-linux
 
-$(shell sed -i 's/"xv":80000/"xv":30000/g' drastic/resources/settings.json)
-$(shell sed -i 's/"yv":85000/"yv":35000/g' drastic/resources/settings.json)
-$(shell sed -i 's/"maxcpu":1500/"maxcpu":1550/g' drastic/resources/settings.json)
-
 include Makefile.mk

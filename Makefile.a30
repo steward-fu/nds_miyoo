@@ -3,10 +3,6 @@ export PATH=/opt/a30/bin:$(shell echo $$PATH)
 export CROSS=/opt/a30/bin/arm-linux-
 export HOST=arm-linux
     
-$(shell sed -i 's/"xv":30000/"xv":80000/g' drastic/resources/settings.json)
-$(shell sed -i 's/"yv":35000/"yv":85000/g' drastic/resources/settings.json)
-$(shell sed -i 's/"maxcpu":1550/"maxcpu":1500/g' drastic/resources/settings.json)
-
 include Makefile.mk
 
 .PHONY: push
