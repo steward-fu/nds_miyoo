@@ -38,16 +38,16 @@ struct SDL_PrivateAudioData {
     uint8_t *mixbuf;
 };
 
-#if defined(MINI)
 typedef struct _miyoo_audio {
+#if defined(MINI)
     struct {
         MI_AO_CHN channel;
         MI_AUDIO_DEV dev;
         MI_AUDIO_Attr_t set_attr;
         MI_AUDIO_Attr_t get_attr;
     } mi;
-} miyoo_audio;
 #endif
+} miyoo_audio;
 
 #endif
 

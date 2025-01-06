@@ -90,10 +90,15 @@
 #define KEY_BIT_FF              17
 #define KEY_BIT_EXIT            18
 #define KEY_BIT_MENU_ONION      19
-#define KEY_BIT_LAST            KEY_BIT_MENU_ONION // ignore POWER, VOL-, VOL+ keys
+#define KEY_BIT_LAST            KEY_BIT_MENU_ONION // ignore other keys
 #define KEY_BIT_POWER           20
 #define KEY_BIT_VOLUP           21
 #define KEY_BIT_VOLDOWN         22
+
+#define DEF_THRESHOLD_UP        -30
+#define DEF_THRESHOLD_DOWN      30
+#define DEF_THRESHOLD_LEFT      -30
+#define DEF_THRESHOLD_RIGHT     30
 
 typedef enum _move_dir {
     MOVE_DIR_LEFT_RIGHT = 0,
@@ -133,6 +138,17 @@ typedef struct _miyoo_event_t {
     int running;
     SDL_sem *lock;
     SDL_Thread *thread;
+
+#if defined(A30) || defined(UT)
+    struct {
+        struct {
+            int left;
+            int right;
+            int up;
+            int down;
+        } threshold;
+    } joy;
+#endif
 } miyoo_event;
 
 void EventInit(void);

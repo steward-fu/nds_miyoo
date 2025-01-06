@@ -54,7 +54,6 @@ extern GFX gfx;
 extern NDS nds;
 extern MiyooVideoInfo vid;
 extern int pixel_filter;
-
 extern int FB_W;
 extern int FB_H;
 
@@ -90,17 +89,18 @@ static void rectify_pen_position(void)
 #if defined(UT)
 TEST(sdl2_event_miyoo, rectify_pen_position)
 {
-    myevent.pen.max_x = 100;
-    myevent.pen.max_y = 200;
-
     myevent.pen.x = 1000;
     myevent.pen.y = 2000;
+    myevent.pen.max_x = 100;
+    myevent.pen.max_y = 200;
     rectify_pen_position();
     TEST_ASSERT_EQUAL_INT(myevent.pen.max_x, myevent.pen.x);
     TEST_ASSERT_EQUAL_INT(myevent.pen.max_y, myevent.pen.y);
 
     myevent.pen.x = -1000;
     myevent.pen.y = -2000;
+    myevent.pen.max_x = 100;
+    myevent.pen.max_y = 200;
     rectify_pen_position();
     TEST_ASSERT_EQUAL_INT(0, myevent.pen.x);
     TEST_ASSERT_EQUAL_INT(0, myevent.pen.y);
@@ -130,7 +130,7 @@ TEST(sdl2_event_miyoo, portrait_screen_layout)
 }
 #endif
 
-static int get_pen_move_interval(move_dir_t type)
+static int get_movement_interval(move_dir_t type)
 {
     float move = 0.0;
     uint32_t div = 0;
@@ -161,13 +161,13 @@ static int get_pen_move_interval(move_dir_t type)
 }
 
 #if defined(UT)
-TEST(sdl2_event_miyoo, get_pen_move_interval)
+TEST(sdl2_event_miyoo, get_movement_interval)
 {
     myevent.pen.pre_ticks = clock();
-    TEST_ASSERT_LESS_THAN(1000, get_pen_move_interval(MOVE_DIR_UP_DOWN));
+    TEST_ASSERT_LESS_THAN(1000, get_movement_interval(MOVE_DIR_UP_DOWN));
 
     myevent.pen.pre_ticks = clock();
-    TEST_ASSERT_LESS_THAN(1000, get_pen_move_interval(MOVE_DIR_LEFT_RIGHT));
+    TEST_ASSERT_LESS_THAN(1000, get_movement_interval(MOVE_DIR_LEFT_RIGHT));
 }
 #endif
 
@@ -177,8 +177,12 @@ static uint32_t release_all_report_keys(void)
 
     for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
         if (myevent.key.cur_bits & 1) {
-            SDL_SendKeyboardKey(SDL_RELEASED,
-                SDL_GetScancodeFromKey(myevent.key.report_key[cc]));
+#if !defined(UT)
+            SDL_SendKeyboardKey(
+                SDL_RELEASED,
+                SDL_GetScancodeFromKey(myevent.key.report_key[cc])
+            );
+#endif
         }
         myevent.key.cur_bits >>= 1;
     }
@@ -248,291 +252,378 @@ static uint32_t set_key_bit(uint32_t bit, int val)
 TEST(sdl2_event_miyoo, set_key_bit)
 {
     myevent.key.cur_bits = 0;
-    TEST_ASSERT_EQUAL_INT(0,
-        set_key_bit(KEY_BIT_SELECT, 0));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_B),
-        set_key_bit(KEY_BIT_B, 1));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU),
-        set_key_bit(KEY_BIT_MENU, 1));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A),
+    TEST_ASSERT_EQUAL_INT(0, set_key_bit(KEY_BIT_SELECT, 0));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_B), set_key_bit(KEY_BIT_B, 1));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU), set_key_bit(KEY_BIT_MENU, 1));
+
+    TEST_ASSERT_EQUAL_INT(
+        (1 << KEY_BIT_MENU) | (1 << KEY_BIT_A),
         set_key_bit(KEY_BIT_A, 1));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_MENU) | (1 << KEY_BIT_A),
+
+    TEST_ASSERT_EQUAL_INT(
+        (1 << KEY_BIT_MENU) | (1 << KEY_BIT_A),
         set_key_bit(KEY_BIT_SELECT, 0));
-    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_A),
-        set_key_bit(KEY_BIT_MENU, 0));
+
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_A), set_key_bit(KEY_BIT_MENU, 0));
 }
 #endif
 
 #if defined(A30) || defined(UT)
-static int update_joystick(void)
+static int update_joystick_key(
+    int update_x,
+    int update_y,
+    int pre_x,
+    int pre_y)
 {
-    const int LTH = -30;
-    const int RTH = 30;
-    const int UTH = -30;
-    const int DTH = 30;
-
-    static int pre_x = -1;
-    static int pre_y = -1;
+    static int pre_up = 0;
+    static int pre_down = 0;
+    static int pre_left = 0;
+    static int pre_right = 0;
 
     int r = 0;
 
-    if (mycfg.joy.left.mode == _joy__lr__mode_key) {
-        static int pre_up = 0;
-        static int pre_down = 0;
-        static int pre_left = 0;
-        static int pre_right = 0;
-
-        uint32_t u_key = KEY_BIT_UP;
-        uint32_t d_key = KEY_BIT_DOWN;
-        uint32_t l_key = KEY_BIT_LEFT;
-        uint32_t r_key = KEY_BIT_RIGHT;
-
-        if (myjoy.last_x != pre_x) {
-            pre_x = myjoy.last_x;
-            if (pre_x < LTH) {
-                if (pre_left == 0) {
-                    r = 1;
-                    pre_left = 1;
-                    set_key_bit(l_key, 1);
-                }
+    if (update_x) {
+        if (pre_x < myevent.joy.threshold.left) {
+            if (pre_left == 0) {
+                r = 1;
+                pre_left = 1;
+                set_key_bit(KEY_BIT_LEFT, 1);
             }
-            else if (pre_x > RTH){
-                if (pre_right == 0) {
-                    r = 1;
-                    pre_right = 1;
-                    set_key_bit(r_key, 1);
-                }
+        }
+        else if (pre_x > myevent.joy.threshold.right) {
+            if (pre_right == 0) {
+                r = 1;
+                pre_right = 1;
+                set_key_bit(KEY_BIT_RIGHT, 1);
             }
-            else {
-                if (pre_left != 0) {
-                    r = 1;
-                    pre_left = 0;
-                    set_key_bit(l_key, 0);
+        }
+        else {
+            if (pre_left != 0) {
+                r = 1;
+                pre_left = 0;
+                set_key_bit(KEY_BIT_LEFT, 0);
+            }
+            if (pre_right != 0) {
+                r = 1;
+                pre_right = 0;
+                set_key_bit(KEY_BIT_RIGHT, 0);
+            }
+        }
+    }
+
+    if (update_y) {
+        if (pre_y < myevent.joy.threshold.up) {
+            if (pre_up == 0) {
+                r = 1;
+                pre_up = 1;
+                set_key_bit(KEY_BIT_UP, 1);
+            }
+        }
+        else if (pre_y > myevent.joy.threshold.down) {
+            if (pre_down == 0) {
+                r = 1;
+                pre_down = 1;
+                set_key_bit(KEY_BIT_DOWN, 1);
+            }
+        }
+        else {
+            if (pre_up != 0) {
+                r = 1;
+                pre_up = 0;
+                set_key_bit(KEY_BIT_UP, 0);
+            }
+            if (pre_down != 0) {
+                r = 1;
+                pre_down = 0;
+                set_key_bit(KEY_BIT_DOWN, 0);
+            }
+        }
+    }
+
+    return r;
+}
+
+#if defined(UT)
+TEST(sdl2_event_miyoo, update_joystick_pen)
+{
+    myevent.joy.threshold.left = -10;
+    myevent.joy.threshold.right = 10;
+    myevent.joy.threshold.up = -10;
+    myevent.joy.threshold.down = 10;
+    TEST_ASSERT_EQUAL_INT(0, update_joystick_key(0, 0, 100, 100));
+
+    myevent.key.cur_bits = 0;
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_key(1, 0, 100, 100));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_RIGHT), myevent.key.cur_bits);
+
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_key(1, 0, 0, 0));
+    TEST_ASSERT_EQUAL_INT(0, myevent.key.cur_bits);
+
+    myevent.key.cur_bits = 0;
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_key(0, 1, 100, 100));
+    TEST_ASSERT_EQUAL_INT((1 << KEY_BIT_DOWN), myevent.key.cur_bits);
+
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_key(0, 1, 0, 0));
+    TEST_ASSERT_EQUAL_INT(0, myevent.key.cur_bits);
+
+    myevent.key.cur_bits = 0;
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_key(1, 1, -100, -100));
+    TEST_ASSERT_EQUAL_INT(
+        (1 << KEY_BIT_LEFT) | (1 << KEY_BIT_UP),
+        myevent.key.cur_bits
+    );
+}
+#endif
+
+static int update_joystick_pen(
+    int update_x,
+    int update_y,
+    int pre_x,
+    int pre_y)
+{
+    static int pre_up = 0;
+    static int pre_down = 0;
+    static int pre_left = 0;
+    static int pre_right = 0;
+
+    if (update_x) {
+        if (pre_x < myevent.joy.threshold.left) {
+            if (pre_left == 0) {
+                pre_left = 1;
+            }
+        }
+        else if (pre_x > myevent.joy.threshold.right) {
+            if (pre_right == 0) {
+                pre_right = 1;
+            }
+        }
+        else {
+            if (pre_left != 0) {
+                pre_left = 0;
+            }
+            if (pre_right != 0) {
+                pre_right = 0;
+            }
+        }
+    }
+
+    if (update_y) {
+        if (pre_y < myevent.joy.threshold.up) {
+            if (pre_up == 0) {
+                pre_up = 1;
+            }
+        }
+        else if (pre_y > myevent.joy.threshold.down) {
+            if (pre_down == 0) {
+                pre_down = 1;
+            }
+        }
+        else {
+            if (pre_up != 0) {
+                pre_up = 0;
+            }
+            if (pre_down != 0) {
+                pre_down = 0;
+            }
+        }
+    }
+
+    if (pre_up || pre_down || pre_left || pre_right) {
+        if (myevent.key.cur_bits &  (1 << KEY_BIT_Y)) {
+            if (pre_right) {
+                static int cc = 0;
+
+                if (cc == 0) {
+                    nds.pen.sel+= 1;
+                    if (nds.pen.sel >= nds.pen.max) {
+                        nds.pen.sel = 0;
+                    }
+                    reload_pen();
+                    cc = 30;
                 }
-                if (pre_right != 0) {
-                    r = 1;
-                    pre_right = 0;
-                    set_key_bit(r_key, 0);
+                else {
+                    cc -= 1;
                 }
             }
         }
+        else {
+            int x = 0;
+            int y = 0;
+            const int xv = mycfg.joy.left.x.step;
+            const int yv = mycfg.joy.left.y.step;
 
-        if (myjoy.last_y != pre_y) {
-            pre_y = myjoy.last_y;
-            if (pre_y < UTH) {
-                if (pre_up == 0) {
-                    r = 1;
-                    pre_up = 1;
-                    set_key_bit(u_key, 1);
+            if (portrait_screen_layout(nds.dis_mode) &&
+                (nds.keys_rotate == 0))
+            {
+                if (pre_down) {
+                    myevent.pen.x -= xv;
                 }
-            }
-            else if (pre_y > DTH){
-                if (pre_down == 0) {
-                    r = 1;
-                    pre_down = 1;
-                    set_key_bit(d_key, 1);
+                if (pre_up) {
+                    myevent.pen.x += xv;
+                }
+                if (pre_left) {
+                    myevent.pen.y -= yv;
+                }
+                if (pre_right) {
+                    myevent.pen.y += yv;
                 }
             }
             else {
-                if (pre_up != 0) {
-                    r = 1;
-                    pre_up = 0;
-                    set_key_bit(u_key, 0);
+                if (pre_left) {
+                    myevent.pen.x -= xv;
                 }
-                if (pre_down != 0) {
-                    r = 1;
-                    pre_down = 0;
-                    set_key_bit(d_key, 0);
+                if (pre_right) {
+                    myevent.pen.x += xv;
+                }
+                if (pre_up) {
+                    myevent.pen.y -= yv;
+                }
+                if (pre_down) {
+                    myevent.pen.y += yv;
                 }
             }
+            rectify_pen_position();
+
+            x = (myevent.pen.x * 160) / myevent.pen.max_x;
+            y = (myevent.pen.y * 120) / myevent.pen.max_y;
+            SDL_SendMouseMotion(
+                vid.window,
+                0,
+                0,
+                x + 80,
+                y + (nds.pen.pos ? 120 : 0)
+            );
+        }
+        mycfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
+    }
+
+    return 0;
+}
+
+static int update_joystick_customized_key(
+    int update_x,
+    int update_y,
+    int pre_x,
+    int pre_y)
+{
+    static int pre_up = 0;
+    static int pre_down = 0;
+    static int pre_left = 0;
+    static int pre_right = 0;
+
+    int r = 0;
+
+    if (update_x) {
+        if (pre_x < myevent.joy.threshold.left) {
+            if (pre_left == 0) {
+                r = 1;
+                pre_left = 1;
+                set_key_bit(mycfg.joy.left.remap.left, 1);
+            }
+        }
+        else if (pre_x > myevent.joy.threshold.right) {
+            if (pre_right == 0) {
+                r = 1;
+                pre_right = 1;
+                set_key_bit(mycfg.joy.left.remap.right, 1);
+            }
+        }
+        else {
+            if (pre_left != 0) {
+                r = 1;
+                pre_left = 0;
+                set_key_bit(mycfg.joy.left.remap.left, 0);
+            }
+            if (pre_right != 0) {
+                r = 1;
+                pre_right = 0;
+                set_key_bit(mycfg.joy.left.remap.right, 0);
+            }
+        }
+    }
+
+    if (update_y) {
+        if (pre_y < myevent.joy.threshold.up) {
+            if (pre_up == 0) {
+                r = 1;
+                pre_up = 1;
+                set_key_bit(mycfg.joy.left.remap.up, 1);
+            }
+        }
+        else if (pre_y > myevent.joy.threshold.down) {
+            if (pre_down == 0) {
+                r = 1;
+                pre_down = 1;
+                set_key_bit(mycfg.joy.left.remap.down, 1);
+            }
+        }
+        else {
+            if (pre_up != 0) {
+                r = 1;
+                pre_up = 0;
+                set_key_bit(mycfg.joy.left.remap.up, 0);
+            }
+            if (pre_down != 0) {
+                r = 1;
+                pre_down = 0;
+                set_key_bit(mycfg.joy.left.remap.down, 0);
+            }
+        }
+    }
+
+    return r;
+}
+
+static int check_joystick_status(void)
+{
+    static int pre_x = -1;
+    static int pre_y = -1;
+
+    int need_handle_x = 0;
+    int need_handle_y = 0;
+
+    if (myjoy.last_x != pre_x) {
+        pre_x = myjoy.last_x;
+        need_handle_x = 1;
+    }
+
+    if (myjoy.last_y != pre_y) {
+        pre_y = myjoy.last_y;
+        need_handle_y = 1;
+    }
+
+    if (mycfg.joy.left.mode == _joy__lr__mode_key) {
+        if (need_handle_x || need_handle_y) {
+            return update_joystick_key(
+                need_handle_x,
+                need_handle_y,
+                pre_x,
+                pre_y
+            );
         }
     }
     else if (mycfg.joy.left.mode == _joy__lr__mode_pen) {
-        static int pre_up = 0;
-        static int pre_down = 0;
-        static int pre_left = 0;
-        static int pre_right = 0;
-
-        if (myjoy.last_x != pre_x) {
-            pre_x = myjoy.last_x;
-            if (pre_x < LTH) {
-                if (pre_left == 0) {
-                    pre_left = 1;
-                }
-            }
-            else if (pre_x > RTH){
-                if (pre_right == 0) {
-                    pre_right = 1;
-                }
-            }
-            else {
-                if (pre_left != 0) {
-                    pre_left = 0;
-                }
-                if (pre_right != 0) {
-                    pre_right = 0;
-                }
-            }
-        }
-
-        if (myjoy.last_x != pre_y) {
-            pre_y = myjoy.last_y;
-            if (pre_y < UTH) {
-                if (pre_up == 0) {
-                    pre_up = 1;
-                }
-            }
-            else if (pre_y > DTH){
-                if (pre_down == 0) {
-                    pre_down = 1;
-                }
-            }
-            else {
-                if (pre_up != 0) {
-                    pre_up = 0;
-                }
-                if (pre_down != 0) {
-                    pre_down = 0;
-                }
-            }
-        }
-
-        if (pre_up || pre_down || pre_left || pre_right) {
-            if (myevent.key.cur_bits &  (1 << KEY_BIT_Y)) {
-                if (pre_right) {
-                    static int cc = 0;
-
-                    if (cc == 0) {
-                        nds.pen.sel+= 1;
-                        if (nds.pen.sel >= nds.pen.max) {
-                            nds.pen.sel = 0;
-                        }
-                        reload_pen();
-                        cc = 30;
-                    }
-                    else {
-                        cc -= 1;
-                    }
-                }
-            }
-            else {
-                int x = 0;
-                int y = 0;
-                const int xv = mycfg.joy.left.x.step;
-                const int yv = mycfg.joy.left.y.step;
-
-                if (portrait_screen_layout(nds.dis_mode) &&
-                    (nds.keys_rotate == 0))
-                {
-                    if (pre_down) {
-                        myevent.pen.x -= xv;
-                    }
-                    if (pre_up) {
-                        myevent.pen.x += xv;
-                    }
-                    if (pre_left) {
-                        myevent.pen.y -= yv;
-                    }
-                    if (pre_right) {
-                        myevent.pen.y += yv;
-                    }
-                }
-                else {
-                    if (pre_left) {
-                        myevent.pen.x -= xv;
-                    }
-                    if (pre_right) {
-                        myevent.pen.x += xv;
-                    }
-                    if (pre_up) {
-                        myevent.pen.y -= yv;
-                    }
-                    if (pre_down) {
-                        myevent.pen.y += yv;
-                    }
-                }
-                rectify_pen_position();
-
-                x = (myevent.pen.x * 160) / myevent.pen.max_x;
-                y = (myevent.pen.y * 120) / myevent.pen.max_y;
-                SDL_SendMouseMotion(vid.window, 0, 0,
-                    x + 80, y + (nds.pen.pos ? 120 : 0));
-            }
-            mycfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
+        if (need_handle_x || need_handle_y) {
+            return update_joystick_pen(
+                need_handle_x,
+                need_handle_y,
+                pre_x,
+                pre_y
+            );
         }
     }
     else if (mycfg.joy.left.mode == _joy__lr__mode_cust) {
-        static int pre_up = 0;
-        static int pre_down = 0;
-        static int pre_left = 0;
-        static int pre_right = 0;
-
-        uint32_t u_key = mycfg.joy.left.remap.up;
-        uint32_t d_key = mycfg.joy.left.remap.down;
-        uint32_t l_key = mycfg.joy.left.remap.left;
-        uint32_t r_key = mycfg.joy.left.remap.right;
-
-        if (myjoy.last_x != pre_x) {
-            pre_x = myjoy.last_x;
-            if (pre_x < LTH) {
-                if (pre_left == 0) {
-                    r = 1;
-                    pre_left = 1;
-                    set_key_bit(l_key, 1);
-                }
-            }
-            else if (pre_x > RTH){
-                if (pre_right == 0) {
-                    r = 1;
-                    pre_right = 1;
-                    set_key_bit(r_key, 1);
-                }
-            }
-            else {
-                if (pre_left != 0) {
-                    r = 1;
-                    pre_left = 0;
-                    set_key_bit(l_key, 0);
-                }
-                if (pre_right != 0) {
-                    r = 1;
-                    pre_right = 0;
-                    set_key_bit(r_key, 0);
-                }
-            }
-        }
-
-        if (myjoy.last_y != pre_y) {
-            pre_y = myjoy.last_y;
-            if (pre_y < UTH) {
-                if (pre_up == 0) {
-                    r = 1;
-                    pre_up = 1;
-                    set_key_bit(u_key, 1);
-                }
-            }
-            else if (pre_y > DTH){
-                if (pre_down == 0) {
-                    r = 1;
-                    pre_down = 1;
-                    set_key_bit(d_key, 1);
-                }
-            }
-            else {
-                if (pre_up != 0) {
-                    r = 1;
-                    pre_up = 0;
-                    set_key_bit(u_key, 0);
-                }
-                if (pre_down != 0) {
-                    r = 1;
-                    pre_down = 0;
-                    set_key_bit(d_key, 0);
-                }
-            }
+        if (need_handle_x || need_handle_y) {
+            return update_joystick_customized_key(
+                need_handle_x,
+                need_handle_y,
+                pre_x,
+                pre_y
+            );
         }
     }
-    return r;
+
+    return 0;
 }
 #endif
 
@@ -935,7 +1026,7 @@ static int input_handler(void *data)
             }
 
 #if defined(A30) || defined(UT)
-            r |= update_joystick();
+            r |= check_joystick_status();
 #endif
             if (r > 0) {
                 handle_hotkey();
@@ -1000,8 +1091,19 @@ void EventInit(void)
     myevent.key.report_key[KEY_BIT_EXIT] = SDLK_3;
     myevent.key.report_key[KEY_BIT_MENU_ONION] = SDLK_HOME;
 
-    myevent.thread = SDL_CreateThreadInternal(input_handler,
-        "Miyoo Input Thread", 4096, NULL);
+#if defined(A30) || defined(UT)
+    myevent.joy.threshold.up = DEF_THRESHOLD_UP;
+    myevent.joy.threshold.down = DEF_THRESHOLD_DOWN;
+    myevent.joy.threshold.left = DEF_THRESHOLD_LEFT;
+    myevent.joy.threshold.right = DEF_THRESHOLD_RIGHT;
+#endif
+
+    myevent.thread = SDL_CreateThreadInternal(
+        input_handler,
+        "Miyoo Input Thread",
+        4096,
+        NULL
+    );
     if(myevent.thread == NULL) {
         err(SDL"failed to create input thread in %s\n", __func__);
         exit(-1);
@@ -1130,37 +1232,37 @@ void PumpEvents(_THIS)
             if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
                 if (myevent.key.cur_bits & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.pen.x+= get_pen_move_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.x+= get_movement_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.pen.x-= get_pen_move_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.x-= get_movement_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.pen.y-= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.y-= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.pen.y+= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.y+= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
                 }
             }
             else {
                 if (myevent.key.cur_bits & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.pen.y-= get_pen_move_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.y-= get_movement_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.pen.y+= get_pen_move_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.y+= get_movement_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.pen.x-= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.x-= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.pen.x+= get_pen_move_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.x+= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
                 }
             }
             rectify_pen_position();
@@ -1198,10 +1300,11 @@ TEST_GROUP_RUNNER(sdl2_event_miyoo)
 {
 RUN_TEST_CASE(sdl2_event_miyoo, rectify_pen_position);
 RUN_TEST_CASE(sdl2_event_miyoo, portrait_screen_layout);
-RUN_TEST_CASE(sdl2_event_miyoo, get_pen_move_interval);
+RUN_TEST_CASE(sdl2_event_miyoo, get_movement_interval);
 RUN_TEST_CASE(sdl2_event_miyoo, release_all_report_keys);
 RUN_TEST_CASE(sdl2_event_miyoo, hit_hotkey);
 RUN_TEST_CASE(sdl2_event_miyoo, set_key_bit);
+RUN_TEST_CASE(sdl2_event_miyoo, update_joystick_pen);
 }
 #endif
 
