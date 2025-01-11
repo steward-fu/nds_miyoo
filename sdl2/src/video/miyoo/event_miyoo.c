@@ -130,7 +130,7 @@ TEST(sdl2_event_miyoo, portrait_screen_layout)
 }
 #endif
 
-static int get_movement_interval(move_dir_t type)
+static int get_moving_interval(move_dir_t type)
 {
     float move = 0.0;
     uint32_t div = 0;
@@ -161,13 +161,13 @@ static int get_movement_interval(move_dir_t type)
 }
 
 #if defined(UT)
-TEST(sdl2_event_miyoo, get_movement_interval)
+TEST(sdl2_event_miyoo, get_moving_interval)
 {
     myevent.pen.pre_ticks = clock();
-    TEST_ASSERT_LESS_THAN(1000, get_movement_interval(MOVE_DIR_UP_DOWN));
+    TEST_ASSERT_LESS_THAN(1000, get_moving_interval(MOVE_DIR_UP_DOWN));
 
     myevent.pen.pre_ticks = clock();
-    TEST_ASSERT_LESS_THAN(1000, get_movement_interval(MOVE_DIR_LEFT_RIGHT));
+    TEST_ASSERT_LESS_THAN(1000, get_moving_interval(MOVE_DIR_LEFT_RIGHT));
 }
 #endif
 
@@ -344,7 +344,7 @@ static int update_joystick_key(
 }
 
 #if defined(UT)
-TEST(sdl2_event_miyoo, update_joystick_pen)
+TEST(sdl2_event_miyoo, update_joystick_key)
 {
     myevent.joy.threshold.left = -10;
     myevent.joy.threshold.right = 10;
@@ -431,24 +431,26 @@ static int update_joystick_pen(
     if (pre_up || pre_down || pre_left || pre_right) {
         if (myevent.key.cur_bits &  (1 << KEY_BIT_Y)) {
             if (pre_right) {
-                static int cc = 0;
+                static int debounce = 0;
 
-                if (cc == 0) {
+                if (debounce == 0) {
                     nds.pen.sel+= 1;
                     if (nds.pen.sel >= nds.pen.max) {
                         nds.pen.sel = 0;
                     }
                     reload_pen();
-                    cc = 30;
+                    debounce = 30;
                 }
                 else {
-                    cc -= 1;
+                    debounce -= 1;
                 }
             }
         }
         else {
+#if !defined(UT)
             int x = 0;
             int y = 0;
+#endif
             const int xv = mycfg.joy.left.x.step;
             const int yv = mycfg.joy.left.y.step;
 
@@ -483,7 +485,7 @@ static int update_joystick_pen(
                 }
             }
             rectify_pen_position();
-
+#if !defined(UT)
             x = (myevent.pen.x * 160) / myevent.pen.max_x;
             y = (myevent.pen.y * 120) / myevent.pen.max_y;
             SDL_SendMouseMotion(
@@ -493,12 +495,42 @@ static int update_joystick_pen(
                 x + 80,
                 y + (nds.pen.pos ? 120 : 0)
             );
+#endif
         }
         mycfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
     }
 
     return 0;
 }
+
+#if defined(UT)
+TEST(sdl2_event_miyoo, update_joystick_pen)
+{
+    myevent.joy.threshold.left = -10;
+    myevent.joy.threshold.right = 10;
+    myevent.joy.threshold.up = -10;
+    myevent.joy.threshold.down = 10;
+    TEST_ASSERT_EQUAL_INT(0, update_joystick_pen(0, 0, 100, 100));
+
+    mycfg.joy.left.x.step = 11;
+    TEST_ASSERT_EQUAL_INT(0, update_joystick_pen(1, 0, 100, 100));
+    TEST_ASSERT_EQUAL_INT(11, myevent.pen.x);
+
+    mycfg.joy.left.x.step = 11;
+    TEST_ASSERT_EQUAL_INT(0, update_joystick_pen(1, 0, 10, 10));
+    TEST_ASSERT_EQUAL_INT(11, myevent.pen.x);
+
+    mycfg.joy.left.y.step = 22;
+    mycfg.pen.show.count = 100;
+    TEST_ASSERT_EQUAL_INT(0, update_joystick_pen(0, 1, 100, 100));
+    TEST_ASSERT_EQUAL_INT(22, myevent.pen.y);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_PEN_SHOW_COUNT, mycfg.pen.show.count);
+
+    mycfg.joy.left.y.step = 22;
+    TEST_ASSERT_EQUAL_INT(0, update_joystick_pen(0, 1, 10, 10));
+    TEST_ASSERT_EQUAL_INT(22, myevent.pen.y);
+}
+#endif
 
 static int update_joystick_customized_key(
     int update_x,
@@ -573,6 +605,30 @@ static int update_joystick_customized_key(
 
     return r;
 }
+
+#if defined(UT)
+TEST(sdl2_event_miyoo, update_joystick_customized_key)
+{
+    myevent.key.cur_bits = 0;
+    myevent.joy.threshold.left = -10;
+    myevent.joy.threshold.right = 10;
+    myevent.joy.threshold.up = -10;
+    myevent.joy.threshold.down = 10;
+    mycfg.joy.left.remap.right = 3;
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_customized_key(1, 0, 100, 100));
+    TEST_ASSERT_EQUAL_INT((1 << 3), myevent.key.cur_bits);
+
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_customized_key(1, 0, 10, 10));
+    TEST_ASSERT_EQUAL_INT(0, myevent.key.cur_bits);
+
+    mycfg.joy.left.remap.down = 11;
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_customized_key(0, 1, 100, 100));
+    TEST_ASSERT_EQUAL_INT((1 << 11), myevent.key.cur_bits);
+
+    TEST_ASSERT_EQUAL_INT(1, update_joystick_customized_key(0, 1, 10, 10));
+    TEST_ASSERT_EQUAL_INT(0, myevent.key.cur_bits);
+}
+#endif
 
 static int check_joystick_status(void)
 {
@@ -1232,37 +1288,37 @@ void PumpEvents(_THIS)
             if (portrait_screen_layout(nds.dis_mode) && (nds.keys_rotate == 0)) {
                 if (myevent.key.cur_bits & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.pen.x+= get_movement_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.x+= get_moving_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.pen.x-= get_movement_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.x-= get_moving_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.pen.y-= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.y-= get_moving_interval(MOVE_DIR_LEFT_RIGHT);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.pen.y+= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.y+= get_moving_interval(MOVE_DIR_LEFT_RIGHT);
                 }
             }
             else {
                 if (myevent.key.cur_bits & (1 << KEY_BIT_UP)) {
                     updated = 1;
-                    myevent.pen.y-= get_movement_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.y-= get_moving_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_DOWN)) {
                     updated = 1;
-                    myevent.pen.y+= get_movement_interval(MOVE_DIR_UP_DOWN);
+                    myevent.pen.y+= get_moving_interval(MOVE_DIR_UP_DOWN);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_LEFT)) {
                     updated = 1;
-                    myevent.pen.x-= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.x-= get_moving_interval(MOVE_DIR_LEFT_RIGHT);
                 }
                 if (myevent.key.cur_bits & (1 << KEY_BIT_RIGHT)) {
                     updated = 1;
-                    myevent.pen.x+= get_movement_interval(MOVE_DIR_LEFT_RIGHT);
+                    myevent.pen.x+= get_moving_interval(MOVE_DIR_LEFT_RIGHT);
                 }
             }
             rectify_pen_position();
@@ -1300,11 +1356,13 @@ TEST_GROUP_RUNNER(sdl2_event_miyoo)
 {
 RUN_TEST_CASE(sdl2_event_miyoo, rectify_pen_position);
 RUN_TEST_CASE(sdl2_event_miyoo, portrait_screen_layout);
-RUN_TEST_CASE(sdl2_event_miyoo, get_movement_interval);
+RUN_TEST_CASE(sdl2_event_miyoo, get_moving_interval);
 RUN_TEST_CASE(sdl2_event_miyoo, release_all_report_keys);
 RUN_TEST_CASE(sdl2_event_miyoo, hit_hotkey);
 RUN_TEST_CASE(sdl2_event_miyoo, set_key_bit);
+RUN_TEST_CASE(sdl2_event_miyoo, update_joystick_key);
 RUN_TEST_CASE(sdl2_event_miyoo, update_joystick_pen);
+RUN_TEST_CASE(sdl2_event_miyoo, update_joystick_customized_key);
 }
 #endif
 
