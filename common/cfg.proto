@@ -1,131 +1,131 @@
 syntax = "proto3";
 
 message _display {
-    int32 layout                = 1;
-    int32 alt_layout            = 2;
+    int32 layout = 1;
+    int32 alt_layout = 2;
 
-    _small small                = 3;
+    _small small = 3;
     message _small {
-        int32 alpha             = 1;
-        int32 border            = 2;
-        int32 position          = 3;
+        int32 alpha = 1;
+        int32 border = 2;
+        int32 position = 3;
     }
 }
 
 message _cpu {
-    _freq freq                  = 1;
+    _freq freq = 1;
     message _freq {
-        int32 min               = 1;
-        int32 max               = 2;
+        int32 min = 1;
+        int32 max = 2;
     }
 
-    _core core                  = 2;
+    _core core = 2;
     message _core {
-        int32 min               = 1;
-        int32 max               = 2;
+        int32 min = 1;
+        int32 max = 2;
     }
 }
 
 message _pen {
-    _show show                  = 1;
+    _show show = 1;
     message _show {
-        int32 count             = 1;
-        _mode mode              = 2;
+        int32 count = 1;
+        _mode mode = 2;
         enum _mode {
-            auto                = 0;
-            always              = 1;
+            auto = 0;
+            always = 1;
         }
     }
 
-    string image                = 2;
-    int32 screen                = 3;
+    string image = 2;
+    int32 screen = 3;
 
-    _speed speed                = 4;
+    _speed speed = 4;
     message _speed {
-        int32 x                 = 1;
-        int32 y                 = 2;
+        int32 x = 1;
+        int32 y = 2;
     }
 }
 
 message _menu {
-    string bg                   = 1;
-    bool show_cursor            = 2;
+    string bg = 1;
+    bool show_cursor = 2;
 }
 
 message _autosave {
-    bool enable                 = 1;
-    int32 slot                  = 2;
+    bool enable = 1;
+    int32 slot = 2;
 }
 
 message _key {
-    int32 rotate                = 1;
+    int32 rotate = 1;
 
-    _hotkey hotkey              = 2;
+    _hotkey hotkey = 2;
     enum _hotkey {
-        menu                    = 0;
-        select                  = 1;
+        menu = 0;
+        select = 1;
     }
 
-    _swap swap                  = 3;
+    _swap swap = 3;
     message _swap {
-        bool l1_l2              = 1;
-        bool r1_r2              = 2;
+        bool l1_l2 = 1;
+        bool r1_r2 = 2;
     }
 }
 
 message _joy {
-    _lr left                    = 1;
-    _lr right                   = 2;
+    _lr left = 1;
+    _lr right = 2;
     message _lr {
-        _xy x                   = 1;
-        _xy y                   = 2;
+        _xy x = 1;
+        _xy y = 2;
         message _xy {
-            int32 min           = 1;
-            int32 max           = 2;
-            int32 zero          = 3;
-            int32 step          = 4;
-            int32 dead          = 5;
+            int32 min = 1;
+            int32 max = 2;
+            int32 zero = 3;
+            int32 step = 4;
+            int32 dead = 5;
         }
 
-        _mode mode              = 3;
+        _mode mode = 3;
         enum _mode {
-            key                 = 0;
-            pen                 = 1;
-            cust                = 2;
+            key = 0;
+            pen = 1;
+            cust = 2;
         }
 
-        _remap remap            = 4;
+        _remap remap = 4;
         message _remap {
-            int32 up            = 1;
-            int32 down          = 2;
-            int32 left          = 3;
-            int32 right         = 4;
+            int32 up = 1;
+            int32 down = 2;
+            int32 left = 3;
+            int32 right = 4;
         }
     }
 }
 
 message miyoo_settings {
-    string version              = 1;
-    string language             = 2;
-    string font_path            = 3;
-    string state_folder         = 4;
-    string border_image         = 5;
-    string home_folder          = 6;
+    string version = 1;
+    string language = 2;
+    string font_path = 3;
+    string state_folder = 4;
+    string border_image = 5;
+    string home_folder = 6;
 
-    int32 debug_level           = 7;
-    int32 system_volume         = 8;
-    int32 fast_forward          = 9;
+    int32 debug_level = 7;
+    int32 system_volume = 8;
+    int32 fast_forward = 9;
 
-    bool half_volume            = 10;
-    bool low_battery_close      = 11;
+    bool half_volume = 10;
+    bool low_battery_close = 11;
 
-    _cpu cpu                    = 12;
-    _menu menu                  = 13;
-    _display display            = 14;
-    _autosave autosave          = 15;
+    _cpu cpu = 12;
+    _menu menu = 13;
+    _display display = 14;
+    _autosave autosave = 15;
 
-    _pen pen                    = 16;
-    _key key                    = 17;
-    _joy joy                    = 18;
+    _pen pen = 16;
+    _key key = 17;
+    _joy joy = 18;
 }
 

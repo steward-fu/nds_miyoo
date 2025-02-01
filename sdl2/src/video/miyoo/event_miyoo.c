@@ -203,7 +203,7 @@ TEST(sdl2_event_miyoo, release_all_report_keys)
 static int hit_hotkey(uint32_t bit)
 {
     uint32_t mask = 0;
-    uint32_t hotkey_bit = (mycfg.key.hotkey == _key__hotkey_select) ?
+    uint32_t hotkey_bit = (mycfg.key.hotkey == _key_hotkey_select) ?
         KEY_BIT_SELECT : KEY_BIT_MENU;
 
     mask = (1 << bit) | (1 << hotkey_bit);
@@ -213,7 +213,7 @@ static int hit_hotkey(uint32_t bit)
 #if defined(UT)
 TEST(sdl2_event_miyoo, hit_hotkey)
 {
-    uint32_t hotkey_bit = (mycfg.key.hotkey == _key__hotkey_select) ?
+    uint32_t hotkey_bit = (mycfg.key.hotkey == _key_hotkey_select) ?
         KEY_BIT_SELECT : KEY_BIT_MENU;
 
     myevent.key.cur_bits = 0;
@@ -232,7 +232,7 @@ TEST(sdl2_event_miyoo, hit_hotkey)
 
 static uint32_t set_key_bit(uint32_t bit, int val)
 {
-    uint32_t hotkey_bit = (mycfg.key.hotkey == _key__hotkey_select) ?
+    uint32_t hotkey_bit = (mycfg.key.hotkey == _key_hotkey_select) ?
         KEY_BIT_SELECT : KEY_BIT_MENU;
 
     if (val > 0) {
@@ -648,7 +648,7 @@ static int check_joystick_status(void)
         need_handle_y = 1;
     }
 
-    if (mycfg.joy.left.mode == _joy__lr__mode_key) {
+    if (mycfg.joy.left.mode == _joy_lr_mode_key) {
         if (need_handle_x || need_handle_y) {
             return update_joystick_key(
                 need_handle_x,
@@ -658,7 +658,7 @@ static int check_joystick_status(void)
             );
         }
     }
-    else if (mycfg.joy.left.mode == _joy__lr__mode_pen) {
+    else if (mycfg.joy.left.mode == _joy_lr_mode_pen) {
         if (need_handle_x || need_handle_y) {
             return update_joystick_pen(
                 need_handle_x,
@@ -668,7 +668,7 @@ static int check_joystick_status(void)
             );
         }
     }
-    else if (mycfg.joy.left.mode == _joy__lr__mode_cust) {
+    else if (mycfg.joy.left.mode == _joy_lr_mode_cust) {
         if (need_handle_x || need_handle_y) {
             return update_joystick_customized_key(
                 need_handle_x,
@@ -706,7 +706,7 @@ static int handle_hotkey(void)
             }
         }
 #if defined(A30) || defined(UT)
-        if (mycfg.joy.left.mode == _joy__lr__mode_pen) {
+        if (mycfg.joy.left.mode == _joy_lr_mode_pen) {
             nds.pen.pos = 1;
         }
 #endif
@@ -727,7 +727,7 @@ static int handle_hotkey(void)
             }
         }
 #if defined(A30) || defined(UT)
-        if (mycfg.joy.left.mode == _joy__lr__mode_pen) {
+        if (mycfg.joy.left.mode == _joy_lr_mode_pen) {
             nds.pen.pos = 0;
         }
 #endif
@@ -825,7 +825,7 @@ static int handle_hotkey(void)
         set_key_bit(KEY_BIT_START, 0);
     }
 
-    if (mycfg.key.hotkey == _key__hotkey_menu) {
+    if (mycfg.key.hotkey == _key_hotkey_menu) {
         if (hotkey_mask && hit_hotkey(KEY_BIT_SELECT)) {
             set_key_bit(KEY_BIT_MENU_ONION, 1);
             set_key_bit(KEY_BIT_SELECT, 0);
@@ -859,7 +859,7 @@ static int handle_hotkey(void)
     }
     else if (myevent.key.cur_bits & (1 << KEY_BIT_L2)) {
 #if defined(A30) || defined(UT)
-        if (mycfg.joy.left.mode != _joy__lr__mode_pen) {
+        if (mycfg.joy.left.mode != _joy_lr_mode_pen) {
 #endif
             if ((nds.menu.enable == 0) && (nds.menu.drastic.enable == 0)) {
                 myevent.dev.mode = (myevent.dev.mode == DEV_MODE_KEY) ?
@@ -1003,7 +1003,7 @@ static int input_handler(void *data)
                     }
 #if defined(A30) || defined(UT)
                     if (ev.code == r2) {
-                        if (mycfg.joy.left.mode == _joy__lr__mode_pen) {
+                        if (mycfg.joy.left.mode == _joy_lr_mode_pen) {
                             mycfg.pen.show.count = DEF_CFG_PEN_SHOW_COUNT;
                             SDL_SendMouseButton(vid.window, 0,
                                 ev.value ? SDL_PRESSED : SDL_RELEASED,
@@ -1213,7 +1213,7 @@ void PumpEvents(_THIS)
                 for (cc = 0; cc <= KEY_BIT_LAST; cc++) {
                     bit = 1 << cc;
 
-                    if ((mycfg.key.hotkey == _key__hotkey_menu) &&
+                    if ((mycfg.key.hotkey == _key_hotkey_menu) &&
                         (cc == KEY_BIT_MENU))
                     {
                         continue;

@@ -1,6 +1,4 @@
 /*
-   NDS Emulator (DraStic) for Miyoo Handheld
-
    Copyright (C) 2006 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -128,3 +126,4 @@ neon_memcpy:
     vst1.8 {d0[0]}, [ip]!
 1:
     bx lr
+

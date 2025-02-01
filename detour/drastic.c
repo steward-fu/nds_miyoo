@@ -1,29 +1,29 @@
 //
-//    NDS Emulator (DraStic) for Miyoo Handheld
+// NDS Emulator (DraStic) for Miyoo Handheld
+// Steward Fu <steward.fu@gmail.com>
 //
-//    This software is provided 'as-is', without any express or implied
-//    warranty. In no event will the authors be held liable for any damages
-//    arising from the use of this software.
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
 //
-//    Permission is granted to anyone to use this software for any purpose,
-//    including commercial applications, and to alter it and redistribute it
-//    freely, subject to the following restrictions:
-//
-//    1. The origin of this software must not be misrepresented; you must not
-//       claim that you wrote the original software. If you use this software
-//       in a product, an acknowledgment in the product documentation would be
-//       appreciated but is not required.
-//    2. Altered source versions must be plainly marked as such, and must not be
-//       misrepresented as being the original software.
-//    3. This notice may not be removed or altered from any source distribution.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+// 1. The origin of this software must not be misrepresented; you must not claim
+//    that you wrote the original software. If you use this software in a product,
+//    an acknowledgment in the product documentation would be appreciated
+//    but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 //
 
 #define _GNU_SOURCE
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <sys/mman.h>
 
 #if defined(UT)
@@ -71,8 +71,7 @@ int invoke_drastic_save_state(int slot)
         _func0(d1, 1);
 
         if (drastic_save_load_state_hook == 0) {
-            nds_save_state_index _func1 =
-                (nds_save_state_index)myhook.fun.save_state_index;
+            nds_save_state_index _func1 = (nds_save_state_index)myhook.fun.save_state_index;
 
             _func1((void *)myhook.var.system.base, slot, d0, d1);
         }
@@ -80,15 +79,10 @@ int invoke_drastic_save_state(int slot)
             nds_save_state _func1 = (nds_save_state)myhook.fun.save_state;
 
             sprintf(buf, "%s_%d.dss", myhook.var.system.gamecard_name, slot);
-            _func1(
-                (void *)myhook.var.system.base,
-                drastic_save_load_state_path,
-                buf,
-                d0,
-                d1
-            );
+            _func1((void *)myhook.var.system.base, drastic_save_load_state_path, buf, d0, d1);
         }
     }
+
     if (d0 != NULL) {
         free(d0);
     }
@@ -120,21 +114,14 @@ int invoke_drastic_load_state(int slot)
     char buf[255] = {0};
 
     if (drastic_save_load_state_hook == 0) {
-        nds_load_state_index _func =
-            (nds_load_state_index)myhook.fun.load_state_index;
+        nds_load_state_index _func = (nds_load_state_index)myhook.fun.load_state_index;
 
         _func((void *)myhook.var.system.base, slot, 0, 0, 0);
     }
     else {
         nds_load_state _func = (nds_load_state)myhook.fun.load_state;
 
-        sprintf(
-            buf,
-            "%s/%s_%d.dss",
-            drastic_save_load_state_path,
-            myhook.var.system.gamecard_name,
-            slot
-        );
+        snprintf(buf, sizeof(buf), "%s/%s_%d.dss", drastic_save_load_state_path, myhook.var.system.gamecard_name, slot);
 
         _func((void *)myhook.var.system.base, buf, 0, 0, 0);
     }
@@ -188,18 +175,13 @@ TEST(detour_drastic, set_fast_forward)
 }
 #endif
 
-int32_t drastic_load_state_index(
-    void *system,
-    uint32_t index,
-    uint16_t *snapshot_top,
-    uint16_t *snapshot_bottom,
-    uint32_t snapshot_only)
+int32_t drastic_load_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only)
 {
     int32_t r = 0;
 
     if (!system || !snapshot_top || !snapshot_bottom) {
         err(
-            DTR"invalid parameters(0x%x, 0x%x, 0x%x, 0x%x, 0x%x) in %s\n", 
+            DTR"invalid parameters(0x%x, 0x%x, 0x%x, 0x%x, 0x%x) in %s\n",
             system,
             index,
             snapshot_top,
@@ -215,21 +197,9 @@ int32_t drastic_load_state_index(
     char buf[320] = {0};
     nds_load_state _func = (nds_load_state)myhook.fun.load_state;
 
-    sprintf(
-        buf,
-        "%s/%s_%d.dss",
-        drastic_save_load_state_path,
-        (char*)myhook.var.system.gamecard_name,
-        index
-    );
+    snprintf(buf, sizeof(buf), "%s/%s_%d.dss", drastic_save_load_state_path, (char *)myhook.var.system.gamecard_name, index);
 
-    r = _func(
-            (void*)myhook.var.system.base,
-            buf,
-            snapshot_top,
-            snapshot_bottom,
-            snapshot_only
-        );
+    r = _func((void*)myhook.var.system.base, buf, snapshot_top, snapshot_bottom, snapshot_only);
 #endif
 
     return r;
@@ -248,11 +218,7 @@ TEST(detour_drastic, drastic_load_state_index)
 }
 #endif
 
-int32_t drastic_save_state_index(
-    void *system,
-    uint32_t index,
-    uint16_t *snapshot_top,
-    uint16_t *snapshot_bottom)
+int32_t drastic_save_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom)
 {
     int32_t r = 0;
 
@@ -273,13 +239,7 @@ int32_t drastic_save_state_index(
     nds_save_state _func1 = (nds_save_state)myhook.fun.save_state;
 
     sprintf(buf, "%s_%d.dss", (char*)myhook.var.system.gamecard_name, index);
-    r = _func1(
-        (void*)myhook.var.system.base,
-        drastic_save_load_state_path,
-        buf,
-        snapshot_top,
-        snapshot_bottom
-    );
+    r = _func1((void*)myhook.var.system.base, drastic_save_load_state_path, buf, snapshot_top, snapshot_bottom);
 #endif
 
     return r;
@@ -298,12 +258,7 @@ TEST(detour_drastic, drastic_save_state_index)
 }
 #endif
 
-void drastic_initialize_backup(
-    backup_struct *backup,
-    backup_type_enum backup_type,
-    uint8_t *data,
-    uint32_t size,
-    char *path)
+void drastic_initialize_backup(backup_struct *backup, backup_type_enum backup_type, uint8_t *data, uint32_t size, char *path)
 {
 #if !defined(UT)
     char *data_file_name = NULL;
@@ -324,12 +279,7 @@ void drastic_initialize_backup(
     if (path != NULL) {
         data_file_name = malloc(MAX_PATH);
         memset(data_file_name, 0, MAX_PATH);
-        sprintf(
-            data_file_name,
-            "%s/%s.dsv",
-            drastic_save_load_state_path,
-            myhook.var.system.gamecard_name
-        );
+        sprintf(data_file_name, "%s/%s.dsv", drastic_save_load_state_path, myhook.var.system.gamecard_name);
     }
     backup->type = backup_type;
     backup->address_mask = size - 1;
@@ -380,12 +330,7 @@ LAB_08092f94:
             uVar2 = ftell(__stream);
             fseek(__stream, __off, 0);
             fclose(__stream);
-            info(
-                DTR"loading backup file %s, %d bytes in %s\n",
-                data_file_name,
-                uVar2,
-                __func__
-            );
+            info(DTR"loading backup file %s, %d bytes in %s\n", data_file_name, uVar2, __func__);
 
             if (size + 0x7a != uVar2) {
                 backup->fix_file_size = size + 0x7a;
@@ -393,37 +338,18 @@ LAB_08092f94:
 
             if (uVar2 < size) {
                 uVar3 = uVar2 - 0x400 & ~((int)(uVar2 - 0x400) >> 0x1f);
-                pvVar4 = memmem(
-                    data + uVar3,
-                    uVar2 - uVar3,
-                    (const void *)myhook.var.desmume_footer_str,
-                    0x52
-                );
+                pvVar4 = memmem(data + uVar3, uVar2 - uVar3, (const void *)myhook.var.desmume_footer_str, 0x52);
 
                 if (pvVar4 != (void *)0x0) {
                     uVar2 = (int)pvVar4 - (int)data;
-                    info(
-                        DTR"found DeSmuME footer at %d. Truncating in %s\n",
-                        uVar2,
-                        __func__
-                    );
+                    info(DTR"found DeSmuME footer at %d. Truncating in %s\n", uVar2, __func__);
                 }
                 uVar3 = uVar2 >> 0xe;
-                warn(
-                    DTR"backup file less than full size "
-                    "(should be %d, loaded %d) in %s\n",
-                    size,
-                    uVar2,
-                    __func__
-                );
+                warn(DTR"backup file less than full size (should be %d, loaded %d) in %s\n", size, uVar2, __func__);
 
                 memset(data + uVar2, size - uVar2, 0xff);
                 memset(backup, 0, uVar3 * 4);
-                memset(
-                    backup->dirty_page_bitmap + uVar3,
-                    0xff,
-                    ((size + 0x3fff >> 0xe) - uVar3) * 4
-                );
+                memset(backup->dirty_page_bitmap + uVar3, 0xff, ((size + 0x3fff >> 0xe) - uVar3) * 4);
             }
             else {
                 memset(backup, 0, size + 0x3fff >> 0xe);

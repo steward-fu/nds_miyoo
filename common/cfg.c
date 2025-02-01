@@ -1,37 +1,37 @@
 //
-//    NDS Emulator (DraStic) for Miyoo Handheld
+// NDS Emulator (DraStic) for Miyoo Handheld
+// Steward Fu <steward.fu@gmail.com>
 //
-//    This software is provided 'as-is', without any express or implied
-//    warranty.  In no event will the authors be held liable for any damages
-//    arising from the use of this software.
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
 //
-//    Permission is granted to anyone to use this software for any purpose,
-//    including commercial applications, and to alter it and redistribute it
-//    freely, subject to the following restrictions:
-//
-//    1. The origin of this software must not be misrepresented; you must not
-//       claim that you wrote the original software. If you use this software
-//       in a product, an acknowledgment in the product documentation would be
-//       appreciated but is not required.
-//    2. Altered source versions must be plainly marked as such, and must not be
-//       misrepresented as being the original software.
-//    3. This notice may not be removed or altered from any source distribution.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+// 1. The origin of this software must not be misrepresented; you must not claim
+//    that you wrote the original software. If you use this software in a product,
+//    an acknowledgment in the product documentation would be appreciated
+//    but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 //
 
 #include <time.h>
 #include <math.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <json-c/json.h>
 #include <sys/stat.h>
 #include <pb_encode.h>
 #include <pb_decode.h>
+#include <json-c/json.h>
 
 #if defined(UT)
 #include "unity_fixture.h"
@@ -248,7 +248,7 @@ int get_system_volume(void)
     struct json_object *jfile = NULL;
 
     jfile = json_object_from_file(JSON_SYS_PATH);
-    if (jfile ==  NULL) {
+    if (jfile == NULL) {
         err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
         return -1;
     }
@@ -284,7 +284,7 @@ int set_system_volume(int vol)
     }
 
     jfile = json_object_from_file(JSON_SYS_PATH);
-    if (jfile ==  NULL) {
+    if (jfile == NULL) {
         err(COM"failed to open file(\"%s\") in %s\n", JSON_SYS_PATH, __func__);
         return -1;
     }
@@ -320,17 +320,8 @@ int reset_config_settings(void)
     strncpy(mycfg.version, DEF_CFG_VERSION, sizeof(mycfg.version));
     strncpy(mycfg.language, DEF_CFG_LANGUAGE, sizeof(mycfg.language));
     strncpy(mycfg.font_path, DEF_CFG_FONT_PATH, sizeof(mycfg.font_path));
-    strncpy(
-        mycfg.state_folder,
-        DEF_CFG_STATE_FOLDER,
-        sizeof(mycfg.state_folder)
-    );
-
-    strncpy(
-        mycfg.border_image,
-        DEF_CFG_BORDER_IMAGE,
-        sizeof(mycfg.border_image)
-    );
+    strncpy(mycfg.state_folder, DEF_CFG_STATE_FOLDER, sizeof(mycfg.state_folder));
+    strncpy(mycfg.border_image, DEF_CFG_BORDER_IMAGE, sizeof(mycfg.border_image));
 
     mycfg.debug_level = DEF_CFG_DEBUG_LEVEL;
     mycfg.system_volume = 0;
@@ -436,15 +427,10 @@ TEST(common_cfg, reset_config_settings)
 
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_LAYOUT, mycfg.display.layout);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_ALT_LAYOUT, mycfg.display.alt_layout);
-    TEST_ASSERT_EQUAL_INT(
-        DEF_CFG_DISPLAY_SMALL_ALPHA,
-        mycfg.display.small.alpha
-    );
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_ALPHA, mycfg.display.small.alpha);
 
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_BORDER,
-        mycfg.display.small.border);
-    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_POSITION,
-        mycfg.display.small.position);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_BORDER, mycfg.display.small.border);
+    TEST_ASSERT_EQUAL_INT(DEF_CFG_DISPLAY_SMALL_POSITION, mycfg.display.small.position);
 
     TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_ENABLE, mycfg.autosave.enable);
     TEST_ASSERT_EQUAL_INT(DEF_CFG_AUTOSAVE_SLOT, mycfg.autosave.slot);

@@ -1,8 +1,7 @@
-TARGET   = libdetour.so
+TARGET = libdetour.so
 LDFLAGS += -fPIC
 LDFLAGS += -shared
-SRC      = hook.c \
-           drastic.c
+SRC = hook.c drastic.c
 
 ifneq (ut,$(MOD))
     SRC += drastic.S

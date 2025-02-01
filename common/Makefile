@@ -1,11 +1,8 @@
-TARGET   = libcommon.so
+TARGET = libcommon.so
 LDFLAGS += -fPIC
 LDFLAGS += -shared
 LDFLAGS += -ljson-c
-SRC      = log.c \
-           cfg.c \
-           file.c \
-           cfg.pb.c
+SRC = log.c cfg.c file.c cfg.pb.c
 
 ifeq (ut,$(MOD))
     LDFLAGS += -lprotobuf-nanopb

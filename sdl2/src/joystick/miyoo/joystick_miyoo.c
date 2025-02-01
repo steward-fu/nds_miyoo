@@ -1,21 +1,21 @@
 //
-//    NDS Emulator (DraStic) for Miyoo Handheld
+// NDS Emulator (DraStic) for Miyoo Handheld
+// Steward Fu <steward.fu@gmail.com>
 //
-//    This software is provided 'as-is', without any express or implied
-//    warranty.  In no event will the authors be held liable for any damages
-//    arising from the use of this software.
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
 //
-//    Permission is granted to anyone to use this software for any purpose,
-//    including commercial applications, and to alter it and redistribute it
-//    freely, subject to the following restrictions:
-//
-//    1. The origin of this software must not be misrepresented; you must not
-//       claim that you wrote the original software. If you use this software
-//       in a product, an acknowledgment in the product documentation would be
-//       appreciated but is not required.
-//    2. Altered source versions must be plainly marked as such, and must not be
-//       misrepresented as being the original software.
-//    3. This notice may not be removed or altered from any source distribution.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+// 1. The origin of this software must not be misrepresented; you must not claim
+//    that you wrote the original software. If you use this software in a product,
+//    an acknowledgment in the product documentation would be appreciated
+//    but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 //
 
 #include "../../SDL_internal.h"
@@ -121,20 +121,14 @@ TEST(sdl2_joystick_miyoo, uart_open)
 }
 #endif
 
-static int uart_set(
-    int fd,
-    int speed,
-    int flow_ctrl,
-    int databits,
-    int stopbits,
-    int parity)
+static int uart_set(int fd, int speed, int flow_ctrl, int databits, int stopbits, int parity)
 {
 #if !defined(UT)
     int i = 0;
-    int speed_arr[] = {B115200, B19200, B9600, B4800, B2400, B1200, B300};
-    int name_arr[] = {115200, 19200, 9600, 4800, 2400, 1200, 300};
+    int name_arr[] = { 115200, 19200, 9600, 4800, 2400, 1200, 300 };
+    int speed_arr[] = { B115200, B19200, B9600, B4800, B2400, B1200, B300 };
 #endif
-    struct termios options = {0};
+    struct termios options = { 0 };
 
     if (fd < 0) {
         err(SDL"invalid parameters(0x%x) in %s\n", fd, __func__);
@@ -257,13 +251,7 @@ TEST(sdl2_joystick_miyoo, uart_set)
 }
 #endif
 
-static int uart_init(
-    int fd,
-    int speed,
-    int flow_ctrl,
-    int databits,
-    int stopbits,
-    int parity)
+static int uart_init(int fd, int speed, int flow_ctrl, int databits, int stopbits, int parity)
 {
     if (fd < 0) {
         err(SDL"invalid parameters(0x%x) in %s\n", fd, __func__);
@@ -293,13 +281,7 @@ static int uart_read(int fd, char *buf, int len)
     struct timeval time = { 0 };
 
     if ((fd < 0) || !buf || (len <= 0)) {
-        err(
-            SDL"invalid parameters(0x%x, 0x%x, 0x%x) in %s\n",
-            fd,
-            buf,
-            len,
-            __func__
-        );
+        err(SDL"invalid parameters(0x%x, 0x%x, 0x%x) in %s\n", fd, buf, len, __func__);
         return -1;
     }
 
@@ -623,7 +605,7 @@ TEST(sdl2_joystick_miyoo, init_serial_input)
 static int read_joystick_config(void)
 {
     FILE *f = NULL;
-    char buf[255] = {0};
+    char buf[255] = { 0 };
 
     f = fopen(A30_JOYSTICK_CFG, "r");
     if (!f) {
@@ -677,7 +659,7 @@ TEST(sdl2_joystick_miyoo, read_joystick_config)
 int joystick_handler(void *param)
 {
     int len = 0;
-    char rcv_buf[255] = {0};
+    char rcv_buf[255] = { 0 };
 
 #if defined(UT)
     myjoy.running = 0;
@@ -709,13 +691,8 @@ int JoystickInit(void)
     myjoy.running = 1;
     read_joystick_config();
     init_serial_input();
-    myjoy.thread = SDL_CreateThreadInternal(
-        joystick_handler,
-        "miyoo_joystick_thread",
-        4096,
-        NULL
-    );
-    if(myjoy.thread == NULL) {
+    myjoy.thread = SDL_CreateThreadInternal(joystick_handler, "miyoo_joystick_thread", 4096, NULL);
+    if (myjoy.thread == NULL) {
         err(SDL"failed to create thread for joystick in %s\n", __func__);
         return -1;
     }
@@ -870,8 +847,8 @@ int JoystickOpen(SDL_Joystick *joystick, int device_index)
 #if defined(UT)
 TEST(sdl2_joystick_miyoo, JoystickOpen)
 {
-    SDL_Joystick j = { 0 };
     const int idx = 1;
+    SDL_Joystick j = { 0 };
 
     TEST_ASSERT_EQUAL_INT(-1, JoystickOpen(NULL, 0));
 
@@ -899,10 +876,7 @@ TEST(sdl2_joystick_miyoo, JoystickClose)
 }
 #endif
 
-static int JoystickRumble(
-    SDL_Joystick *joystick,
-    uint16_t low_frequency_rumble,
-    uint16_t high_frequency_rumble)
+static int JoystickRumble(SDL_Joystick *joystick, uint16_t low_frequency_rumble, uint16_t high_frequency_rumble)
 {
     if (!joystick) {
         err(SDL"invalid parameter(0x%x) in %s\n", joystick, __func__);
@@ -917,15 +891,11 @@ TEST(sdl2_joystick_miyoo, JoystickRumble)
     SDL_Joystick j = { 0 };
 
     TEST_ASSERT_EQUAL_INT(-1, JoystickRumble(NULL, 0, 0));
-
     TEST_ASSERT_EQUAL_INT(0, JoystickRumble(&j, 0, 0));
 }
 #endif
 
-static int JoystickRumbleTriggers(
-    SDL_Joystick *joystick,
-    uint16_t left_rumble,
-    uint16_t right_rumble)
+static int JoystickRumbleTriggers(SDL_Joystick *joystick, uint16_t left_rumble, uint16_t right_rumble)
 {
     if (!joystick) {
         err(SDL"invalid parameter(0x%x) in %s\n", joystick, __func__);
@@ -940,7 +910,6 @@ TEST(sdl2_joystick_miyoo, JoystickRumbleTriggers)
     SDL_Joystick j = { 0 };
 
     TEST_ASSERT_EQUAL_INT(-1, JoystickRumbleTriggers(NULL, 0, 0));
-
     TEST_ASSERT_EQUAL_INT(0, JoystickRumbleTriggers(&j, 0, 0));
 }
 #endif
@@ -963,11 +932,7 @@ TEST(sdl2_joystick_miyoo, JoystickGetCapabilities)
 }
 #endif
 
-static int JoystickSetLED(
-    SDL_Joystick *joystick,
-    uint8_t red,
-    uint8_t green,
-    uint8_t blue)
+static int JoystickSetLED(SDL_Joystick *joystick, uint8_t red, uint8_t green, uint8_t blue)
 {
     if (!joystick) {
         err(SDL"invalid parameter(0x%x) in %s\n", joystick, __func__);
@@ -982,7 +947,6 @@ TEST(sdl2_joystick_miyoo, JoystickSetLED)
     SDL_Joystick j = { 0 };
 
     TEST_ASSERT_EQUAL_INT(-1, JoystickSetLED(NULL, 0, 0, 0));
-
     TEST_ASSERT_EQUAL_INT(0, JoystickSetLED(&j, 0, 0, 0));
 }
 #endif
@@ -990,12 +954,7 @@ TEST(sdl2_joystick_miyoo, JoystickSetLED)
 static int JoystickSendEffect(SDL_Joystick *joystick, const void *data, int size)
 {
     if (!joystick || !data) {
-        err(
-            SDL"invalid parameters(0x%x, 0x%x) in %s\n",
-            joystick,
-            data,
-            __func__
-        );
+        err(SDL"invalid parameters(0x%x, 0x%x) in %s\n", joystick, data, __func__);
         return -1;
     }
     return 0;
@@ -1007,10 +966,7 @@ TEST(sdl2_joystick_miyoo, JoystickSendEffect)
     SDL_Joystick j = { 0 };
 
     TEST_ASSERT_EQUAL_INT(-1, JoystickSendEffect(NULL, NULL, 0));
-
-    TEST_ASSERT_EQUAL_INT(
-        0,
-        JoystickSendEffect(&j, (const void *)0xdeadbeef, 0));
+    TEST_ASSERT_EQUAL_INT(0, JoystickSendEffect(&j, (const void *)0xdeadbeef, 0));
 }
 #endif
 
@@ -1029,7 +985,6 @@ TEST(sdl2_joystick_miyoo, JoystickSetSensorsEnabled)
     SDL_Joystick j = { 0 };
 
     TEST_ASSERT_EQUAL_INT(-1, JoystickSetSensorsEnabled(NULL, 0));
-
     TEST_ASSERT_EQUAL_INT(0, JoystickSetSensorsEnabled(&j, 0));
 }
 #endif
@@ -1069,9 +1024,7 @@ TEST(sdl2_joystick_miyoo, JoystickUpdate)
 }
 #endif
 
-static SDL_bool JoystickGetGamepadMapping(
-    int device_index,
-    SDL_GamepadMapping *out)
+static SDL_bool JoystickGetGamepadMapping(int device_index, SDL_GamepadMapping *out)
 {
     if (!out) {
         err(SDL"invalid parameter(0x%x) in %s\n", out, __func__);

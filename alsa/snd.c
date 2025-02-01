@@ -1,33 +1,37 @@
 //
-//    NDS Emulator (DraStic) for Miyoo Handheld
+// NDS Emulator (DraStic) for Miyoo Handheld
+// Steward Fu <steward.fu@gmail.com>
 //
-//    This software is provided 'as-is', without any express or implied
-//    warranty.  In no event will the authors be held liable for any damages
-//    arising from the use of this software.
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
 //
-//    Permission is granted to anyone to use this software for any purpose,
-//    including commercial applications, and to alter it and redistribute it
-//    freely, subject to the following restrictions:
-//
-//    1. The origin of this software must not be misrepresented; you must not
-//       claim that you wrote the original software. If you use this software
-//       in a product, an acknowledgment in the product documentation would be
-//       appreciated but is not required.
-//    2. Altered source versions must be plainly marked as such, and must not be
-//       misrepresented as being the original software.
-//    3. This notice may not be removed or altered from any source distribution.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+// 1. The origin of this software must not be misrepresented; you must not claim
+//    that you wrote the original software. If you use this software in a product,
+//    an acknowledgment in the product documentation would be appreciated
+//    but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 //
 
 #include <time.h>
 #include <math.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <fcntl.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/mman.h>
+#include <sys/time.h>
+#include <sys/time.h>
 #include <sys/ioctl.h>
 #include <alsa/output.h>
 #include <alsa/input.h>
@@ -35,10 +39,6 @@
 #include <alsa/global.h>
 #include <alsa/timer.h>
 #include <alsa/pcm.h>
-#include <sys/mman.h>
-#include <sys/time.h>
-#include <sys/time.h>
-#include <syslog.h>
 #include <linux/rtc.h>
 #include <linux/soundcard.h>
 
@@ -215,13 +215,13 @@ static int set_volume_raw(int value, int add)
         return -1;
     }
 
-    if (prev_value <= MIN_RAW_VALUE && value > MIN_RAW_VALUE) {
+    if ((prev_value <= MIN_RAW_VALUE) && (value > MIN_RAW_VALUE)) {
         buf2[1] = 0;
         if (ioctl(fd, MI_AO_SETMUTE, buf1) < 0) {
             err(SND"failed to set mute(%d) in $s\n", buf2[1], __func__);
         }
     }
-    else if (prev_value > MIN_RAW_VALUE && value <= MIN_RAW_VALUE) {
+    else if ((prev_value > MIN_RAW_VALUE) && (value <= MIN_RAW_VALUE)) {
         buf2[1] = 1;
         if (ioctl(fd, MI_AO_SETMUTE, buf1) < 0) {
             err(SND"failed to set mute(%d) in\n", buf2[1], __func__);
@@ -285,9 +285,7 @@ int volume_inc(void)
 #endif
 
 #if defined(A30)
-        *myalsa.vol.ptr = 
-            ((myalsa.vol.base + (vol << myalsa.vol.mul)) << 8) |
-            (myalsa.vol.base + (vol << myalsa.vol.mul));
+        *myalsa.vol.ptr = ((myalsa.vol.base + (vol << myalsa.vol.mul)) << 8) | (myalsa.vol.base + (vol << myalsa.vol.mul));
 #endif
         set_system_volume(vol);
     }
@@ -319,9 +317,7 @@ int volume_dec(void)
             *myalsa.vol.ptr = 0;
         }
         else {
-            *myalsa.vol.ptr = 
-                ((myalsa.vol.base + (vol << myalsa.vol.mul)) << 8) |
-                (myalsa.vol.base + (vol << myalsa.vol.mul));
+            *myalsa.vol.ptr = ((myalsa.vol.base + (vol << myalsa.vol.mul)) << 8) | (myalsa.vol.base + (vol << myalsa.vol.mul));
         }
 #endif
         set_system_volume(vol);
@@ -365,9 +361,7 @@ static int open_dsp(void)
 
     myalsa.vol.mul = 1;
     myalsa.vol.ptr = (uint32_t *)(&myalsa.mem.ptr[0xc00 + 0x258]);
-    *myalsa.vol.ptr =
-        ((myalsa.vol.base + (vol << myalsa.vol.mul)) << 8) |
-        (myalsa.vol.base + (vol << myalsa.vol.mul));
+    *myalsa.vol.ptr = ((myalsa.vol.base + (vol << myalsa.vol.mul)) << 8) | (myalsa.vol.base + (vol << myalsa.vol.mul));
 
     arg = 16;
     if (ioctl(myalsa.dsp.fd, SOUND_PCM_WRITE_BITS, &arg) < 0) {
@@ -478,7 +472,7 @@ static int queue_size_for_write(queue_t *q)
     if (q->write == q->read) {
         return q->size;
     }
-    else if(q->write < q->read){
+    else if (q->write < q->read) {
         return q->read - q->write;
     }
     return (q->size - q->write) + q->read;
@@ -487,8 +481,8 @@ static int queue_size_for_write(queue_t *q)
 #if defined(UT)
 TEST(alsa_snd, queue_size_for_write)
 {
-    queue_t t = {0};
-    char buf[128] = {0};
+    queue_t t = { 0 };
+    char buf[128] = { 0 };
     const int size = 1024;
 
     TEST_ASSERT_EQUAL_INT(0, queue_init(&t, size));
@@ -504,11 +498,12 @@ TEST(alsa_snd, queue_size_for_write)
 
 static int queue_put(queue_t *q, uint8_t *buffer, size_t size)
 {
-    int r = 0, tmp = 0, avai = 0;
+    int r = 0;
+    int tmp = 0;
+    int avai = 0;
 
     if (!q || !buffer || (size < 0)) {
-        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n",
-            q, buffer, size, __func__);
+        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n", q, buffer, size, __func__);
         return -1;
     }
 
@@ -557,8 +552,8 @@ static int queue_put(queue_t *q, uint8_t *buffer, size_t size)
 #if defined(UT)
 TEST(alsa_snd, queue_put)
 {
-    queue_t t = {0};
-    char buf[128] = {0};
+    queue_t t = { 0 };
+    char buf[128] = { 0 };
     const int size = 1024;
 
     TEST_ASSERT_EQUAL_INT(0, queue_init(&t, size));
@@ -578,17 +573,13 @@ TEST(alsa_snd, queue_put)
 
 static size_t queue_get(queue_t *q, uint8_t *buffer, size_t max_size)
 {
-    int r = 0, tmp = 0, avai = 0, size = max_size;
+    int r = 0;
+    int tmp = 0;
+    int avai = 0;
+    int size = max_size;
 
     if (!q || !buffer || (max_size < 0)) {
-        err(
-            SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n",
-            q,
-            buffer,
-            size,
-            __func__
-        );
-
+        err(SND"invalid parameter(0x%x, 0x%x, 0x%x) in %s\n", q, buffer, size, __func__);
         return -1;
     }
 
@@ -632,8 +623,8 @@ static size_t queue_get(queue_t *q, uint8_t *buffer, size_t max_size)
 #if defined(UT)
 TEST(alsa_snd, queue_get)
 {
-    queue_t t = {0};
-    char buf[128] = {0};
+    queue_t t = { 0 };
+    char buf[128] = { 0 };
     const int size = 1024;
 
     TEST_ASSERT_EQUAL_INT(0, queue_init(&t, size));
@@ -655,7 +646,7 @@ TEST(alsa_snd, queue_get)
 static void *alsa_snd_handler(void *threadid)
 {
 #if defined(MINI)
-    MI_AUDIO_Frame_t frm = {0};
+    MI_AUDIO_Frame_t frm = { 0 };
 #endif
 
 #if defined(A30)
@@ -697,7 +688,7 @@ static void *alsa_snd_handler(void *threadid)
         else {
             if (chk_cnt == 0) {
                 FILE *fd = NULL;
-                char buf[MAX_PATH] = {0};
+                char buf[MAX_PATH] = { 0 };
 
                 fd = popen(
                     "amixer get \'DACL Mixer AIF1DA0L\' | "
@@ -790,10 +781,7 @@ TEST(alsa_snd, snd_pcm_hw_params_malloc)
 }
 #endif
 
-int snd_pcm_hw_params_set_access(
-    snd_pcm_t *pcm,
-    snd_pcm_hw_params_t *params,
-    snd_pcm_access_t _access)
+int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_access_t _access)
 {
     return 0;
 }
@@ -805,10 +793,7 @@ TEST(alsa_snd, snd_pcm_hw_params_set_access)
 }
 #endif
 
-int snd_pcm_hw_params_set_buffer_size_near(
-    snd_pcm_t *pcm,
-    snd_pcm_hw_params_t *params,
-    snd_pcm_uframes_t *val)
+int snd_pcm_hw_params_set_buffer_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val)
 {
     *val = PCM_SAMPLES * 2 * PCM_CHANNELS;
     return 0;
@@ -819,16 +804,12 @@ TEST(alsa_snd, snd_pcm_hw_params_set_buffer_size_near)
 {
     snd_pcm_uframes_t t = { 0 };
 
-    TEST_ASSERT_EQUAL_INT(0,
-        snd_pcm_hw_params_set_buffer_size_near(NULL, NULL, &t));
+    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_buffer_size_near(NULL, NULL, &t));
     TEST_ASSERT_EQUAL_INT(PCM_SAMPLES * 2 * PCM_CHANNELS, t);
 }
 #endif
 
-int snd_pcm_hw_params_set_channels(
-    snd_pcm_t *pcm,
-    snd_pcm_hw_params_t *params,
-    unsigned int val)
+int snd_pcm_hw_params_set_channels(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
 {
     return 0;
 }
@@ -840,10 +821,7 @@ TEST(alsa_snd, snd_pcm_hw_params_set_channels)
 }
 #endif
 
-int snd_pcm_hw_params_set_format(
-    snd_pcm_t *pcm,
-    snd_pcm_hw_params_t *params,
-    snd_pcm_format_t val)
+int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_format_t val)
 {
     if (val != SND_PCM_FORMAT_S16_LE) {
         return -1;
@@ -855,18 +833,11 @@ int snd_pcm_hw_params_set_format(
 TEST(alsa_snd, snd_pcm_hw_params_set_format)
 {
     TEST_ASSERT_EQUAL_INT(-1, snd_pcm_hw_params_set_format(NULL, NULL, 0));
-    TEST_ASSERT_EQUAL_INT(
-        0,
-        snd_pcm_hw_params_set_format(NULL, NULL, SND_PCM_FORMAT_S16_LE)
-    );
+    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_format(NULL, NULL, SND_PCM_FORMAT_S16_LE));
 }
 #endif
 
-int snd_pcm_hw_params_set_period_size_near(
-    snd_pcm_t *pcm,
-    snd_pcm_hw_params_t *params,
-    snd_pcm_uframes_t *val,
-    int *dir)
+int snd_pcm_hw_params_set_period_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val, int *dir)
 {
     *val = PCM_PERIOD;
     return 0;
@@ -877,20 +848,12 @@ TEST(alsa_snd, snd_pcm_hw_params_set_period_size_near)
 {
     snd_pcm_uframes_t t = { 0 };
 
-    TEST_ASSERT_EQUAL_INT(
-        0,
-        snd_pcm_hw_params_set_period_size_near(NULL, NULL, &t, NULL)
-    );
-
+    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_period_size_near(NULL, NULL, &t, NULL));
     TEST_ASSERT_EQUAL_INT(PCM_PERIOD, t);
 }
 #endif
 
-int snd_pcm_hw_params_set_rate_near(
-    snd_pcm_t *pcm,
-    snd_pcm_hw_params_t *params,
-    unsigned int *val,
-    int *dir)
+int snd_pcm_hw_params_set_rate_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir)
 {
     *val = PCM_FREQ;
     return 0;
@@ -901,25 +864,15 @@ TEST(alsa_snd, snd_pcm_hw_params_set_rate_near)
 {
     unsigned int t = 0;
 
-    TEST_ASSERT_EQUAL_INT(
-        0,
-        snd_pcm_hw_params_set_rate_near(NULL, NULL, &t, NULL)
-    );
+    TEST_ASSERT_EQUAL_INT(0, snd_pcm_hw_params_set_rate_near(NULL, NULL, &t, NULL));
     TEST_ASSERT_EQUAL_INT(PCM_FREQ, t);
 }
 #endif
 
-int snd_pcm_open(
-    snd_pcm_t **pcm,
-    const char *name,
-    snd_pcm_stream_t stream,
-    int mode)
+int snd_pcm_open(snd_pcm_t **pcm, const char *name, snd_pcm_stream_t stream, int mode)
 {
     if (stream != SND_PCM_STREAM_PLAYBACK) {
-        err(
-            SND"steam format is not equal to SND_PCM_STREAM_PLAYBACK in %s\n",
-            __func__
-        );
+        err(SND"steam format is not equal to SND_PCM_STREAM_PLAYBACK in %s\n", __func__);
         return -1;
     }
 
@@ -931,10 +884,7 @@ int snd_pcm_open(
 TEST(alsa_snd, snd_pcm_open)
 {
     TEST_ASSERT_EQUAL_INT(-1, snd_pcm_open(NULL, NULL, -1, 0));
-    TEST_ASSERT_EQUAL_INT(
-        0,
-        snd_pcm_open(NULL, NULL, SND_PCM_STREAM_PLAYBACK, 0)
-    );
+    TEST_ASSERT_EQUAL_INT(0, snd_pcm_open(NULL, NULL, SND_PCM_STREAM_PLAYBACK, 0));
 }
 #endif
 
@@ -950,10 +900,7 @@ TEST(alsa_snd, snd_pcm_prepare)
 }
 #endif
 
-snd_pcm_sframes_t snd_pcm_readi(
-    snd_pcm_t *pcm,
-    void *buffer,
-    snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_readi(snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t size)
 {
     return 0;
 }
@@ -981,12 +928,12 @@ int snd_pcm_start(snd_pcm_t *pcm)
 {
 #if defined(MINI)
     MI_S32 miret = 0;
-    MI_SYS_ChnPort_t chn;
+    MI_SYS_ChnPort_t chn = 0;
 #endif
 
 #if defined(A30)
     int arg = 0;
-    struct tm ct = {0};
+    struct tm ct = { 0 };
 #endif
 
     queue_init(&myalsa.queue, DEF_QUEUE_SIZE);
@@ -1010,31 +957,30 @@ int snd_pcm_start(snd_pcm_t *pcm)
     myalsa.mi.set_attr.u32FrmNum = 6;
     myalsa.mi.set_attr.u32PtNumPerFrm = PCM_SAMPLES;
     myalsa.mi.set_attr.u32ChnCnt = PCM_CHANNELS;
-    myalsa.mi.set_attr.eSoundmode = PCM_CHANNELS == 2 ?
-        E_MI_AUDIO_SOUND_MODE_STEREO : E_MI_AUDIO_SOUND_MODE_MONO;
+    myalsa.mi.set_attr.eSoundmode = (PCM_CHANNELS == 2) ? E_MI_AUDIO_SOUND_MODE_STEREO : E_MI_AUDIO_SOUND_MODE_MONO;
 
     myalsa.mi.set_attr.eSamplerate = (MI_AUDIO_SampleRate_e)PCM_FREQ;
 
     miret = MI_AO_SetPubAttr(myalsa.mi.dev, &myalsa.mi.set_attr);
-    if(MI_SUCCESS != miret) {
+    if (MI_SUCCESS != miret) {
         err(SND"failed to set PubAttr in %s\n", __func__);
         return -1;
     }
 
     miret = MI_AO_GetPubAttr(myalsa.mi.dev, &myalsa.mi.get_attr);
-    if(MI_SUCCESS != miret) {
+    if (MI_SUCCESS != miret) {
         err(SND"failed to get PubAttr in %s\n", __func__);
         return -1;
     }
 
     miret = MI_AO_Enable(myalsa.mi.dev);
-    if(MI_SUCCESS != miret) {
+    if (MI_SUCCESS != miret) {
         err(SND"failed to enable AO in %s\n", __func__);
         return -1;
     }
 
     miret = MI_AO_EnableChn(myalsa.mi.dev, myalsa.mi.channel);
-    if(MI_SUCCESS != miret) {
+    if (MI_SUCCESS != miret) {
         err(SND"failed to enable Channel in %s\n", __func__);
         return -1;
     }
@@ -1051,14 +997,7 @@ int snd_pcm_start(snd_pcm_t *pcm)
 
 #if defined(A30)
     myalsa.mem.fd = open("/dev/mem", O_RDWR);
-    myalsa.mem.ptr = mmap(
-        0,
-        4096,
-        PROT_READ | PROT_WRITE,
-        MAP_SHARED,
-        myalsa.mem.fd,
-        0x1c22000
-    );
+    myalsa.mem.ptr = mmap(0, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, myalsa.mem.fd, 0x1c22000);
 
     if (open_dsp() < 0) {
         return -1;
@@ -1066,9 +1005,7 @@ int snd_pcm_start(snd_pcm_t *pcm)
 #endif
 
 #if !defined(UT)
-    if (add_hook_point(myhook.fun.spu_adpcm_decode_block,
-        spu_adpcm_decode_block))
-    {
+    if (add_hook_point(myhook.fun.spu_adpcm_decode_block, spu_adpcm_decode_block)) {
         err(SND"failed to hook adpcm decode in %s\n", __func__);
         return -1;
     }
@@ -1178,14 +1115,11 @@ TEST(alsa_snd, snd_pcm_sw_params_malloc)
 }
 #endif
 
-snd_pcm_sframes_t snd_pcm_writei(
-    snd_pcm_t *pcm,
-    const void *buffer,
-    snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size)
 {
     if ((size > 1) && (size != myalsa.pcm.len)) {
 #if !defined(UT)
-        queue_put(&myalsa.queue, (uint8_t*)buffer, size * 2 * PCM_CHANNELS);
+        queue_put(&myalsa.queue, (uint8_t *)buffer, size * 2 * PCM_CHANNELS);
 #endif
     }
     return size;

@@ -1,9 +1,9 @@
-TARGET   = libasound.so.2
+TARGET = libasound.so.2
 LDFLAGS += -fPIC
 LDFLAGS += -shared
 LDFLAGS += -lm
 LDFLAGS += -lpthread
-SRC      = snd.c
+SRC = snd.c
 
 .PHONY: all
 all:

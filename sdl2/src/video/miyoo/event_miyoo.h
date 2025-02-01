@@ -115,13 +115,13 @@ typedef struct _miyoo_event_t {
     int stock_os;
 #endif
 
-    struct _key {
+    struct {
         uint32_t cur_bits;
         uint32_t pre_bits;
         SDL_Scancode report_key[32];
     } key;
 
-    struct _pen {
+    struct {
         int x;
         int y;
         int max_x;
@@ -130,7 +130,7 @@ typedef struct _miyoo_event_t {
         clock_t pre_ticks;
     } pen;
 
-    struct _dev {
+    struct {
         int fd;
         dev_mode_t mode;
     } dev;

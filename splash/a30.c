@@ -1,34 +1,34 @@
 //
-//    NDS Emulator (DraStic) for Miyoo Handheld
+// NDS Emulator (DraStic) for Miyoo Handheld
+// Steward Fu <steward.fu@gmail.com>
 //
-//    This software is provided 'as-is', without any express or implied
-//    warranty.  In no event will the authors be held liable for any damages
-//    arising from the use of this software.
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
 //
-//    Permission is granted to anyone to use this software for any purpose,
-//    including commercial applications, and to alter it and redistribute it
-//    freely, subject to the following restrictions:
-//
-//    1. The origin of this software must not be misrepresented; you must not
-//       claim that you wrote the original software. If you use this software
-//       in a product, an acknowledgment in the product documentation would be
-//       appreciated but is not required.
-//    2. Altered source versions must be plainly marked as such, and must not be
-//       misrepresented as being the original software.
-//    3. This notice may not be removed or altered from any source distribution.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+// 1. The origin of this software must not be misrepresented; you must not claim
+//    that you wrote the original software. If you use this software in a product,
+//    an acknowledgment in the product documentation would be appreciated
+//    but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 //
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
 #include <stdint.h>
-#include <linux/fb.h>
-#include <sys/ioctl.h>
 #include <sys/time.h>
+#include <sys/ioctl.h>
+#include <linux/fb.h>
 #include <linux/rtc.h>
 #include <json-c/json.h>
 
@@ -38,8 +38,8 @@
 #include "hex_a30_en.h"
 #include "hex_a30_cn.h"
 
-#define JSON_PATH   "resources/settings.json"
-#define JSON_LANG   "lang"
+#define JSON_PATH "resources/settings.json"
+#define JSON_LANG "lang"
 #define JSON_SPLASH "splash"
 
 int main(int argc, char *argv[])
@@ -50,10 +50,10 @@ int main(int argc, char *argv[])
     int val = 1;
     int is_en = 1;
     FILE *f = NULL;
-    char buf[255] = {0}; 
+    char buf[255] = { 0 }; 
     SDL_RWops *rw = NULL;
 
-    SDL_Rect rt = {0};
+    SDL_Rect rt = { 0 };
     SDL_Surface *screen = NULL;
     SDL_Window *window = NULL;
     SDL_Texture *texture = NULL;

@@ -9,25 +9,25 @@
 PB_BIND(_display, _display, AUTO)
 
 
-PB_BIND(_display__small, _display__small, AUTO)
+PB_BIND(_display_small, _display_small, AUTO)
 
 
 PB_BIND(_cpu, _cpu, AUTO)
 
 
-PB_BIND(_cpu__freq, _cpu__freq, AUTO)
+PB_BIND(_cpu_freq, _cpu_freq, AUTO)
 
 
-PB_BIND(_cpu__core, _cpu__core, AUTO)
+PB_BIND(_cpu_core, _cpu_core, AUTO)
 
 
 PB_BIND(_pen, _pen, 2)
 
 
-PB_BIND(_pen__show, _pen__show, AUTO)
+PB_BIND(_pen_show, _pen_show, AUTO)
 
 
-PB_BIND(_pen__speed, _pen__speed, AUTO)
+PB_BIND(_pen_speed, _pen_speed, AUTO)
 
 
 PB_BIND(_menu, _menu, 2)
@@ -39,19 +39,19 @@ PB_BIND(_autosave, _autosave, AUTO)
 PB_BIND(_key, _key, AUTO)
 
 
-PB_BIND(_key__swap, _key__swap, AUTO)
+PB_BIND(_key_swap, _key_swap, AUTO)
 
 
 PB_BIND(_joy, _joy, AUTO)
 
 
-PB_BIND(_joy__lr, _joy__lr, AUTO)
+PB_BIND(_joy_lr, _joy_lr, AUTO)
 
 
-PB_BIND(_joy__lr__xy, _joy__lr__xy, AUTO)
+PB_BIND(_joy_lr_xy, _joy_lr_xy, AUTO)
 
 
-PB_BIND(_joy__lr__remap, _joy__lr__remap, AUTO)
+PB_BIND(_joy_lr_remap, _joy_lr_remap, AUTO)
 
 
 PB_BIND(miyoo_settings, miyoo_settings, 2)

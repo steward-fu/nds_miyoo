@@ -1,33 +1,33 @@
 //
-//    NDS Emulator (DraStic) for Miyoo Handheld
+// NDS Emulator (DraStic) for Miyoo Handheld
+// Steward Fu <steward.fu@gmail.com>
 //
-//    This software is provided 'as-is', without any express or implied
-//    warranty. In no event will the authors be held liable for any damages
-//    arising from the use of this software.
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
 //
-//    Permission is granted to anyone to use this software for any purpose,
-//    including commercial applications, and to alter it and redistribute it
-//    freely, subject to the following restrictions:
-//
-//    1. The origin of this software must not be misrepresented; you must not
-//       claim that you wrote the original software. If you use this software
-//       in a product, an acknowledgment in the product documentation would be
-//       appreciated but is not required.
-//    2. Altered source versions must be plainly marked as such, and must not be
-//       misrepresented as being the original software.
-//    3. This notice may not be removed or altered from any source distribution.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+// 1. The origin of this software must not be misrepresented; you must not claim
+//    that you wrote the original software. If you use this software in a product,
+//    an acknowledgment in the product documentation would be appreciated
+//    but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef __DRASTIC_H__
-#define __DRASTIC_H__
+#ifndef __DETOUR_DRASTIC_H__
+#define __DETOUR_DRASTIC_H__
 
     #define MAX_SLOT 20
 
     typedef enum _backup_type_enum {
-        BACKUP_TYPE_NONE   = 0,
-        BACKUP_TYPE_FLASH  = 1,
+        BACKUP_TYPE_NONE = 0,
+        BACKUP_TYPE_FLASH = 1,
         BACKUP_TYPE_EEPROM = 2,
-        BACKUP_TYPE_NAND   = 3
+        BACKUP_TYPE_NAND = 3
     } backup_type_enum;
 
     typedef struct _backup_struct {
@@ -113,25 +113,11 @@
     int invoke_drastic_save_state(int slot);
     int invoke_drastic_load_state(int slot);
 
-    void drastic_initialize_backup(
-        backup_struct *backup,
-        backup_type_enum backup_type,
-        uint8_t *data,
-        uint32_t size,
-        char *path);
+    void drastic_initialize_backup(backup_struct *backup, backup_type_enum backup_type, uint8_t *data, uint32_t size, char *path);
 
-    int32_t drastic_save_state_index(
-        void *system,
-        uint32_t index,
-        uint16_t *snapshot_top,
-        uint16_t *snapshot_bottom);
+    int32_t drastic_save_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom);
 
-    int32_t drastic_load_state_index(
-        void *system,
-        uint32_t index,
-        uint16_t *snapshot_top,
-        uint16_t *snapshot_bottom,
-        uint32_t snapshot_only);
+    int32_t drastic_load_state_index(void *system, uint32_t index, uint16_t *snapshot_top, uint16_t *snapshot_bottom, uint32_t snapshot_only);
 
 #endif
 
